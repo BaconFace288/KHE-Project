@@ -258,6 +258,7 @@ let nearbyBody = null; // body object player is standing near
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
 let introActive = false; // blocks movement/actions during cinematic intro
+if (!window.hasOwnProperty('taskModalActive')) window.taskModalActive = false;
 
 function assignMyTasks() {
     const all = TASKS.map(t => t.id);
@@ -356,14 +357,9 @@ socket.on('roomUpdate', (roomData) => {
     players = roomData.players;
     hostId = roomData.hostId;
     
-    // If we transition to playing
+    // If we transition to playing (e.g. late join or game start)
     if (currentState === 'LOBBY' && roomData.state === 'PLAYING') {
-       currentState = 'PLAYING';
-       if (players[myId]) {
-           myRole = players[myId].role;
-           updateScreenState();
-           if (!introActive) showRoleIntro(myRole);
-       }
+       handleGameStart();
     }
     
     updateLobbyUI();
@@ -389,11 +385,15 @@ socket.on('playerMoved', (data) => {
 });
 
 socket.on('gameStarted', (payload) => {
+    if (currentState === 'PLAYING') return; // already handled by roomUpdate
+    players = payload.players || payload; // fallback for old schema
+    handleGameStart();
+});
+
+function handleGameStart() {
     currentState = 'PLAYING'; 
     updateScreenState();
     
-    // Process the server payload immediately if possible
-    players = payload.players || payload; // fallback for old schema
     bodies = [];
     
     if (players[myId]) {
@@ -402,7 +402,7 @@ socket.on('gameStarted', (payload) => {
         updateScreenState();
         if (!introActive) showRoleIntro(myRole);
     }
-});
+}
 
 socket.on('playerClubbed', (data) => {
     // Support both old string and new object format
@@ -588,6 +588,8 @@ function showLoreModal() {
 }
 
 function showRoleIntro(role) {
+  if (introActive) return; // Guard: prevent overlapping intros causing stuck flags
+  
   const introOverlay = document.getElementById('role-intro');
   const roleNameEl = document.getElementById('intro-role');
   const roleImgEl = document.getElementById('intro-image');
