@@ -714,10 +714,12 @@ function onTaskFullyComplete() {
 
   const task = currentTask;
   setTimeout(() => {
-    task.done = true;
     completedTasks.add(task.id);
     socket.emit('taskComplete', task.id);
+    // Check if this player finished all 7 assigned tasks
+    if (typeof checkTaskWinCondition === 'function') checkTaskWinCondition();
     closeModal();
+
   }, 700);
 }
 
@@ -736,13 +738,15 @@ document.addEventListener('keydown', e => {
 });
 
 // Replace the game.js [F] handler with our modal opener
-// (game.js fires showTaskPrompt which sets shownTaskId — we intercept the F key here at capture phase)
+// Only fire for tasks assigned to this player (myTaskIds)
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyF' && !window.taskModalActive) {
     const me = players && myId && players[myId];
     if (!me || me.isDead) return;
+    const assignedTasks = window.myTaskIds; // set by game.js
     for (let task of TASKS) {
-      if (task.done || completedTasks.has(task.id)) continue;
+      if (assignedTasks && !assignedTasks.has(task.id)) continue; // skip unassigned
+      if (completedTasks.has(task.id)) continue;
       if (Math.hypot(me.x - task.x, me.y - task.y) < 50) {
         window.openTaskModal(task);
         break;

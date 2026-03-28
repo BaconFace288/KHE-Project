@@ -203,13 +203,11 @@ io.on('connection', (socket) => {
         const victim = room.players[targetId];
 
         if (killer && victim && killer.role === 'impostor' && !killer.isDead && !victim.isDead) {
-          // Check distance just in case
           const dx = killer.x - victim.x;
           const dy = killer.y - victim.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 100) {
             victim.isDead = true;
-            // Save death position for body rendering
             victim.deathX = victim.x;
             victim.deathY = victim.y;
             io.to(roomId).emit('playerClubbed', { id: targetId, deathX: victim.deathX, deathY: victim.deathY });
@@ -217,6 +215,28 @@ io.on('connection', (socket) => {
         }
     }
   });
+
+  socket.on('allTasksDone', () => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (room.state !== GAME_STATE.PLAYING) return;
+
+    // Mark this player as tasks-complete
+    if (!room.tasksDone) room.tasksDone = new Set();
+    room.tasksDone.add(socket.id);
+
+    // Check if ALL alive crewmates have finished
+    const aliveCrew = Object.entries(room.players)
+      .filter(([id, p]) => p.role === 'crewmate' && !p.isDead);
+    const allDone = aliveCrew.every(([id]) => room.tasksDone.has(id));
+
+    if (allDone && aliveCrew.length > 0) {
+      room.state = GAME_STATE.GAMEOVER;
+      io.to(roomId).emit('crewmatesWinTasks');
+    }
+  });
+
 });
 
 const PORT = process.env.PORT || 3000;

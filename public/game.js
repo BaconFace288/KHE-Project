@@ -236,8 +236,22 @@ let currentRoomCode = null;
 let currentState = 'MENU';
 let myRole = 'crewmate';
 let hostId = null;
-let completedTasks = new Set();
+let completedTasks = new Set(); // task IDs completed by THIS player
 let bodies = []; // { x, y, color, name, role } - persisted dead body positions
+let myTaskIds = null; // Set of 7 task IDs assigned to this player
+
+function assignMyTasks() {
+    const all = TASKS.map(t => t.id);
+    // Fisher-Yates shuffle then take first 7
+    for (let i = all.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [all[i], all[j]] = [all[j], all[i]];
+    }
+    myTaskIds = new Set(all.slice(0, 7));
+    // Reset completion state for new game
+    completedTasks = new Set();
+    TASKS.forEach(t => { t.done = false; });
+}
 
 // Input Handling
 const keys = { w: false, a: false, s: false, d: false, space: false };
@@ -313,8 +327,10 @@ socket.on('playerMoved', (data) => {
 
 socket.on('gameStarted', (serverPlayers) => {
     players = serverPlayers;
+    bodies = []; // clear bodies from any previous game
     currentState = 'PLAYING';
     myRole = players[myId].role;
+    if (myRole === 'crewmate') assignMyTasks();
     updateScreenState();
 });
 
@@ -336,10 +352,16 @@ socket.on('playerClubbed', (data) => {
     }
 });
 
-socket.on('taskCompleted', ({ taskId }) => {
-    completedTasks.add(taskId);
-    const task = TASKS.find(t => t.id === taskId);
-    if (task) task.done = true;
+socket.on('taskCompleted', ({ taskId, playerId }) => {
+    // Each player manages their own completedTasks locally.
+    // This event is kept for future extension (e.g. shared progress bar).
+});
+
+socket.on('crewmatesWinTasks', () => {
+    currentState = 'GAMEOVER';
+    endText.innerText = '✅ Time Travelers Win! All tasks completed!';
+    endText.style.color = '#2ecc71';
+    updateScreenState();
 });
 
 // ==== Event Listeners ====
@@ -470,14 +492,24 @@ function checkWinCondition() {
     
     if (aliveCrew === 0) {
         currentState = 'GAMEOVER';
-        endText.innerText = "Cavemen Win!";
+        endText.innerText = "Cavemen Win! All Time Travelers eliminated.";
         endText.style.color = "#c0392b";
         updateScreenState();
     } else if (aliveImpostors === 0) {
         currentState = 'GAMEOVER';
-        endText.innerText = "Time Travelers Win!";
+        endText.innerText = "Time Travelers Win! All Cavemen defeated.";
         endText.style.color = "#3498db";
         updateScreenState();
+    }
+}
+
+// Check if ALL alive crewmates have finished their 7 tasks
+function checkTaskWinCondition() {
+    if (myRole !== 'crewmate') return;
+    if (!myTaskIds) return;
+    // If this player has completed all their tasks
+    if (completedTasks.size >= 7) {
+        socket.emit('allTasksDone'); // tell server this crewmate is done
     }
 }
 
@@ -554,11 +586,11 @@ function updateLocalPlayer(dt) {
       }
   }
 
-  // Task proximity detection (only alive crewmates)
-  // The actual [F] press and modal open is handled by minigame.js
-  if (!isGhost && myRole === 'crewmate') {
+  // Task proximity detection (only alive crewmates with assigned tasks)
+  if (!isGhost && myRole === 'crewmate' && myTaskIds) {
     for (let task of TASKS) {
-      if (task.done || completedTasks.has(task.id)) continue;
+      if (!myTaskIds.has(task.id)) continue; // only assigned tasks
+      if (completedTasks.has(task.id)) continue;
       if (Math.hypot(me.x - task.x, me.y - task.y) < 50) {
         showTaskPrompt(task);
         return;
@@ -813,20 +845,37 @@ function drawDeadBody(body) {
 
 // Draw task markers on the map
 function drawTasks() {
+  if (!myTaskIds) return; // tasks not assigned yet
+  const me = players[myId];
+
   for (let task of TASKS) {
-    if (task.done || completedTasks.has(task.id)) continue;
-    const me = players[myId];
+    if (!myTaskIds.has(task.id)) continue; // not assigned to this player
+    if (completedTasks.has(task.id)) {
+      // Draw faint checkmark for completed tasks
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = '#2ecc71';
+      ctx.beginPath();
+      ctx.arc(task.x, task.y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('✓', task.x, task.y + 1);
+      ctx.restore();
+      continue;
+    }
+
     const nearby = me && Math.hypot(me.x - task.x, me.y - task.y) < 50;
     
     ctx.save();
     ctx.translate(task.x, task.y);
-    // Pulsing glow when nearby
     if (nearby) {
       const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.008);
       ctx.shadowColor = '#f1c40f';
       ctx.shadowBlur = 20 * pulse;
     }
-    // Task circle
     ctx.fillStyle = nearby ? '#f1c40f' : '#f39c12';
     ctx.beginPath();
     ctx.arc(0, 0, nearby ? 14 : 10, 0, Math.PI * 2);
@@ -834,7 +883,6 @@ function drawTasks() {
     ctx.strokeStyle = '#e67e22';
     ctx.lineWidth = 2;
     ctx.stroke();
-    // "!" inside
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 12px sans-serif';
     ctx.textAlign = 'center';
@@ -842,30 +890,12 @@ function drawTasks() {
     ctx.fillText('!', 0, 1);
     ctx.restore();
 
-    // Label above
     ctx.save();
     ctx.fillStyle = '#f1c40f';
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     ctx.fillText(task.label, task.x, task.y - 18);
-    ctx.restore();
-  }
-
-  // Draw completed tasks as faint checkmarks
-  for (let task of TASKS) {
-    if (!task.done && !completedTasks.has(task.id)) continue;
-    ctx.save();
-    ctx.globalAlpha = 0.35;
-    ctx.fillStyle = '#2ecc71';
-    ctx.beginPath();
-    ctx.arc(task.x, task.y, 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('✓', task.x, task.y + 1);
     ctx.restore();
   }
 }
@@ -894,11 +924,55 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Render the task prompt (called inside drawGame after restore)
+// Render the task HUD (task prompt + progress bar)
 function drawTaskHUD() {
+  // Progress counter for crewmates
+  if (myRole === 'crewmate' && myTaskIds && currentState === 'PLAYING') {
+    const done = completedTasks.size;
+    const total = 7;
+    const barW = 160;
+    const barH = 14;
+    const bx = 10;
+    const by = 10;
+
+    ctx.save();
+    // Background pill
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, barW + 100, 34, 8);
+    ctx.fill();
+
+    // Label
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`Tasks: ${done} / ${total}`, bx + 8, by + 8);
+
+    // Track
+    ctx.fillStyle = '#2c2c4a';
+    ctx.beginPath();
+    ctx.roundRect(bx + 8, by + 18, barW, barH, 4);
+    ctx.fill();
+
+    // Fill
+    const fillW = Math.min(barW, (done / total) * barW);
+    if (fillW > 0) {
+      const gradient = ctx.createLinearGradient(bx + 8, 0, bx + 8 + barW, 0);
+      gradient.addColorStop(0, '#27ae60');
+      gradient.addColorStop(1, '#2ecc71');
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.roundRect(bx + 8, by + 18, fillW, barH, 4);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // [F] prompt when near a task
   if (!shownTaskId) return;
   const task = TASKS.find(t => t.id === shownTaskId);
-  if (!task || task.done || completedTasks.has(task.id)) return;
+  if (!task || completedTasks.has(task.id)) return;
   
   const cx = canvas.width / 2;
   const cy = canvas.height - 80;
@@ -906,13 +980,13 @@ function drawTaskHUD() {
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,0.75)';
   ctx.beginPath();
-  ctx.roundRect(cx - 140, cy - 22, 280, 44, 10);
+  ctx.roundRect(cx - 150, cy - 22, 300, 44, 10);
   ctx.fill();
   ctx.fillStyle = '#f1c40f';
   ctx.font = 'bold 15px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(`Press [F] to do: ${task.label}`, cx, cy);
+  ctx.fillText(`[F] to start: ${task.label}`, cx, cy);
   ctx.restore();
 }
 
