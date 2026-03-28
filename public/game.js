@@ -910,9 +910,9 @@ function drawGame(time) {
     }
   }
 
-  // Building name signs (outside, above each building's first roof section)
+  // Wooden building signs (placed near exterior doors)
   if (!amIDead) {
-    drawBuildingSigns();
+    drawWoodenSigns();
   }
 
   ctx.restore();
@@ -952,31 +952,65 @@ function drawRoofWindows(r, style, time) {
 }
 
 // =============================================
-// Helper: building name signs on map
+// Helper: wooden signs near doors
 // =============================================
-const BLDG_SIGNS = [
-  { x: 950,  y: 770,  label: 'THE COMPOUND', color: '#f39c12' },
-  { x: 2200, y: 560,  label: 'L-BLOCK',       color: '#00bcd4' },
-  { x: 740,  y: 1960, label: 'THE MAZE',      color: '#ce93d8' },
-  { x: 1650, y: 2560, label: 'LONGHOUSE',     color: '#ff8f00' },
+const WOODEN_SIGNS = [
+  // B1
+  { x: 950,  y: 1475, label: 'THE COMPOUND', color: '#f39c12' },
+  { x: 1690, y: 1250, label: 'THE COMPOUND', color: '#f39c12' },
+  // B2
+  { x: 2470, y: 750,  label: 'L-BLOCK',       color: '#00bcd4' },
+  { x: 2100, y: 1375, label: 'L-BLOCK',       color: '#00bcd4' },
+  // B3
+  { x: 380,  y: 2150, label: 'THE MAZE',      color: '#ce93d8' },
+  { x: 1060, y: 2350, label: 'THE MAZE',      color: '#ce93d8' },
+  // B4
+  { x: 1080, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
+  { x: 2160, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
 ];
-function drawBuildingSigns() {
-  for (let s of BLDG_SIGNS) {
-    // Sign background
-    const tw = s.label.length * 7 + 16;
-    ctx.fillStyle = 'rgba(10,10,20,0.75)';
+
+function drawWoodenSigns() {
+  for (let s of WOODEN_SIGNS) {
+    ctx.save();
+    ctx.translate(s.x, s.y);
+
+    // Sign post
+    ctx.fillStyle = '#3e2723';
+    ctx.fillRect(-3, 0, 6, 25);
+    ctx.strokeStyle = '#1b1100';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-3, 0, 6, 25);
+
+    // Sign board
+    const tw = ctx.measureText(s.label).width + 20;
+    const bh = 22;
+    ctx.fillStyle = '#5d4037';
     ctx.beginPath();
-    ctx.roundRect(s.x - tw/2, s.y - 12, tw, 22, 5);
+    ctx.roundRect(-tw/2, -bh, tw, bh, 3);
     ctx.fill();
-    ctx.strokeStyle = s.color;
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#2d1d19';
+    ctx.lineWidth = 2;
     ctx.stroke();
-    // Text
-    ctx.fillStyle = s.color;
-    ctx.font = 'bold 11px monospace';
+
+    // Wood grain detail on board
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-tw/2 + 5, -bh + 7); ctx.lineTo(tw/2 - 5, -bh + 7);
+    ctx.moveTo(-tw/2 + 8, -bh + 14); ctx.lineTo(tw/2 - 8, -bh + 14);
+    ctx.stroke();
+
+    // Text (carved look)
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetY = 1;
+    ctx.fillStyle = '#efebe9';
+    ctx.font = 'bold 10px Courier New, monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(s.label, s.x, s.y);
+    ctx.fillText(s.label, 0, -bh/2);
+    
+    ctx.restore();
   }
 }
 
