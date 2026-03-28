@@ -7,6 +7,13 @@ const gameUi = document.getElementById('game-ui');
 const endScreen = document.getElementById('end-screen');
 const landingPage = document.getElementById('landing-page');
 const playBtn = document.getElementById('play-btn');
+const infoCaveman = document.getElementById('info-caveman');
+const infoAgent = document.getElementById('info-agent');
+const roleModal = document.getElementById('role-modal');
+const roleModalIcon = document.getElementById('role-modal-icon');
+const roleModalTitle = document.getElementById('role-modal-title');
+const roleModalBody = document.getElementById('role-modal-body');
+const roleModalClose = document.getElementById('role-modal-close');
 
 const playerNameInput = document.getElementById('player-name');
 const roomCodeInput = document.getElementById('room-code-input');
@@ -453,6 +460,10 @@ playBtn.addEventListener('click', () => {
     updateScreenState();
 });
 
+infoCaveman.addEventListener('click', () => showRoleHandbook('impostor'));
+infoAgent.addEventListener('click', () => showRoleHandbook('crewmate'));
+roleModalClose.addEventListener('click', () => { roleModal.classList.add('hidden'); });
+
 actionBtn.addEventListener('click', triggerClub);
 
 // ==== Game Logic ====
@@ -516,6 +527,45 @@ function updateScreenState() {
   else if (currentState === 'GAMEOVER') {
       endScreen.classList.remove('hidden');
   }
+}
+
+function showRoleHandbook(role) {
+    roleModal.classList.remove('hidden');
+    if (role === 'impostor') {
+        roleModalIcon.innerText = '🍖';
+        roleModalTitle.innerText = 'Caveman Strategy';
+        roleModalBody.innerHTML = `
+            <div class="strategy-section">
+                <span class="strategy-title">Objective</span>
+                <p class="strategy-text">You are the primal protector. Your goal is to root out and eliminate the "Metal-Walkers" (Agents) who have invaded your era.</p>
+            </div>
+            <div class="strategy-section">
+                <span class="strategy-title">Primal Combat</span>
+                <p class="strategy-text">Use your <b>Club [Space]</b> to eliminate players. Be careful: swinging has a <b>20-second cooldown</b>. If you miss, you'll be vulnerable and suspicious!</p>
+            </div>
+            <div class="strategy-section">
+                <span class="strategy-title">Stealth & Sabotage</span>
+                <p class="strategy-text">Blend in by pretending to do tasks. Use the terrain to corner Agents alone. Your win condition is to eliminate all Time Travelers.</p>
+            </div>
+        `;
+    } else {
+        roleModalIcon.innerText = '⌚';
+        roleModalTitle.innerText = 'Secret Agent Strategy';
+        roleModalBody.innerHTML = `
+            <div class="strategy-section">
+                <span class="strategy-title">Objective</span>
+                <p class="strategy-text">You are a traveler adrift in the past. Your goal is to complete all technical repairs and survive the hunt to restore the timeline.</p>
+            </div>
+            <div class="strategy-section">
+                <span class="strategy-title">Repairs & Logic</span>
+                <p class="strategy-text">Find locations marked with <b>⚙️</b> and use <b>[E]</b> to perform repairs. You'll need to solve both physical minigames and logic/coding puzzles.</p>
+            </div>
+            <div class="strategy-section">
+                <span class="strategy-title">Survival</span>
+                <p class="strategy-text">Stay in groups. Watch for cavemen who are "faking" tasks or following you too closely. Complete all tasks to win immediately.</p>
+            </div>
+        `;
+    }
 }
 
 function showRoleIntro(role) {

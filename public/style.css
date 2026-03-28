@@ -200,54 +200,92 @@ canvas {
   text-align: center;
 }
 
+/* ROLE INFO ICONS */
 .landing-banner-wrap {
-  width: 100%;
-  max-width: 1300px;
-  aspect-ratio: 21 / 9; /* Cinematic widescreen ratio */
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.95);
-  background: #000;
-  border: 4px solid #1a1a1a;
-  animation: cinematicScale 1.2s ease-out;
+    position: relative; /* Lock the icons to the banner corners */
+}
+
+.info-icon {
+  position: absolute;
+  top: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0,0,0,0.6);
+  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.landing-banner {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Edge-to-edge cinematic fill */
-  display: block;
-  transform: scale(1.01);
-}
-
-.play-btn {
-  background-color: #e74c3c !important; /* Bright Red */
-  font-size: clamp(18px, 4vw, 36px) !important;
-  padding: 20px 100px !important;
-  border-radius: 60px !important;
-  letter-spacing: 8px;
-  margin: 40px auto 0 !important;
-  box-shadow: 0 10px 0 #c0392b;
-  font-weight: 900 !important;
-  color: #fff !important;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-  animation: slideUp 0.8s ease-out;
-  border: none !important;
+  font-size: 24px;
+  font-weight: bold;
   cursor: pointer;
+  z-index: 10;
+  border: 2px solid #fff;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: pulseIcon 2s infinite ease-in-out;
 }
 
-.play-btn:hover {
-  background-color: #2ecc71 !important; /* Light Green */
-  box-shadow: 0 10px 0 #27ae60;
-  transform: translateY(-8px) scale(1.1) !important;
+.info-icon.left { 
+    left: 20px; 
+    color: #e74c3c; 
+    border-color: #e74c3c;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.6);
 }
 
-.play-btn:active {
-  transform: translateY(6px) scale(0.94) !important;
-  box-shadow: 0 2px 0 #27ae60;
+.info-icon.right { 
+    right: 20px; 
+    color: #3498db; 
+    border-color: #3498db;
+    box-shadow: 0 0 10px rgba(52, 152, 219, 0.6);
+}
+
+.info-icon:hover {
+  transform: scale(1.2);
+  background: rgba(0,0,0,0.85);
+  box-shadow: 0 0 20px currentColor; /* Glow with icon color */
+}
+
+/* HANDBOOK MODAL OVERLAY */
+#role-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.modal-body {
+  padding: 24px;
+  max-width: 500px;
+  text-align: left;
+  line-height: 1.6;
+}
+
+.strategy-section {
+  margin-bottom: 20px;
+}
+
+.strategy-title {
+  color: #f39c12;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.strategy-text {
+  color: #bdc3c7;
+  font-size: 16px;
+}
+
+@keyframes pulseIcon {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
 }
 
 @keyframes cinematicScale {
