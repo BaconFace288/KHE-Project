@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Primitive Peer</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="minigame.css">
 </head>
 <body>
   <div id="ui-layer">
@@ -55,7 +56,48 @@
   
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
+  <!-- TASK MINIGAME MODAL -->
+  <div id="task-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="task-icon" id="modal-icon">⚙️</span>
+        <h2 id="modal-title">Task Name</h2>
+        <div class="modal-stage-label" id="modal-stage-label">Stage 1 / 2</div>
+      </div>
+      <div class="modal-progress-bar">
+        <div class="modal-progress-fill" id="modal-progress-fill" style="width:0%"></div>
+      </div>
+
+      <!-- STAGE 1: Minigame -->
+      <div id="minigame-stage">
+        <p id="minigame-instructions" style="color:#bdc3c7; font-size:13px; margin-bottom:12px;"></p>
+        <div id="minigame-canvas-wrap">
+          <!-- dynamic content injected here -->
+        </div>
+        <div class="modal-footer">
+          <button class="modal-cancel-btn" id="modal-close-btn">Cancel</button>
+          <div class="feedback-msg" id="mg-feedback"></div>
+        </div>
+      </div>
+
+      <!-- STAGE 2: Coding Question -->
+      <div id="coding-stage">
+        <div class="lang-badge" id="coding-lang">JavaScript</div>
+        <p id="coding-prompt" style="color:#bdc3c7; font-size:14px; margin-bottom:10px;"></p>
+        <div class="code-block" id="coding-code"></div>
+        <div class="feedback-msg" id="coding-feedback"></div>
+        <div id="coding-answer-area"></div>
+        <div class="modal-footer">
+          <button class="modal-cancel-btn" id="coding-cancel-btn">Cancel</button>
+          <div class="attempt-indicator" id="attempt-indicator"></div>
+          <button class="modal-submit-btn" id="coding-submit-btn">Submit Answer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="game.js"></script>
+  <script src="minigame.js"></script>
 </body>
 </html>

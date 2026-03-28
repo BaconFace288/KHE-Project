@@ -507,6 +507,7 @@ const GHOST_SPEED = 280;
 
 function updateLocalPlayer(dt) {
   if (!players[myId]) return;
+  if (window.taskModalActive) return; // freeze movement during minigame
   const me = players[myId];
   const isGhost = me.isDead;
   
@@ -553,7 +554,8 @@ function updateLocalPlayer(dt) {
       }
   }
 
-  // Task interaction (only alive crewmates)
+  // Task proximity detection (only alive crewmates)
+  // The actual [F] press and modal open is handled by minigame.js
   if (!isGhost && myRole === 'crewmate') {
     for (let task of TASKS) {
       if (task.done || completedTasks.has(task.id)) continue;

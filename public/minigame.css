@@ -1,0 +1,289 @@
+/* ===== Task Modal Overlay ===== */
+#task-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', sans-serif;
+}
+#task-modal.active {
+  display: flex;
+}
+
+.modal-card {
+  background: #1a1a2e;
+  border: 2px solid #f39c12;
+  border-radius: 16px;
+  padding: 28px 32px;
+  width: 520px;
+  max-width: 96vw;
+  box-shadow: 0 0 40px rgba(243, 156, 18, 0.35);
+  color: #ecf0f1;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.modal-header .task-icon { font-size: 26px; }
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #f1c40f;
+  flex: 1;
+}
+.modal-stage-label {
+  font-size: 12px;
+  color: #95a5a6;
+  text-align: right;
+}
+
+/* Progress bar */
+.modal-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #2c2c4a;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.modal-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+/* Minigame canvas area */
+#minigame-canvas-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+  min-height: 200px;
+}
+#minigame-canvas {
+  border-radius: 10px;
+  border: 1px solid #2c2c4a;
+  background: #0f0f23;
+  cursor: pointer;
+  display: block;
+}
+
+/* Minigame DOM-based games */
+.mg-grid {
+  display: grid;
+  gap: 10px;
+  justify-content: center;
+}
+.mg-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  border: 2px solid #444;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  transition: transform 0.1s, filter 0.15s;
+  background: #2c2c4a;
+}
+.mg-btn:hover { transform: scale(1.08); }
+.mg-btn.lit { filter: brightness(2.2); box-shadow: 0 0 16px; }
+.mg-btn.correct { background: #27ae60; border-color: #2ecc71; }
+.mg-btn.wrong   { background: #c0392b; border-color: #e74c3c; }
+
+/* Dial/slider minigame */
+.mg-dial-wrap {
+  width: 100%;
+  padding: 12px 0;
+}
+.mg-dial-track {
+  position: relative;
+  width: 100%;
+  height: 40px;
+  background: #0f0f23;
+  border-radius: 8px;
+  overflow: visible;
+  border: 1px solid #2c2c4a;
+}
+.mg-dial-zone {
+  position: absolute;
+  top: 4px;
+  height: 32px;
+  background: rgba(39,174,96,0.35);
+  border-radius: 4px;
+  border: 1px solid #27ae60;
+  pointer-events: none;
+}
+.mg-dial-handle {
+  position: absolute;
+  top: 4px;
+  width: 24px;
+  height: 32px;
+  background: #f39c12;
+  border-radius: 6px;
+  cursor: ew-resize;
+  transform: translateX(-50%);
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+/* Sort crates minigame */
+.mg-crates {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mg-crate {
+  width: 54px;
+  height: 54px;
+  background: #8B4513;
+  border-radius: 8px;
+  border: 2px solid #A0522D;
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+.mg-crate:hover { transform: scale(1.1); }
+.mg-crate.done  { background: #27ae60; border-color: #2ecc71; cursor: default; }
+.mg-crate.wrong { background: #c0392b; animation: shake 0.3s; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Coding question */
+#coding-stage { display: none; }
+#coding-stage.active { display: block; }
+#minigame-stage.hidden { display: none; }
+
+.code-block {
+  background: #0f0f23;
+  border: 1px solid #2c2c4a;
+  border-radius: 8px;
+  padding: 14px 18px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: #e8e8e8;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+.code-block .err { color: #e74c3c; text-decoration: underline wavy #e74c3c; }
+.code-block .blank {
+  display: inline-block;
+  min-width: 60px;
+  border-bottom: 2px solid #f1c40f;
+  color: #f1c40f;
+}
+.lang-badge {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #2c2c4a;
+  color: #f39c12;
+  margin-bottom: 10px;
+  font-family: monospace;
+}
+
+.mc-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mc-opt {
+  background: #16213e;
+  border: 2px solid #2c2c4a;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  color: #ecf0f1;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mc-opt:hover { border-color: #f39c12; background: #1e3050; }
+.mc-opt.correct { border-color: #27ae60; background: #1a3a2a; color: #2ecc71; }
+.mc-opt.wrong   { border-color: #e74c3c; background: #3a1a1a; color: #e74c3c; }
+
+.blank-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: #0f0f23;
+  border: 2px solid #2c2c4a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f1c40f;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  margin-bottom: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.blank-input:focus { border-color: #f39c12; }
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.modal-submit-btn {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.modal-submit-btn:hover { opacity: 0.88; }
+.modal-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.modal-cancel-btn {
+  background: transparent;
+  color: #7f8c8d;
+  border: 1px solid #7f8c8d;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.modal-cancel-btn:hover { color: #bdc3c7; border-color: #bdc3c7; }
+
+.attempt-indicator {
+  font-size: 13px;
+  color: #e74c3c;
+  font-weight: bold;
+  flex: 1;
+  text-align: right;
+}
+.feedback-msg {
+  font-size: 13px;
+  min-height: 18px;
+  margin-bottom: 6px;
+  color: #e74c3c;
+  font-weight: bold;
+}
