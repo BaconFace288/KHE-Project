@@ -1083,12 +1083,18 @@ function drawPlayer(p, isMe, time) {
 
   // --- Sunglasses ---
   ctx.fillStyle = '#1e1e1e';
-  ctx.beginPath();
-  ctx.roundRect(-8, -21, 16, 5, 2);
-  ctx.fill();
+  // Left lens
+  ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
+  // Right lens
+  ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
+  // Bridge (thinner)
+  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
+  
   // Shine on glasses
   ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(4, -19.5, 1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-4, -19, 1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5, -19, 1, 0, Math.PI * 2); ctx.fill();
 
   // --- Earpiece ---
   ctx.fillStyle = '#dfe6e9';
@@ -1201,9 +1207,10 @@ function drawGhost(p, isMe, time) {
 
   // Draw sunglasses on ghost too
   ctx.fillStyle = '#1e1e1e';
-  ctx.beginPath();
-  ctx.roundRect(-8, -21, 16, 5, 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
+  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
 
   // Faint tie
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
