@@ -20,113 +20,111 @@ const TASK_MINIGAME = {
   t12: 'crates',  // Drop Supply
 };
 
-// ---------- Coding Question Pool ----------
-// type: 'mc' (multiple choice find-the-error)
-//       'blank' (fill in the blank)
+// ---------- Coding Question Pool — ALL multiple choice ----------
 const CODING_QUESTIONS = [
   // ---- JavaScript ----
   {
     lang: 'JavaScript',
-    type: 'mc',
     prompt: 'Find the error in this code:',
     code: 'for (let i = 0; i < 10; i--) {\n  console.log(i);\n}',
-    errorLine: 'i--',
-    options: ['i-- should be i++', 'Missing semicolon', 'console.log is invalid', 'let should be var'],
+    options: ['i-- should be i++', 'Missing semicolon after i--', 'console.log is not valid', 'let should be const'],
     answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'mc',
     prompt: 'What is wrong with this code?',
     code: 'console.log("Hello World);',
-    options: ['Missing closing quote "', 'console.log needs parentheses', 'Semicolon is wrong', 'Nothing — it works fine'],
+    options: ['Missing closing quote "', 'console.log needs square brackets', 'Semicolon is misplaced', 'Nothing — it runs fine'],
     answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'blank',
-    prompt: 'Complete the code to add an item to the end of an array:',
+    prompt: 'Which method adds an item to the END of an array?',
     code: 'const fruits = ["apple", "banana"];\nfruits.___("cherry");',
-    answer: 'push',
-    hint: 'think: shove something onto the end'
+    options: ['push()', 'pop()', 'shift()', 'append()'],
+    answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'blank',
-    prompt: 'Fill in the blank to log to the console:',
-    code: 'console.___(value);',
-    answer: 'log',
-    hint: 'most common debugging function'
+    prompt: 'Which is the correct way to log to the console?',
+    code: '// Print the value of x',
+    options: ['console.log(x)', 'print(x)', 'log.console(x)', 'Console.log(x)'],
+    answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'mc',
     prompt: 'What will this code output?',
     code: 'let x = "5" + 3;\nconsole.log(x);',
-    options: ['"53" (string concat)', '8 (addition)', 'Error', '5.3'],
+    options: ['"53" (string concat)', '8 (number addition)', 'Error — type mismatch', '5.3'],
     answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'blank',
-    prompt: 'Fill in the blank so the loop works correctly:',
+    prompt: 'What goes in the blank to make the loop work correctly?',
     code: 'for (let i = 0; i < arr.length; ___) {\n  console.log(arr[i]);\n}',
-    answer: 'i++',
-    hint: 'increment i each iteration'
+    options: ['i++', 'i--', 'i+1', 'i += 0'],
+    answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'mc',
     prompt: 'Find the bug in this function:',
     code: 'function add(a, b) {\n  return a - b;\n}',
-    options: ['Should be a + b', 'Missing semicolon', 'Parameters need types', 'return is not needed'],
+    options: ['Should be a + b', 'Missing semicolon after return', 'Parameters need type declarations', 'Function name is invalid'],
     answer: 0
   },
   {
     lang: 'JavaScript',
-    type: 'blank',
-    prompt: 'Fill in the blank to get the square root of 25:',
+    prompt: 'Which fills the blank to get the square root of 25?',
     code: 'const result = Math.___(25);',
-    answer: 'sqrt',
-    hint: 'short for square root'
+    options: ['sqrt', 'squareRoot', 'root', 'pow'],
+    answer: 0
+  },
+  {
+    lang: 'JavaScript',
+    prompt: 'What does this code do?',
+    code: 'const arr = [3, 1, 2];\narr.sort();',
+    options: ['Sorts arr alphabetically in place', 'Returns a new sorted array', 'Sorts arr numerically', 'Throws an error'],
+    answer: 0
+  },
+  {
+    lang: 'JavaScript',
+    prompt: 'Which keyword declares a variable that CANNOT be reassigned?',
+    code: '___ PI = 3.14;',
+    options: ['const', 'let', 'var', 'static'],
+    answer: 0
   },
 
   // ---- Python ----
   {
     lang: 'Python',
-    type: 'mc',
     prompt: 'Find the error in this Python code:',
     code: 'for i in range(10)\n    print(i)',
-    options: ['Missing colon after range(10)', 'range() is not valid', 'print needs quotes', 'Wrong indentation'],
+    options: ['Missing colon : after range(10)', 'range() takes no arguments', 'print needs parentheses in Python 2 only', 'Indentation is wrong'],
     answer: 0
   },
   {
     lang: 'Python',
-    type: 'blank',
-    prompt: 'Fill in the blank to print "Hello" in Python:',
-    code: '___("Hello")',
-    answer: 'print',
-    hint: 'the basic output function in Python'
+    prompt: 'Which is the correct way to print in Python 3?',
+    code: '# Output: Hello',
+    options: ['print("Hello")', 'echo("Hello")', 'console.log("Hello")', 'puts("Hello")'],
+    answer: 0
   },
   {
     lang: 'Python',
-    type: 'mc',
-    prompt: 'What is wrong here?',
+    prompt: 'What is wrong with this comparison?',
     code: 'x = 10\nif x = 10:\n    print("yes")',
-    options: ['Should be == not =', 'Missing colon after if', 'print needs brackets', 'x must be a string'],
+    options: ['Should be == not =', 'Missing parentheses around condition', 'print needs double quotes', 'x must be declared first'],
     answer: 0
   },
   {
     lang: 'Python',
-    type: 'blank',
-    prompt: 'Fill in the blank to define a function in Python:',
+    prompt: 'Which keyword defines a function in Python?',
     code: '___ greet(name):\n    print("Hello, " + name)',
-    answer: 'def',
-    hint: 'keyword used to define functions'
+    options: ['def', 'func', 'function', 'define'],
+    answer: 0
   },
   {
     lang: 'Python',
-    type: 'mc',
     prompt: 'What does this code output?',
     code: 'x = [1, 2, 3]\nprint(len(x))',
     options: ['3', '[1,2,3]', '1', 'Error'],
@@ -134,88 +132,134 @@ const CODING_QUESTIONS = [
   },
   {
     lang: 'Python',
-    type: 'blank',
-    prompt: 'Fill in the blank to create a list in Python:',
-    code: 'numbers = ___(1, 2, 3, 4)',
-    answer: 'list',
-    hint: 'the built-in list constructor'
+    prompt: 'Which correctly creates a list in Python?',
+    code: '# A list of numbers 1 to 3',
+    options: ['[1, 2, 3]', '{1, 2, 3}', '(1, 2, 3)', '<1, 2, 3>'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'What is the result of 10 // 3 in Python?',
+    code: 'print(10 // 3)',
+    options: ['3 (integer division)', '3.33', '1 (remainder)', 'Error'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'Which method adds an item to a Python list?',
+    code: 'numbers = [1, 2, 3]\nnumbers.___( 4)',
+    options: ['append()', 'push()', 'add()', 'insert()'],
+    answer: 0
   },
 
   // ---- HTML ----
   {
     lang: 'HTML',
-    type: 'mc',
     prompt: 'Find the error in this HTML:',
     code: '<p>Hello World<p>',
-    options: ['Missing closing /p tag', 'p is not a valid tag', 'Text must be quoted', 'Missing semicolon'],
+    options: ['Should be </p> not <p> at the end', '<p> is not a valid tag', 'Text must be inside quotes', 'Missing a semicolon'],
     answer: 0
   },
   {
     lang: 'HTML',
-    type: 'blank',
-    prompt: 'Fill in the blank to make a button:',
+    prompt: 'Which tag creates a clickable button?',
     code: '<___ id="myBtn">Click Me</___ >',
-    answer: 'button',
-    hint: 'the HTML element for clickable buttons'
+    options: ['<button>', '<click>', '<input>', '<a>'],
+    answer: 0
   },
   {
     lang: 'HTML',
-    type: 'mc',
-    prompt: 'Which attribute links CSS to an HTML page?',
+    prompt: 'Which attribute links an external CSS file?',
     code: '<link rel="stylesheet" ___="style.css">',
     options: ['href', 'src', 'link', 'url'],
+    answer: 0
+  },
+  {
+    lang: 'HTML',
+    prompt: 'What tag is used for the largest heading?',
+    code: '<!-- Page title -->',
+    options: ['<h1>', '<h6>', '<title>', '<header>'],
+    answer: 0
+  },
+  {
+    lang: 'HTML',
+    prompt: 'Which tag creates an unordered list?',
+    code: '<___>\n  <li>Item 1</li>\n</___>',
+    options: ['<ul>', '<ol>', '<list>', '<dl>'],
     answer: 0
   },
 
   // ---- CSS ----
   {
     lang: 'CSS',
-    type: 'mc',
     prompt: 'Find the error in this CSS:',
     code: 'p {\n  color = red;\n}',
-    options: ['Should use : not =', 'Missing semicolon after red', 'p {} is invalid', 'color is not a property'],
+    options: ['Should use colon : not equals =', 'Missing semicolon after red', 'p {} selector is invalid', 'color is not a valid property'],
     answer: 0
   },
   {
     lang: 'CSS',
-    type: 'blank',
-    prompt: 'Fill in the blank to center text in CSS:',
+    prompt: 'Which value centers text horizontally?',
     code: 'p {\n  text-align: ___;\n}',
-    answer: 'center',
-    hint: 'horizontal alignment value'
+    options: ['center', 'middle', 'align', 'justify-center'],
+    answer: 0
   },
   {
     lang: 'CSS',
-    type: 'mc',
-    prompt: 'What does this CSS do?',
+    prompt: 'What does display: none do?',
     code: '.box {\n  display: none;\n}',
-    options: ['Hides the element', 'Makes it invisible but takes space', 'Deletes the element', 'Makes it a flex container'],
+    options: ['Hides element, removes it from layout', 'Makes it invisible but keeps space', 'Deletes the element from DOM', 'Turns it into a flex container'],
+    answer: 0
+  },
+  {
+    lang: 'CSS',
+    prompt: 'Which property changes the font size?',
+    code: 'h1 {\n  ___: 24px;\n}',
+    options: ['font-size', 'text-size', 'font-scale', 'size'],
+    answer: 0
+  },
+  {
+    lang: 'CSS',
+    prompt: 'Which selector targets elements with class "box"?',
+    code: '___ {\n  background: blue;\n}',
+    options: ['.box', '#box', 'box', '*box'],
     answer: 0
   },
 
   // ---- Java ----
   {
     lang: 'Java',
-    type: 'mc',
     prompt: 'Find the error in this Java code:',
     code: 'public class Main {\n  public static void main(String[] args) {\n    System.out.println("Hello"\n  }\n}',
-    options: ['Missing closing parenthesis )', 'println needs quotes', 'Missing public keyword', 'Semicolon error'],
+    options: ['Missing closing parenthesis )', 'println needs double braces', 'Missing public on main', 'String[] should be string[]'],
     answer: 0
   },
   {
     lang: 'Java',
-    type: 'blank',
-    prompt: 'Fill in the blank to print in Java:',
-    code: 'System.out.___(\"Hello World\");',
-    answer: 'println',
-    hint: 'print then move to next line'
+    prompt: 'Which is the correct way to print in Java?',
+    code: '// Print Hello World',
+    options: ['System.out.println("Hi")', 'print("Hi")', 'console.log("Hi")', 'echo "Hi"'],
+    answer: 0
   },
   {
     lang: 'Java',
-    type: 'mc',
     prompt: 'What is wrong with this Java code?',
     code: 'int x = "hello";',
-    options: ['Can\'t assign String to int', 'Missing semicolon', 'int is not valid', 'hello needs quotes'],
+    options: ['Cannot assign a String to an int', 'Missing semicolon', 'int is not a valid type', 'hello needs to be capitalised'],
+    answer: 0
+  },
+  {
+    lang: 'Java',
+    prompt: 'Which keyword creates a constant in Java?',
+    code: '___ int MAX = 100;',
+    options: ['final', 'const', 'static', 'fixed'],
+    answer: 0
+  },
+  {
+    lang: 'Java',
+    prompt: 'What type stores true/false in Java?',
+    code: '___ isAlive = true;',
+    options: ['boolean', 'bool', 'bit', 'flag'],
     answer: 0
   },
 ];
@@ -596,39 +640,23 @@ function renderCodingQuestion(q) {
 
   const answerArea = document.getElementById('coding-answer-area');
   answerArea.innerHTML = '';
-  submitBtn.onclick = null;
+  submitBtn.style.display = 'none'; // all questions are MC, no submit button needed
 
-  if (q.type === 'mc') {
-    const grid = document.createElement('div');
-    grid.className = 'mc-options';
-    q.options.forEach((opt, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'mc-opt';
-      btn.textContent = opt;
-      btn.addEventListener('click', () => checkMCAnswer(i, q, grid));
-      grid.appendChild(btn);
-    });
-    answerArea.appendChild(grid);
-    submitBtn.style.display = 'none';
-  } else {
-    // fill in the blank
-    submitBtn.style.display = '';
-    const inp = document.createElement('input');
-    inp.type = 'text';
-    inp.className = 'blank-input';
-    inp.placeholder = 'Type your answer...';
-    inp.autocomplete = 'off';
-    inp.addEventListener('keydown', e => { if (e.code === 'Enter') checkBlankAnswer(inp.value.trim(), q); });
-    answerArea.appendChild(inp);
-    if (q.hint) {
-      const hint = document.createElement('p');
-      hint.style.cssText = 'font-size:12px;color:#636e72;margin-top:-6px;margin-bottom:8px;';
-      hint.textContent = `Hint: ${q.hint}`;
-      answerArea.appendChild(hint);
-    }
-    submitBtn.onclick = () => checkBlankAnswer(inp.value.trim(), q);
-    setTimeout(() => inp.focus(), 100);
-  }
+  // Shuffle the options but track the correct answer text
+  const correctText = q.options[q.answer];
+  const shuffled = shuffle([...q.options]);
+  const newAnswerIdx = shuffled.indexOf(correctText);
+
+  const grid = document.createElement('div');
+  grid.className = 'mc-options';
+  shuffled.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mc-opt';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => checkMCAnswer(i, { ...q, options: shuffled, answer: newAnswerIdx }, grid));
+    grid.appendChild(btn);
+  });
+  answerArea.appendChild(grid);
 }
 
 function checkMCAnswer(chosen, q, grid) {
