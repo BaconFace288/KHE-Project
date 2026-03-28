@@ -244,6 +244,8 @@ let completedTasks = new Set(); // task IDs completed by THIS player
 let bodies = []; // { x, y, color, name, role } - persisted dead body positions
 let myTaskIds = null; // Set of 7 task IDs assigned to this player
 let nearbyBody = null; // body object player is standing near
+const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
+let lastSwingTime = 0; 
 
 function assignMyTasks() {
     const all = TASKS.map(t => t.id);
@@ -435,6 +437,10 @@ actionBtn.addEventListener('click', triggerClub);
 
 function triggerClub() {
    if (myRole === 'impostor' && players[myId] && !players[myId].isDead) {
+      const now = Date.now();
+      if (now - lastSwingTime < SWING_COOLDOWN) return; // on cooldown
+      
+      lastSwingTime = now;
       swingAnim = 1; 
       
       let closestId = null;
@@ -474,7 +480,7 @@ function updateScreenState() {
   else if (currentState === 'PLAYING') {
       gameUi.classList.remove('hidden');
       
-      roleText.innerText = myRole === 'impostor' ? 'Caveman (Impostor)' : 'Time Traveler (Crewmate)';
+      roleText.innerText = myRole === 'impostor' ? 'Caveman' : 'Time Traveler';
       roleText.style.color = myRole === 'impostor' ? '#c0392b' : '#3498db';
       
       if (myRole === 'impostor') actionBtn.classList.remove('hidden');
@@ -568,6 +574,23 @@ function gameLoop() {
   if (swingAnim > 0) {
       swingAnim -= dt * 5; 
       if (swingAnim < 0) swingAnim = 0;
+  }
+
+  // Update swing button (cooldown indicator)
+  if (myRole === 'impostor' && currentState === 'PLAYING') {
+      const remaining = Math.max(0, SWING_COOLDOWN - (now - lastSwingTime));
+      if (remaining > 0) {
+          const secs = Math.ceil(remaining / 1000);
+          actionBtn.innerText = `COOLDOWN (${secs}s)`;
+          actionBtn.classList.add('cooldown-state');
+          actionBtn.style.opacity = '0.6';
+          actionBtn.style.pointerEvents = 'none';
+      } else {
+          actionBtn.innerText = 'Club [Space]';
+          actionBtn.classList.remove('cooldown-state');
+          actionBtn.style.opacity = '1';
+          actionBtn.style.pointerEvents = 'auto';
+      }
   }
 
   drawGame(now);
