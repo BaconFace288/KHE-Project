@@ -5,6 +5,8 @@ const mainMenu = document.getElementById('main-menu');
 const lobbyScreen = document.getElementById('lobby-screen');
 const gameUi = document.getElementById('game-ui');
 const endScreen = document.getElementById('end-screen');
+const landingPage = document.getElementById('landing-page');
+const playBtn = document.getElementById('play-btn');
 
 const playerNameInput = document.getElementById('player-name');
 const roomCodeInput = document.getElementById('room-code-input');
@@ -237,7 +239,7 @@ function getRoomId(px, py) {
 let players = {};
 let myId = null;
 let currentRoomCode = null;
-let currentState = 'MENU';
+let currentState = 'LANDING';
 let myRole = 'crewmate';
 let hostId = null;
 let completedTasks = new Set(); // task IDs completed by THIS player
@@ -446,6 +448,11 @@ restartBtn.addEventListener('click', () => {
     location.reload(); 
 });
 
+playBtn.addEventListener('click', () => {
+    currentState = 'MENU';
+    updateScreenState();
+});
+
 actionBtn.addEventListener('click', triggerClub);
 
 // ==== Game Logic ====
@@ -481,12 +488,16 @@ function triggerClub() {
 }
 
 function updateScreenState() {
+  landingPage.classList.add('hidden');
   mainMenu.classList.add('hidden');
   lobbyScreen.classList.add('hidden');
   gameUi.classList.add('hidden');
   endScreen.classList.add('hidden');
 
-  if (currentState === 'MENU') {
+  if (currentState === 'LANDING') {
+      landingPage.classList.remove('hidden');
+  }
+  else if (currentState === 'MENU') {
       mainMenu.classList.remove('hidden');
   } 
   else if (currentState === 'LOBBY') {

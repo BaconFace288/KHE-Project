@@ -171,3 +171,60 @@ canvas {
 .fade-out {
   animation: fadeOutIntro 1s forwards !important;
 }
+/* LANDING PAGE SPECIFICS */
+#landing-page {
+  max-width: 800px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeInLanding 0.8s ease-out;
+}
+
+.landing-title {
+  font-size: 48px;
+  margin: 0;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.landing-banner-wrap {
+  width: 100%;
+  border: 4px solid #34495e;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  background: #111;
+}
+
+.landing-banner {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.play-btn {
+  background-color: #e74c3c !important; /* Bright Red */
+  font-size: 28px !important;
+  padding: 15px 60px !important;
+  border-radius: 50px !important;
+  letter-spacing: 4px;
+  margin: 20px auto 0 !important;
+  box-shadow: 0 6px 0 #c0392b;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.play-btn:hover {
+  background-color: #2ecc71 !important; /* Light Green */
+  box-shadow: 0 6px 0 #27ae60;
+  transform: translateY(-4px) scale(1.05) !important;
+}
+
+.play-btn:active {
+  transform: translateY(2px) scale(0.98) !important;
+  box-shadow: 0 2px 0 #27ae60;
+}
+
+@keyframes fadeInLanding {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
