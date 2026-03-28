@@ -1073,93 +1073,145 @@ function drawPlayer(p, isMe, time) {
   ctx.translate(p.x, p.y - bob);
   if (p.flipX) ctx.scale(-1, 1);
 
-  ctx.fillStyle = p.color;
+  // --- Head (peach/skin tone) ---
+  ctx.fillStyle = '#ffdbac';
   ctx.beginPath();
-  ctx.arc(0, -10, 16, Math.PI, 0);
-  ctx.lineTo(16, 10);
-  ctx.arc(0, 10, 16, 0, Math.PI);
-  ctx.closePath();
+  ctx.arc(0, -18, 12, 0, Math.PI * 2);
   ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#000';
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
   ctx.stroke();
 
+  // --- Sunglasses ---
+  ctx.fillStyle = '#1e1e1e';
+  ctx.beginPath();
+  ctx.roundRect(-8, -21, 16, 5, 2);
+  ctx.fill();
+  // Shine on glasses
+  ctx.fillStyle = 'white';
+  ctx.beginPath(); ctx.arc(4, -19.5, 1, 0, Math.PI * 2); ctx.fill();
+
+  // --- Earpiece ---
+  ctx.fillStyle = '#dfe6e9';
+  ctx.beginPath();
+  ctx.arc(p.flipX ? 10 : -10, -18, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#636e72'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(p.flipX ? 10 : -10, -16);
+  ctx.bezierCurveTo(p.flipX ? 12 : -12, -12, p.flipX ? 8 : -8, -10, p.flipX ? 10 : -10, -8);
+  ctx.stroke();
+
+  // --- Suit Body (p.color is the suit color) ---
+  ctx.fillStyle = p.color;
+  ctx.beginPath();
+  ctx.roundRect(-14, -8, 28, 24, 6);
+  ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // --- Shirt & Tie (V-neck look) ---
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.moveTo(-6, -8);
+  ctx.lineTo(6, -8);
+  ctx.lineTo(0, 4);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#000'; // black tie
+  ctx.beginPath();
+  ctx.moveTo(-1.5, -8);
+  ctx.lineTo(1.5, -8);
+  ctx.lineTo(0, 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // Foot movement (simplistic agent walking)
+  if (p.isMoving) {
+    const footBob = Math.sin(time * 0.02) * 4;
+    ctx.fillStyle = '#333';
+    ctx.fillRect(-10, 16 + footBob, 8, 5); // left foot
+    ctx.fillRect(2, 16 - footBob, 8, 5);  // right foot
+  } else {
+    ctx.fillStyle = '#333';
+    ctx.fillRect(-10, 16, 8, 5);
+    ctx.fillRect(2, 16, 8, 5);
+  }
+
+  // --- Role Specific: Impostor Sword/Club ---
   if (p.role === 'impostor') {
-      ctx.fillStyle = '#8e44ad';
-      ctx.fillRect(-16, 0, 32, 12);
       ctx.save();
-      ctx.translate(15, 5);
+      ctx.translate(14, 5);
       if (isMe && swingAnim > 0) ctx.rotate(Math.PI / 2 * swingAnim);
       else ctx.rotate(-Math.PI / 6);
-      ctx.fillStyle = '#8B4513';
-      ctx.beginPath();
-      ctx.arc(0, -20, 6, 0, Math.PI*2);
-      ctx.lineTo(-3, 0); ctx.lineTo(-6, -20);
-      ctx.lineTo(6, -20); ctx.lineTo(3, 0);
-      ctx.fill(); ctx.stroke();
+      
+      // Slick silver baton instead of wooden club
+      ctx.fillStyle = '#bdc3c7';
+      ctx.fillRect(-3, -24, 6, 24);
+      ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 1;
+      ctx.strokeRect(-3, -24, 6, 24);
+      // Glow on baton
+      ctx.shadowColor = '#3498db'; ctx.shadowBlur = 6;
+      ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
+      ctx.fillRect(-3, -24, 6, 24);
       ctx.restore();
-      ctx.fillStyle = '#000';
-      ctx.fillRect(2, -12, 10, 3);
-      ctx.beginPath(); ctx.arc(5, -8, 2, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(10, -8, 2, 0, Math.PI*2); ctx.fill();
-  } else {
-      ctx.fillStyle = '#3498db';
-      ctx.beginPath(); ctx.roundRect(0, -15, 18, 12, 4); ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-      ctx.fillStyle = '#7f8c8d';
-      ctx.fillRect(-22, -8, 8, 20); ctx.strokeRect(-22, -8, 8, 20);
-      ctx.fillStyle = '#1abc9c';
-      ctx.beginPath(); ctx.arc(-18, 5, 2, 0, Math.PI*2); ctx.fill();
   }
+  
   ctx.restore();
 
+  // Nametag
   ctx.fillStyle = 'white';
-  ctx.font = '12px sans-serif';
+  ctx.font = 'bold 12px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(p.name, p.x, p.y - 45 - bob);
+  ctx.fillText(p.name, p.x, p.y - 48 - bob);
 }
 
 // Draw the ghost (dead player that can still move)
 function drawGhost(p, isMe, time) {
-  const bob = Math.sin(Date.now() * 0.003) * 4;
+  const bob = Math.sin(Date.now() * 0.003) * 6;
   ctx.save();
   ctx.translate(p.x, p.y + bob);
   if (p.flipX) ctx.scale(-1, 1);
   ctx.globalAlpha = 0.55;
 
-  // Ghostly white body
-  ctx.fillStyle = '#dfe6e9';
+  // --- Spectral Body (suit tinted ghost) ---
+  ctx.fillStyle = '#dfe6e9'; // ghostly base
   ctx.beginPath();
-  ctx.arc(0, -10, 16, Math.PI, 0);
-  ctx.lineTo(16, 14);
-  ctx.arc(10, 10, 6, 0, Math.PI);
-  ctx.arc(0,  10, 6, 0, Math.PI);
-  ctx.arc(-10,10, 6, 0, Math.PI);
+  ctx.arc(0, -18, 12, 0, Math.PI * 2); // Head
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(-14, -8, 28, 18, { tl: 6, tr: 6, bl: 0, br: 0 }); // Upper jacket
+  ctx.fill();
+
+  // Wisp tail instead of legs
+  ctx.beginPath();
+  ctx.moveTo(-14, 10);
+  ctx.bezierCurveTo(-14, 25, 0, 35, 10, 25);
+  ctx.bezierCurveTo(20, 15, 0, 15, 0, 10);
   ctx.closePath();
   ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#b2bec3';
-  ctx.stroke();
 
-  // X eyes
-  ctx.globalAlpha = 0.8;
-  ctx.strokeStyle = '#636e72';
-  ctx.lineWidth = 2;
-  const drawX = (ox, oy) => {
-    ctx.beginPath(); ctx.moveTo(ox-4, oy-4); ctx.lineTo(ox+4, oy+4); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ox+4, oy-4); ctx.lineTo(ox-4, oy+4); ctx.stroke();
-  };
-  drawX(-6, -12); drawX(6, -12);
+  // Draw sunglasses on ghost too
+  ctx.fillStyle = '#1e1e1e';
+  ctx.beginPath();
+  ctx.roundRect(-8, -21, 16, 5, 2);
+  ctx.fill();
+
+  // Faint tie
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath();
+  ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 0); ctx.closePath();
+  ctx.fill();
 
   ctx.restore();
 
-  // Ghost nametag (only visible to dead players — caller filters)
+  // Ghost nametag
   ctx.save();
-  ctx.globalAlpha = 0.7;
-  ctx.fillStyle = '#dfe6e9';
-  ctx.font = '11px sans-serif';
+  ctx.globalAlpha = 0.75;
+  ctx.fillStyle = '#b2bec3';
+  ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('👻 ' + p.name, p.x, p.y - 38 + bob);
+  ctx.fillText('👻 ' + p.name, p.x, p.y - 42 + bob);
   ctx.restore();
 }
 
@@ -1167,36 +1219,43 @@ function drawGhost(p, isMe, time) {
 function drawDeadBody(body) {
   ctx.save();
   ctx.translate(body.x, body.y);
-  ctx.rotate(Math.PI / 2); // lay on side
+  ctx.rotate(Math.PI / 2.2); // flat on ground
 
-  ctx.fillStyle = body.color;
-  ctx.beginPath();
-  ctx.arc(0, -10, 16, Math.PI, 0);
-  ctx.lineTo(16, 10);
-  ctx.arc(0, 10, 16, 0, Math.PI);
-  ctx.closePath();
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#000';
-  ctx.stroke();
+  // Agent head with X eyes
+  ctx.fillStyle = '#ffdbac';
+  ctx.beginPath(); ctx.arc(0, -18, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
 
-  // X eyes
-  ctx.fillStyle = '#000';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
   const drawX = (ox, oy) => {
-    ctx.beginPath(); ctx.moveTo(ox-3,oy-3); ctx.lineTo(ox+3,oy+3); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ox+3,oy-3); ctx.lineTo(ox-3,oy+3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox-3, oy-3); ctx.lineTo(ox+3, oy+3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+3, oy-3); ctx.lineTo(ox-3, oy+3); ctx.stroke();
   };
-  drawX(-6, -12); drawX(6, -12);
+  drawX(-4, -20); drawX(4, -20);
+
+  // Agent suit
+  ctx.fillStyle = body.color;
+  ctx.beginPath(); ctx.roundRect(-14, -8, 28, 24, 6); ctx.fill();
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Shirt/Tie
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath();
+  ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(-1, -8); ctx.lineTo(1, -8); ctx.lineTo(0, 0);
+  ctx.closePath(); ctx.fill();
+
   ctx.restore();
 
-  // Name label above corpse
+  // Name tag
   ctx.save();
   ctx.fillStyle = '#e74c3c';
   ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('💀 ' + body.name, body.x, body.y - 28);
+  ctx.fillText('💀 ' + body.name, body.x, body.y - 34);
   ctx.restore();
 }
 
