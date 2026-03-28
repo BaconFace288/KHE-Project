@@ -31,6 +31,77 @@ const ctx = canvas.getContext('2d');
 const MAP_WIDTH = 3000;
 const MAP_HEIGHT = 3000;
 
+// === Map Obstacles ===
+const WT = 20; // Wall thickness
+const DW = 80; // Door width
+const buildings = [
+  { id: "B1", x: 800, y: 800, w: 400, h: 400, roofColor: '#34495e', door: { side: 'bottom', offset: 160 } },
+  { id: "B2", x: 2000, y: 1800, w: 500, h: 350, roofColor: '#2c3e50', door: { side: 'left', offset: 135 } },
+  { id: "B3", x: 1800, y: 1200, w: 250, h: 250, roofColor: '#7f8c8d', door: { side: 'top', offset: 85 } }
+];
+
+const walls = [];
+buildings.forEach(b => {
+    // Top
+    if (b.door.side === 'top') {
+        walls.push({ x: b.x, y: b.y, w: b.door.offset, h: WT });
+        walls.push({ x: b.x + b.door.offset + DW, y: b.y, w: b.w - (b.door.offset + DW), h: WT });
+    } else { walls.push({ x: b.x, y: b.y, w: b.w, h: WT }); }
+
+    // Bottom
+    if (b.door.side === 'bottom') {
+        walls.push({ x: b.x, y: b.y + b.h - WT, w: b.door.offset, h: WT });
+        walls.push({ x: b.x + b.door.offset + DW, y: b.y + b.h - WT, w: b.w - (b.door.offset + DW), h: WT });
+    } else { walls.push({ x: b.x, y: b.y + b.h - WT, w: b.w, h: WT }); }
+
+    // Left
+    if (b.door.side === 'left') {
+        walls.push({ x: b.x, y: b.y, w: WT, h: b.door.offset });
+        walls.push({ x: b.x, y: b.y + b.door.offset + DW, w: WT, h: b.h - (b.door.offset + DW) });
+    } else { walls.push({ x: b.x, y: b.y, w: WT, h: b.h }); }
+
+    // Right
+    if (b.door.side === 'right') {
+        walls.push({ x: b.x + b.w - WT, y: b.y, w: WT, h: b.door.offset });
+        walls.push({ x: b.x + b.w - WT, y: b.y + b.door.offset + DW, w: WT, h: b.h - (b.door.offset + DW) });
+    } else { walls.push({ x: b.x + b.w - WT, y: b.y, w: WT, h: b.h }); }
+});
+
+const pits = [
+  { x: 1000, y: 1500, r: 80 },
+  { x: 1600, y: 2200, r: 100 },
+  { x: 2200, y: 800, r: 60 }
+];
+
+function collidesWithWall(px, py, pr) {
+    for (let w of walls) {
+        let testX = px; let testY = py;
+        if (px < w.x) testX = w.x; else if (px > w.x + w.w) testX = w.x + w.w;
+        if (py < w.y) testY = w.y; else if (py > w.y + w.h) testY = w.y + w.h;
+        let distX = px - testX; let distY = py - testY;
+        if (Math.sqrt((distX*distX) + (distY*distY)) <= pr) return true;
+    }
+    return false;
+}
+
+function collidesWithPit(px, py, pr) {
+    for (let p of pits) {
+        if (Math.hypot(px - p.x, py - p.y) < p.r + pr) return true;
+    }
+    return false;
+}
+
+function getBuildingId(px, py) {
+    for (let b of buildings) {
+        // slightly inside the walls to trigger roof disappear
+        if (px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h) {
+            return b.id;
+        }
+    }
+    return null;
+}
+// ==========================
+
 // Game State
 let players = {};
 let myId = null;
@@ -300,11 +371,24 @@ function updateLocalPlayer(dt) {
     const length = Math.hypot(dx, dy);
     dx /= length; dy /= length;
     
-    players[myId].x += dx * SPEED * dt;
-    players[myId].y += dy * SPEED * dt;
+    let newX = players[myId].x;
+    let newY = players[myId].y;
     
-    players[myId].x = Math.max(20, Math.min(MAP_WIDTH - 20, players[myId].x));
-    players[myId].y = Math.max(20, Math.min(MAP_HEIGHT - 20, players[myId].y));
+    if (dx !== 0) {
+        newX += dx * SPEED * dt;
+        if (collidesWithWall(newX, players[myId].y, 16) || collidesWithPit(newX, players[myId].y, 16)) {
+            newX = players[myId].x; 
+        }
+    }
+    if (dy !== 0) {
+        newY += dy * SPEED * dt;
+        if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16)) {
+            newY = players[myId].y;
+        }
+    }
+    
+    players[myId].x = Math.max(20, Math.min(MAP_WIDTH - 20, newX));
+    players[myId].y = Math.max(20, Math.min(MAP_HEIGHT - 20, newY));
     
     players[myId].isMoving = true;
     if (dx < 0) players[myId].flipX = true;
@@ -361,11 +445,43 @@ function drawGame(time) {
   ctx.strokeStyle = '#1abc9c';
   ctx.lineWidth = 10;
   ctx.strokeRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+  
+  // Draw Pits
+  ctx.fillStyle = '#0f0f0f';
+  for (let p of pits) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = '#2d1a11';
+      ctx.lineWidth = 5;
+      ctx.stroke();
+  }
+
+  // Draw Walls (interiors)
+  ctx.fillStyle = '#95a5a6';
+  for (let w of walls) {
+      ctx.fillRect(w.x, w.y, w.w, w.h);
+      ctx.strokeStyle = '#7f8c8d';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(w.x, w.y, w.w, w.h);
+  }
 
   for (let id in players) {
     drawPlayer(players[id], id === myId, time);
   }
   
+  // Draw Roofs for Vision Blocking
+  let myBId = me ? getBuildingId(me.x, me.y) : null;
+  for (let b of buildings) {
+      if (b.id !== myBId) {
+          ctx.fillStyle = b.roofColor;
+          ctx.fillRect(b.x - 5, b.y - 5, b.w + 10, b.h + 10);
+      } else {
+          ctx.fillStyle = 'rgba(0,0,0,0.1)';
+          ctx.fillRect(b.x, b.y, b.w, b.h);
+      }
+  }
+
   ctx.restore();
 }
 
