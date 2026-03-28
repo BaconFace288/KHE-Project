@@ -203,7 +203,7 @@ canvas {
 .landing-banner-wrap {
   width: 100%;
   max-width: 1300px;
-  max-height: 55vh;
+  aspect-ratio: 21 / 9; /* Cinematic widescreen ratio */
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 30px 80px rgba(0,0,0,0.95);
@@ -218,7 +218,7 @@ canvas {
 .landing-banner {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* Ensures the whole battle is visible head-to-toe */
+  object-fit: cover; /* Edge-to-edge cinematic fill */
   display: block;
   transform: scale(1.01);
 }
