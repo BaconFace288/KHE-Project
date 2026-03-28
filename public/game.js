@@ -1246,18 +1246,41 @@ function drawGhost(p, isMe, time) {
   ctx.save();
   ctx.translate(p.x, p.y + bob);
   if (p.flipX) ctx.scale(-1, 1);
-  ctx.globalAlpha = 0.55;
+  ctx.globalAlpha = 0.45; // slightly more transparent
 
-  // --- Spectral Body (suit tinted ghost) ---
-  ctx.fillStyle = '#dfe6e9'; // ghostly base
+  // --- Head ---
+  ctx.fillStyle = '#dfe6e9'; // ghostly skin
   ctx.beginPath();
-  ctx.arc(0, -18, 12, 0, Math.PI * 2); // Head
-  ctx.fill();
-  ctx.beginPath();
-  ctx.roundRect(-14, -8, 28, 18, { tl: 6, tr: 6, bl: 0, br: 0 }); // Upper jacket
+  ctx.arc(0, -18, 12, 0, Math.PI * 2);
   ctx.fill();
 
-  // Wisp tail instead of legs
+  // --- Spectral Suit Jacket (desaturated p.color) ---
+  // Simple desaturation by mixing with white/grey
+  ctx.fillStyle = p.color;
+  ctx.globalAlpha = 0.3; // extra faint for the jacket color
+  ctx.beginPath();
+  ctx.roundRect(-14, -8, 28, 20, { tl: 6, tr: 6, bl: 0, br: 0 });
+  ctx.fill();
+  
+  ctx.globalAlpha = 0.45; // reset for the rest
+  ctx.fillStyle = '#dfe6e9';
+  ctx.beginPath();
+  ctx.roundRect(-14, -8, 28, 18, { tl: 6, tr: 6, bl: 0, br: 0 }); // ghostly overlay
+  ctx.fill();
+
+  // --- Shirt & Tie (ghostly) ---
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath();
+  ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4); ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.beginPath();
+  ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
+  ctx.fill();
+
+  // --- Wisp tail ---
+  ctx.fillStyle = '#dfe6e9';
   ctx.beginPath();
   ctx.moveTo(-14, 10);
   ctx.bezierCurveTo(-14, 25, 0, 35, 10, 25);
@@ -1265,24 +1288,18 @@ function drawGhost(p, isMe, time) {
   ctx.closePath();
   ctx.fill();
 
-  // Draw sunglasses on ghost too
+  // --- Sunglasses ---
   ctx.fillStyle = '#1e1e1e';
   ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
   ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
   ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
 
-  // Faint tie
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.beginPath();
-  ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 0); ctx.closePath();
-  ctx.fill();
-
   ctx.restore();
 
   // Ghost nametag
   ctx.save();
-  ctx.globalAlpha = 0.75;
+  ctx.globalAlpha = 0.7;
   ctx.fillStyle = '#b2bec3';
   ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';

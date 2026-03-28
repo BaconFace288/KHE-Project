@@ -174,7 +174,7 @@ function showResult(data) {
 
   voteResultEl.style.display = 'block';
   if (data.eliminated) {
-    voteResultEl.textContent = `🚀 ${data.eliminatedName} was ejected!`;
+    voteResultEl.textContent = `🚀 ${data.eliminatedName} was killed!`;
     voteResultEl.style.color = '#e74c3c';
     const row = document.getElementById(`vrow-${data.eliminated}`);
     if (row) row.classList.add('ejected');
@@ -190,7 +190,7 @@ function showResult(data) {
       }
     }
   } else {
-    voteResultEl.textContent = 'No one was ejected. (Tie or skip)';
+    voteResultEl.textContent = 'No one was killed. (Tie or skip)';
     voteResultEl.style.color = '#95a5a6';
   }
 

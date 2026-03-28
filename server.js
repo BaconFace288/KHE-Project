@@ -48,14 +48,16 @@ function endMeeting(roomId) {
   // Teleport all alive players to spawn circle around the button
   const aliveIds = Object.keys(room.players).filter(id => !room.players[id].isDead);
   const spawnPositions = {};
-  aliveIds.forEach((id, i) => {
-    const angle = (i / aliveIds.length) * Math.PI * 2;
-    const sx = Math.round(1500 + Math.cos(angle) * 200);
-    const sy = Math.round(1500 + Math.sin(angle) * 200);
-    room.players[id].x = sx;
-    room.players[id].y = sy;
-    spawnPositions[id] = { x: sx, y: sy };
-  });
+  if (aliveIds.length > 0) {
+    aliveIds.forEach((id, i) => {
+      const angle = (i / aliveIds.length) * Math.PI * 2;
+      const sx = Math.round(1500 + Math.cos(angle) * 200);
+      const sy = Math.round(1500 + Math.sin(angle) * 200);
+      room.players[id].x = sx;
+      room.players[id].y = sy;
+      spawnPositions[id] = { x: sx, y: sy };
+    });
+  }
 
   io.to(roomId).emit('meetingResult', {
     eliminated,
