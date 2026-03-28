@@ -151,6 +151,25 @@ const pits = [
   createLumpyPit(1600, 1800, 80)
 ];
 
+// === Tasks for Time Travelers ===
+const TASKS = [
+  // Inside buildings
+  { id: 't1', x: 900,  y: 1100, label: '⚙️ Fix Relay',       done: false }, // B1_A
+  { id: 't2', x: 1350, y: 1250, label: '🔋 Charge Battery',  done: false }, // B1_B
+  { id: 't3', x: 2100, y: 720,  label: '📡 Align Dish',      done: false }, // B2_A
+  { id: 't4', x: 2080, y: 1100, label: '🧪 Mix Solution',    done: false }, // B2_B
+  { id: 't5', x: 600,  y: 2100, label: '🔌 Restore Power',   done: false }, // B3_A
+  { id: 't6', x: 860,  y: 2100, label: '💾 Upload Data',     done: false }, // B3_B
+  { id: 't7', x: 1340, y: 2690, label: '🌡️ Cool Reactor',    done: false }, // B4_A
+  // Near a pit
+  { id: 't8', x: 1050, y: 490,  label: '⚠️ Seal Pit Crack',  done: false }, // near pit[1]
+  // Outside buildings
+  { id: 't9',  x: 400,  y: 600,  label: '🌿 Collect Samples', done: false },
+  { id: 't10', x: 2200, y: 1700, label: '🗺️ Survey Zone',     done: false },
+  { id: 't11', x: 700,  y: 2800, label: '🪨 Mark Boundary',   done: false },
+  { id: 't12', x: 2600, y: 1200, label: '📦 Drop Supply',     done: false },
+];
+
 function collidesWithWall(px, py, pr) {
     for (let w of walls) {
         let testX = px; let testY = py;
@@ -217,6 +236,8 @@ let currentRoomCode = null;
 let currentState = 'MENU';
 let myRole = 'crewmate';
 let hostId = null;
+let completedTasks = new Set();
+let bodies = []; // { x, y, color, name, role } - persisted dead body positions
 
 // Input Handling
 const keys = { w: false, a: false, s: false, d: false, space: false };
@@ -297,11 +318,28 @@ socket.on('gameStarted', (serverPlayers) => {
     updateScreenState();
 });
 
-socket.on('playerClubbed', (id) => {
+socket.on('playerClubbed', (data) => {
+    // Support both old string and new object format
+    const id = typeof data === 'string' ? data : data.id;
     if (players[id]) {
-      players[id].isDead = true;
+      const p = players[id];
+      // Save the body at the location of death
+      bodies.push({
+        x: typeof data === 'object' && data.deathX !== undefined ? data.deathX : p.x,
+        y: typeof data === 'object' && data.deathY !== undefined ? data.deathY : p.y,
+        color: p.color,
+        name: p.name,
+        role: p.role
+      });
+      p.isDead = true;
       checkWinCondition();
     }
+});
+
+socket.on('taskCompleted', ({ taskId }) => {
+    completedTasks.add(taskId);
+    const task = TASKS.find(t => t.id === taskId);
+    if (task) task.done = true;
 });
 
 // ==== Event Listeners ====
@@ -465,9 +503,12 @@ function gameLoop() {
 }
 
 const SPEED = 200;
+const GHOST_SPEED = 280;
 
 function updateLocalPlayer(dt) {
-  if (!players[myId] || players[myId].isDead) return;
+  if (!players[myId]) return;
+  const me = players[myId];
+  const isGhost = me.isDead;
   
   let dx = 0; let dy = 0;
   if (keys.w) dy -= 1;
@@ -478,46 +519,50 @@ function updateLocalPlayer(dt) {
   if (dx !== 0 || dy !== 0) {
     const length = Math.hypot(dx, dy);
     dx /= length; dy /= length;
+    const speed = isGhost ? GHOST_SPEED : SPEED;
     
-    let newX = players[myId].x;
-    let newY = players[myId].y;
+    let newX = me.x;
+    let newY = me.y;
     
-    if (dx !== 0) {
-        newX += dx * SPEED * dt;
-        if (collidesWithWall(newX, players[myId].y, 16) || collidesWithPit(newX, players[myId].y, 16)) {
-            newX = players[myId].x; 
-        }
-    }
-    if (dy !== 0) {
-        newY += dy * SPEED * dt;
-        if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16)) {
-            newY = players[myId].y;
-        }
-    }
-    
-    players[myId].x = Math.max(20, Math.min(MAP_WIDTH - 20, newX));
-    players[myId].y = Math.max(20, Math.min(MAP_HEIGHT - 20, newY));
-    
-    players[myId].isMoving = true;
-    if (dx < 0) players[myId].flipX = true;
-    else if (dx > 0) players[myId].flipX = false;
-    
-    socket.emit('playerMovement', {
-        x: players[myId].x, 
-        y: players[myId].y,
-        flipX: players[myId].flipX,
-        isMoving: true
-    });
-  } else {
-      if (players[myId].isMoving) {
-          players[myId].isMoving = false;
-          socket.emit('playerMovement', {
-              x: players[myId].x, 
-              y: players[myId].y,
-              flipX: players[myId].flipX,
-              isMoving: false
-          });
+    if (isGhost) {
+      // Ghosts pass through everything
+      newX += dx * speed * dt;
+      newY += dy * speed * dt;
+    } else {
+      if (dx !== 0) {
+          newX += dx * speed * dt;
+          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16)) newX = me.x;
       }
+      if (dy !== 0) {
+          newY += dy * speed * dt;
+          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16)) newY = me.y;
+      }
+    }
+    
+    me.x = Math.max(20, Math.min(MAP_WIDTH - 20, newX));
+    me.y = Math.max(20, Math.min(MAP_HEIGHT - 20, newY));
+    me.isMoving = true;
+    if (dx < 0) me.flipX = true;
+    else if (dx > 0) me.flipX = false;
+    
+    socket.emit('playerMovement', { x: me.x, y: me.y, flipX: me.flipX, isMoving: true });
+  } else {
+      if (me.isMoving) {
+          me.isMoving = false;
+          socket.emit('playerMovement', { x: me.x, y: me.y, flipX: me.flipX, isMoving: false });
+      }
+  }
+
+  // Task interaction (only alive crewmates)
+  if (!isGhost && myRole === 'crewmate') {
+    for (let task of TASKS) {
+      if (task.done || completedTasks.has(task.id)) continue;
+      if (Math.hypot(me.x - task.x, me.y - task.y) < 50) {
+        showTaskPrompt(task);
+        return;
+      }
+    }
+    hideTaskPrompt();
   }
 }
 
@@ -585,16 +630,40 @@ function drawGame(time) {
   }
 
   for (let id in players) {
-    drawPlayer(players[id], id === myId, time);
+    const p = players[id];
+    const isMe = id === myId;
+    const amIDead = players[myId] && players[myId].isDead;
+    // Ghosts are only visible to dead players (or themselves)
+    if (p.isDead && !amIDead && !isMe) continue;
+    if (!p.isDead) {
+      drawPlayer(p, isMe, time);
+    } else {
+      drawGhost(p, isMe, time);
+    }
+  }
+
+  // Draw dead bodies (always visible to everyone)
+  for (let body of bodies) {
+    drawDeadBody(body);
+  }
+  
+  // Draw tasks (only for alive crewmates and ghosts of crewmates)
+  if (myRole === 'crewmate' || (players[myId] && players[myId].isDead)) {
+    drawTasks();
   }
   
   // Draw Roofs for Vision Blocking (Fog of War)
-  let myRoomId = me ? getRoomId(me.x, me.y) : null;
+  // Ghosts see through all roofs
+  const amIDead = me && me.isDead;
+  let myRoomId = (!amIDead && me) ? getRoomId(me.x, me.y) : null;
   for (let r of roofs) {
-      if (r.id !== myRoomId) {
+      if (amIDead) {
+          // Ghost: draw roof at 15% opacity so map is still visible but distinct
+          ctx.fillStyle = 'rgba(0,0,0,0.15)';
+          ctx.fillRect(r.x, r.y, r.w, r.h);
+      } else if (r.id !== myRoomId) {
           ctx.fillStyle = r.color;
-          // exact floor dimensions to preserve external wall visibility
-          ctx.fillRect(r.x, r.y, r.w, r.h); 
+          ctx.fillRect(r.x, r.y, r.w, r.h);
       } else {
           ctx.fillStyle = 'rgba(0,0,0,0.1)';
           ctx.fillRect(r.x, r.y, r.w, r.h);
@@ -602,33 +671,16 @@ function drawGame(time) {
   }
 
   ctx.restore();
+
+  // Task HUD is drawn in screen-space (after world restore)
+  drawTaskHUD();
 }
 
 function drawPlayer(p, isMe, time) {
-  ctx.save();
-  ctx.translate(p.x, p.y);
-  
-  if (p.flipX) ctx.scale(-1, 1);
-  
-  if (p.isDead) {
-      ctx.globalAlpha = 0.5;
-      ctx.fillStyle = '#ecf0f1';
-      ctx.beginPath();
-      ctx.arc(0, 0, 15, Math.PI, 0);
-      ctx.lineTo(15, 20); ctx.lineTo(8, 15); ctx.lineTo(0, 20);
-      ctx.lineTo(-8, 15); ctx.lineTo(-15, 20);
-      ctx.closePath();
-      ctx.fill();
-      
-      ctx.fillStyle = 'black';
-      ctx.beginPath(); ctx.arc(5, -5, 3, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(-5, -5, 3, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
-      return;
-  }
-
   let bob = p.isMoving ? Math.abs(Math.sin(time * 0.01)) * 5 : 0;
-  ctx.translate(0, -bob);
+  ctx.save();
+  ctx.translate(p.x, p.y - bob);
+  if (p.flipX) ctx.scale(-1, 1);
 
   ctx.fillStyle = p.color;
   ctx.beginPath();
@@ -644,20 +696,17 @@ function drawPlayer(p, isMe, time) {
   if (p.role === 'impostor') {
       ctx.fillStyle = '#8e44ad';
       ctx.fillRect(-16, 0, 32, 12);
-      
       ctx.save();
       ctx.translate(15, 5);
       if (isMe && swingAnim > 0) ctx.rotate(Math.PI / 2 * swingAnim);
       else ctx.rotate(-Math.PI / 6);
-      
       ctx.fillStyle = '#8B4513';
       ctx.beginPath();
-      ctx.arc(0, -20, 6, 0, Math.PI*2); ctx.arc(0, 0, 3, 0, Math.PI*2);
+      ctx.arc(0, -20, 6, 0, Math.PI*2);
       ctx.lineTo(-3, 0); ctx.lineTo(-6, -20);
       ctx.lineTo(6, -20); ctx.lineTo(3, 0);
       ctx.fill(); ctx.stroke();
       ctx.restore();
-      
       ctx.fillStyle = '#000';
       ctx.fillRect(2, -12, 10, 3);
       ctx.beginPath(); ctx.arc(5, -8, 2, 0, Math.PI*2); ctx.fill();
@@ -666,20 +715,203 @@ function drawPlayer(p, isMe, time) {
       ctx.fillStyle = '#3498db';
       ctx.beginPath(); ctx.roundRect(0, -15, 18, 12, 4); ctx.fill();
       ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-      
       ctx.fillStyle = '#7f8c8d';
       ctx.fillRect(-22, -8, 8, 20); ctx.strokeRect(-22, -8, 8, 20);
-      
       ctx.fillStyle = '#1abc9c';
       ctx.beginPath(); ctx.arc(-18, 5, 2, 0, Math.PI*2); ctx.fill();
   }
-  
   ctx.restore();
 
   ctx.fillStyle = 'white';
   ctx.font = '12px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(p.name, p.x, p.y - 45 - bob);
+}
+
+// Draw the ghost (dead player that can still move)
+function drawGhost(p, isMe, time) {
+  const bob = Math.sin(Date.now() * 0.003) * 4;
+  ctx.save();
+  ctx.translate(p.x, p.y + bob);
+  if (p.flipX) ctx.scale(-1, 1);
+  ctx.globalAlpha = 0.55;
+
+  // Ghostly white body
+  ctx.fillStyle = '#dfe6e9';
+  ctx.beginPath();
+  ctx.arc(0, -10, 16, Math.PI, 0);
+  ctx.lineTo(16, 14);
+  ctx.arc(10, 10, 6, 0, Math.PI);
+  ctx.arc(0,  10, 6, 0, Math.PI);
+  ctx.arc(-10,10, 6, 0, Math.PI);
+  ctx.closePath();
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#b2bec3';
+  ctx.stroke();
+
+  // X eyes
+  ctx.globalAlpha = 0.8;
+  ctx.strokeStyle = '#636e72';
+  ctx.lineWidth = 2;
+  const drawX = (ox, oy) => {
+    ctx.beginPath(); ctx.moveTo(ox-4, oy-4); ctx.lineTo(ox+4, oy+4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+4, oy-4); ctx.lineTo(ox-4, oy+4); ctx.stroke();
+  };
+  drawX(-6, -12); drawX(6, -12);
+
+  ctx.restore();
+
+  // Ghost nametag (only visible to dead players — caller filters)
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+  ctx.fillStyle = '#dfe6e9';
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('👻 ' + p.name, p.x, p.y - 38 + bob);
+  ctx.restore();
+}
+
+// Draw a sideways corpse at the death location
+function drawDeadBody(body) {
+  ctx.save();
+  ctx.translate(body.x, body.y);
+  ctx.rotate(Math.PI / 2); // lay on side
+
+  ctx.fillStyle = body.color;
+  ctx.beginPath();
+  ctx.arc(0, -10, 16, Math.PI, 0);
+  ctx.lineTo(16, 10);
+  ctx.arc(0, 10, 16, 0, Math.PI);
+  ctx.closePath();
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#000';
+  ctx.stroke();
+
+  // X eyes
+  ctx.fillStyle = '#000';
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 2;
+  const drawX = (ox, oy) => {
+    ctx.beginPath(); ctx.moveTo(ox-3,oy-3); ctx.lineTo(ox+3,oy+3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+3,oy-3); ctx.lineTo(ox-3,oy+3); ctx.stroke();
+  };
+  drawX(-6, -12); drawX(6, -12);
+  ctx.restore();
+
+  // Name label above corpse
+  ctx.save();
+  ctx.fillStyle = '#e74c3c';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('💀 ' + body.name, body.x, body.y - 28);
+  ctx.restore();
+}
+
+// Draw task markers on the map
+function drawTasks() {
+  for (let task of TASKS) {
+    if (task.done || completedTasks.has(task.id)) continue;
+    const me = players[myId];
+    const nearby = me && Math.hypot(me.x - task.x, me.y - task.y) < 50;
+    
+    ctx.save();
+    ctx.translate(task.x, task.y);
+    // Pulsing glow when nearby
+    if (nearby) {
+      const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.008);
+      ctx.shadowColor = '#f1c40f';
+      ctx.shadowBlur = 20 * pulse;
+    }
+    // Task circle
+    ctx.fillStyle = nearby ? '#f1c40f' : '#f39c12';
+    ctx.beginPath();
+    ctx.arc(0, 0, nearby ? 14 : 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#e67e22';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // "!" inside
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('!', 0, 1);
+    ctx.restore();
+
+    // Label above
+    ctx.save();
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(task.label, task.x, task.y - 18);
+    ctx.restore();
+  }
+
+  // Draw completed tasks as faint checkmarks
+  for (let task of TASKS) {
+    if (!task.done && !completedTasks.has(task.id)) continue;
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = '#2ecc71';
+    ctx.beginPath();
+    ctx.arc(task.x, task.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✓', task.x, task.y + 1);
+    ctx.restore();
+  }
+}
+
+// === Task UI ===
+let shownTaskId = null;
+function showTaskPrompt(task) {
+  if (shownTaskId === task.id) return;
+  shownTaskId = task.id;
+  // Show a quick F-key prompt on the canvas (drawn next frame)
+}
+function hideTaskPrompt() {
+  shownTaskId = null;
+}
+
+// Override keydown for task interaction
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyF' && shownTaskId) {
+    const task = TASKS.find(t => t.id === shownTaskId);
+    if (task && !task.done && !completedTasks.has(task.id)) {
+      task.done = true;
+      completedTasks.add(task.id);
+      socket.emit('taskComplete', task.id);
+      shownTaskId = null;
+    }
+  }
+});
+
+// Render the task prompt (called inside drawGame after restore)
+function drawTaskHUD() {
+  if (!shownTaskId) return;
+  const task = TASKS.find(t => t.id === shownTaskId);
+  if (!task || task.done || completedTasks.has(task.id)) return;
+  
+  const cx = canvas.width / 2;
+  const cy = canvas.height - 80;
+  
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.75)';
+  ctx.beginPath();
+  ctx.roundRect(cx - 140, cy - 22, 280, 44, 10);
+  ctx.fill();
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`Press [F] to do: ${task.label}`, cx, cy);
+  ctx.restore();
 }
 
 requestAnimationFrame(gameLoop);

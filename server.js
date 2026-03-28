@@ -132,14 +132,24 @@ io.on('connection', (socket) => {
     const roomId = socket.roomId;
     if (roomId && rooms[roomId] && rooms[roomId].players[socket.id]) {
         const room = rooms[roomId];
-        room.players[socket.id].x = movementData.x;
-        room.players[socket.id].y = movementData.y;
-        room.players[socket.id].flipX = movementData.flipX;
-        room.players[socket.id].isMoving = movementData.isMoving;
+        const player = room.players[socket.id];
+        player.x = movementData.x;
+        player.y = movementData.y;
+        player.flipX = movementData.flipX;
+        player.isMoving = movementData.isMoving;
         
         // emit to all other players in the room
-        socket.to(roomId).emit('playerMoved', { id: socket.id, player: room.players[socket.id] });
+        socket.to(roomId).emit('playerMoved', { id: socket.id, player });
     }
+  });
+
+  socket.on('taskComplete', (taskId) => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (!room.completedTasks) room.completedTasks = new Set();
+    room.completedTasks.add(taskId);
+    io.to(roomId).emit('taskCompleted', { taskId, playerId: socket.id });
   });
 
   socket.on('startGame', () => {
@@ -199,7 +209,10 @@ io.on('connection', (socket) => {
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 100) {
             victim.isDead = true;
-            io.to(roomId).emit('playerClubbed', targetId);
+            // Save death position for body rendering
+            victim.deathX = victim.x;
+            victim.deathY = victim.y;
+            io.to(roomId).emit('playerClubbed', { id: targetId, deathX: victim.deathX, deathY: victim.deathY });
           }
         }
     }
