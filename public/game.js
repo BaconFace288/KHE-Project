@@ -154,9 +154,39 @@ function collidesWithWall(px, py, pr) {
     return false;
 }
 
+function isPointInPolygon(px, py, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        let xi = poly[i].x, yi = poly[i].y;
+        let xj = poly[j].x, yj = poly[j].y;
+        let intersect = ((yi > py) !== (yj > py))
+            && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+function distToSegmentSquared(px, py, vx, vy, wx, wy) {
+    let l2 = (wx - vx) * (wx - vx) + (wy - vy) * (wy - vy);
+    if (l2 === 0) return (px - vx) * (px - vx) + (py - vy) * (py - vy);
+    let t = ((px - vx) * (wx - vx) + (py - vy) * (wy - vy)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return (px - (vx + t * (wx - vx))) ** 2 + (py - (vy + t * (wy - vy))) ** 2;
+}
+
 function collidesWithPit(px, py, pr) {
     for (let p of pits) {
-        if (Math.hypot(px - p.x, py - p.y) < p.r + pr) return true;
+        if (!p.points) continue;
+        
+        // Quick bounds check (p.r is roughly 80% of original radius scaling)
+        if (Math.hypot(px - p.x, py - p.y) > p.r * 2 + pr) continue;
+
+        if (isPointInPolygon(px, py, p.points)) return true;
+
+        for (let i = 0, j = p.points.length - 1; i < p.points.length; j = i++) {
+            let distSq = distToSegmentSquared(px, py, p.points[j].x, p.points[j].y, p.points[i].x, p.points[i].y);
+            if (distSq <= pr * pr) return true;
+        }
     }
     return false;
 }
