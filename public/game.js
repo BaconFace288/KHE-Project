@@ -956,17 +956,17 @@ function drawRoofWindows(r, style, time) {
 // =============================================
 const WOODEN_SIGNS = [
   // B1
-  { x: 950,  y: 1475, label: 'THE COMPOUND', color: '#f39c12' },
-  { x: 1690, y: 1250, label: 'THE COMPOUND', color: '#f39c12' },
+  { x: 950,  y: 1500, label: 'THE COMPOUND', color: '#f39c12' },
+  { x: 1720, y: 1250, label: 'THE COMPOUND', color: '#f39c12' },
   // B2
-  { x: 2470, y: 750,  label: 'L-BLOCK',       color: '#00bcd4' },
-  { x: 2100, y: 1375, label: 'L-BLOCK',       color: '#00bcd4' },
+  { x: 2510, y: 750,  label: 'L-BLOCK',       color: '#00bcd4' },
+  { x: 2100, y: 1400, label: 'L-BLOCK',       color: '#00bcd4' },
   // B3
-  { x: 380,  y: 2150, label: 'THE MAZE',      color: '#ce93d8' },
-  { x: 1060, y: 2350, label: 'THE MAZE',      color: '#ce93d8' },
+  { x: 340,  y: 2150, label: 'THE MAZE',      color: '#ce93d8' },
+  { x: 1100, y: 2350, label: 'THE MAZE',      color: '#ce93d8' },
   // B4
-  { x: 1080, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
-  { x: 2160, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
+  { x: 1040, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
+  { x: 2200, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
 ];
 
 function drawWoodenSigns() {
@@ -976,13 +976,14 @@ function drawWoodenSigns() {
 
     // Sign post
     ctx.fillStyle = '#3e2723';
-    ctx.fillRect(-3, 0, 6, 25);
+    ctx.fillRect(-2, 0, 4, 30); // taller and thinner post
     ctx.strokeStyle = '#1b1100';
     ctx.lineWidth = 1;
-    ctx.strokeRect(-3, 0, 6, 25);
+    ctx.strokeRect(-2, 0, 4, 30);
 
     // Sign board
-    const tw = ctx.measureText(s.label).width + 20;
+    ctx.font = 'bold 10px Courier New, monospace'; // set font first for measurement
+    const tw = ctx.measureText(s.label).width + 10;
     const bh = 22;
     ctx.fillStyle = '#5d4037';
     ctx.beginPath();
