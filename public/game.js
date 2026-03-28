@@ -36,21 +36,21 @@ const WT = 20; // Wall thickness
 const DW = 100; // Door width
 
 const roofs = [
-  // B1 (The Compound)
+  // B1 (The Compound) - Shift B inward to reveal 1100x1120 inner wall
   { id: 'B1_A', x: 800, y: 800, w: 300, h: 600, color: '#34495e' },
-  { id: 'B1_B', x: 1100, y: 1100, w: 500, h: 300, color: '#2c3e50' },
-  // B2 (L-Block)
+  { id: 'B1_B', x: 1120, y: 1100, w: 480, h: 300, color: '#2c3e50' },
+  // B2 (L-Block) - Shift B down to reveal 900x920 inner wall
   { id: 'B2_A', x: 2000, y: 600, w: 400, h: 300, color: '#7f8c8d' },
-  { id: 'B2_B', x: 2000, y: 900, w: 200, h: 400, color: '#95a5a6' },
-  // B3 (Maze Block)
-  { id: 'B3_A', x: 500, y: 2000, w: 250, h: 250, color: '#8e44ad' },
-  { id: 'B3_B', x: 750, y: 2000, w: 250, h: 250, color: '#9b59b6' },
-  { id: 'B3_C', x: 500, y: 2250, w: 250, h: 250, color: '#8e44ad' },
-  { id: 'B3_D', x: 750, y: 2250, w: 250, h: 250, color: '#9b59b6' },
-  // B4 (Longhouse)
-  { id: 'B4_A', x: 1200, y: 2600, w: 300, h: 200, color: '#e67e22' },
-  { id: 'B4_B', x: 1500, y: 2600, w: 300, h: 200, color: '#d35400' },
-  { id: 'B4_C', x: 1800, y: 2600, w: 300, h: 200, color: '#e67e22' }
+  { id: 'B2_B', x: 2000, y: 920, w: 200, h: 380, color: '#95a5a6' },
+  // B3 (Maze Block) - Shrink all to reveal 740x760 and 2240x2260 inner crosses
+  { id: 'B3_A', x: 500, y: 2000, w: 240, h: 240, color: '#8e44ad' },
+  { id: 'B3_B', x: 760, y: 2000, w: 240, h: 240, color: '#9b59b6' },
+  { id: 'B3_C', x: 500, y: 2260, w: 240, h: 240, color: '#8e44ad' },
+  { id: 'B3_D', x: 760, y: 2260, w: 240, h: 240, color: '#9b59b6' },
+  // B4 (Longhouse) - Slicing at 1490x1510 and 1790x1810 inner walls
+  { id: 'B4_A', x: 1200, y: 2600, w: 290, h: 200, color: '#e67e22' },
+  { id: 'B4_B', x: 1510, y: 2600, w: 280, h: 200, color: '#d35400' },
+  { id: 'B4_C', x: 1810, y: 2600, w: 290, h: 200, color: '#e67e22' }
 ];
 
 const walls = [
@@ -201,7 +201,8 @@ function collidesWithPit(px, py, pr) {
 
 function getRoomId(px, py) {
     for (let r of roofs) {
-        if (px > r.x && px < r.x + r.w && py > r.y && py < r.y + r.h) {
+        // give a 20px padding (WT) to the room detection so doorways count as being inside the room
+        if (px > r.x - 20 && px < r.x + r.w + 20 && py > r.y - 20 && py < r.y + r.h + 20) {
             return r.id;
         }
     }
