@@ -279,6 +279,7 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyE' && currentState === 'PLAYING' && !window.taskModalActive) {
     const me = players[myId];
     if (!me || me.isDead || !nearbyBody) return;
+    if (nearbyBody.ejected || nearbyBody.reported) return; // safety guard
     socket.emit('callMeeting', { type: 'report', bodyName: nearbyBody.name });
   }
   // [Q] = Emergency meeting (must be near button)
@@ -630,9 +631,11 @@ function updateLocalPlayer(dt) {
   }
 
   // Body proximity (for [E] report) — alive non-ghost players only
+  // Skip ejected (voted-out) bodies and already-reported bodies
   nearbyBody = null;
   if (!isGhost) {
     for (let body of bodies) {
+      if (body.ejected || body.reported) continue; // cannot report these
       if (Math.hypot(me.x - body.x, me.y - body.y) < 60) {
         nearbyBody = body;
         break;

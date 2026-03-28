@@ -57,6 +57,12 @@ function openMeeting(data) {
     flashEl.classList.remove('active');
     showVoteScreen(data);
   }, 2500);
+
+  // Mark the reported body immediately so no one can re-report it
+  if (data.type === 'report' && data.bodyName) {
+    const b = bodies.find(bd => bd.name === data.bodyName && !bd.ejected);
+    if (b) b.reported = true;
+  }
 }
 
 function showVoteScreen(data) {
@@ -179,7 +185,8 @@ function showResult(data) {
       const bx = data.deathX ?? p.x;
       const by = data.deathY ?? p.y;
       if (!bodies.some(b => b.name === p.name && Math.hypot(b.x-bx, b.y-by) < 5)) {
-        bodies.push({ x: bx, y: by, color: p.color, name: p.name, role: p.role });
+        // ejected:true means this body was voted out and cannot be reported
+        bodies.push({ x: bx, y: by, color: p.color, name: p.name, role: p.role, ejected: true });
       }
     }
   } else {
