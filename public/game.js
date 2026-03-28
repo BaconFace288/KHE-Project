@@ -367,13 +367,17 @@ socket.on('playerMoved', (data) => {
 });
 
 socket.on('gameStarted', (serverPlayers) => {
-    players = serverPlayers;
-    bodies = []; // clear bodies from any previous game
-    currentState = 'PLAYING';
-    myRole = players[myId].role;
-    if (myRole === 'crewmate') assignMyTasks();
-    updateScreenState();
-    showRoleIntro(myRole);
+    // Short delay to ensure roomUpdate state has finished processing data
+    setTimeout(() => {
+        players = serverPlayers;
+        bodies = []; // clear bodies from any previous game
+        currentState = 'PLAYING';
+        myRole = players[myId].role;
+        if (myRole === 'crewmate') assignMyTasks();
+        
+        updateScreenState();
+        if (!introActive) showRoleIntro(myRole);
+    }, 50);
 });
 
 socket.on('playerClubbed', (data) => {
