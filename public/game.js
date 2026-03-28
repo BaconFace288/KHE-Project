@@ -312,7 +312,13 @@ canvas.addEventListener('click', (e) => {
 
 // ==== Socket Events ====
 
-socket.on('connect', () => { myId = socket.id; });
+socket.on('connect', () => { 
+    myId = socket.id; 
+    // Auto re-join if we were already in a room (tab backgrounding/refresh)
+    if (currentRoomCode && myName) {
+        socket.emit('joinRoom', { code: currentRoomCode, name: myName });
+    }
+});
 
 socket.on('joinError', (msg) => {
     errorMsg.innerText = msg;
@@ -724,11 +730,16 @@ function drawGame(time) {
 
   const me = players[myId];
   let camX = 0, camY = 0;
+  
   if (me) {
      camX = me.x - canvas.width / 2;
      camY = me.y - canvas.height / 2;
      camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camX));
      camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camY));
+  } else if (currentState === 'PLAYING') {
+      // If we are playing but 'me' is missing (reconnecting), draw centered on last known or map center
+      camX = 1500 - canvas.width / 2;
+      camY = 1500 - canvas.height / 2;
   }
   
   ctx.save();
