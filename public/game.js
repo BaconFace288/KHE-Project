@@ -1504,29 +1504,14 @@ function drawTasks() {
   }
 }
 
-// === Task UI ===
-let shownTaskId = null;
+// Task UI transition logic (prompts/hides)
 function showTaskPrompt(task) {
   if (shownTaskId === task.id) return;
   shownTaskId = task.id;
-  // Show a quick F-key prompt on the canvas (drawn next frame)
 }
 function hideTaskPrompt() {
   shownTaskId = null;
 }
-
-// Override keydown for task interaction
-document.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyF' && shownTaskId) {
-    const task = TASKS.find(t => t.id === shownTaskId);
-    if (task && !task.done && !completedTasks.has(task.id)) {
-      task.done = true;
-      completedTasks.add(task.id);
-      socket.emit('taskComplete', task.id);
-      shownTaskId = null;
-    }
-  }
-});
 
 // Render the task HUD (task prompt + progress bar)
 function drawTaskHUD() {
