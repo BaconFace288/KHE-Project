@@ -33,44 +33,114 @@ const MAP_HEIGHT = 3000;
 
 // === Map Obstacles ===
 const WT = 20; // Wall thickness
-const DW = 80; // Door width
-const buildings = [
-  { id: "B1", x: 800, y: 800, w: 400, h: 400, roofColor: '#34495e', door: { side: 'bottom', offset: 160 } },
-  { id: "B2", x: 2000, y: 1800, w: 500, h: 350, roofColor: '#2c3e50', door: { side: 'left', offset: 135 } },
-  { id: "B3", x: 1800, y: 1200, w: 250, h: 250, roofColor: '#7f8c8d', door: { side: 'top', offset: 85 } }
+const DW = 100; // Door width
+
+const roofs = [
+  // B1 (The Compound)
+  { id: 'B1_A', x: 800, y: 800, w: 300, h: 600, color: '#34495e' },
+  { id: 'B1_B', x: 1100, y: 1100, w: 500, h: 300, color: '#2c3e50' },
+  // B2 (L-Block)
+  { id: 'B2_A', x: 2000, y: 600, w: 400, h: 300, color: '#7f8c8d' },
+  { id: 'B2_B', x: 2000, y: 900, w: 200, h: 400, color: '#95a5a6' },
+  // B3 (Maze Block)
+  { id: 'B3_A', x: 500, y: 2000, w: 250, h: 250, color: '#8e44ad' },
+  { id: 'B3_B', x: 750, y: 2000, w: 250, h: 250, color: '#9b59b6' },
+  { id: 'B3_C', x: 500, y: 2250, w: 250, h: 250, color: '#8e44ad' },
+  { id: 'B3_D', x: 750, y: 2250, w: 250, h: 250, color: '#9b59b6' },
+  // B4 (Longhouse)
+  { id: 'B4_A', x: 1200, y: 2600, w: 300, h: 200, color: '#e67e22' },
+  { id: 'B4_B', x: 1500, y: 2600, w: 300, h: 200, color: '#d35400' },
+  { id: 'B4_C', x: 1800, y: 2600, w: 300, h: 200, color: '#e67e22' }
 ];
 
-const walls = [];
-buildings.forEach(b => {
-    // Top
-    if (b.door.side === 'top') {
-        walls.push({ x: b.x, y: b.y, w: b.door.offset, h: WT });
-        walls.push({ x: b.x + b.door.offset + DW, y: b.y, w: b.w - (b.door.offset + DW), h: WT });
-    } else { walls.push({ x: b.x, y: b.y, w: b.w, h: WT }); }
+const walls = [
+  // B1 Walls
+  { x: 800-WT, y: 800-WT, w: 300+2*WT, h: WT },
+  { x: 800-WT, y: 800, w: WT, h: 600 },
+  { x: 800-WT, y: 1400, w: 100, h: WT }, 
+  { x: 900+DW, y: 1400, w: 200+WT-DW, h: WT },
+  { x: 1100, y: 800, w: WT, h: 300 },
+  { x: 1100, y: 1100, w: WT, h: 100 },
+  { x: 1100, y: 1200+DW, w: WT, h: 200-DW },
+  { x: 1100+WT, y: 1100-WT, w: 200, h: WT },
+  { x: 1300+DW+WT, y: 1100-WT, w: 300-DW-WT, h: WT },
+  { x: 1600, y: 1100-WT, w: WT, h: 300+2*WT },
+  { x: 1100+WT, y: 1400, w: 500, h: WT },
 
-    // Bottom
-    if (b.door.side === 'bottom') {
-        walls.push({ x: b.x, y: b.y + b.h - WT, w: b.door.offset, h: WT });
-        walls.push({ x: b.x + b.door.offset + DW, y: b.y + b.h - WT, w: b.w - (b.door.offset + DW), h: WT });
-    } else { walls.push({ x: b.x, y: b.y + b.h - WT, w: b.w, h: WT }); }
+  // B2 Walls 
+  { x: 2000-WT, y: 600-WT, w: 400+2*WT, h: WT },
+  { x: 2000-WT, y: 600, w: WT, h: 300 },
+  { x: 2400, y: 600, w: WT, h: 100 },
+  { x: 2400, y: 700+DW, w: WT, h: 200-DW },
+  { x: 2000-WT, y: 900, w: WT, h: WT },
+  { x: 2000, y: 900, w: 100, h: WT },
+  { x: 2100+DW, y: 900, w: 300-DW+WT, h: WT },
+  { x: 2000-WT, y: 900+WT, w: WT, h: 400 },
+  { x: 2200, y: 900+WT, w: WT, h: 400 },
+  { x: 2000-WT, y: 1300, w: 100+WT, h: WT },
+  { x: 2100+DW, y: 1300, w: 100, h: WT },
+  
+  // B3 Walls 
+  { x: 500-WT, y: 2000-WT, w: 500+2*WT, h: WT },
+  { x: 500-WT, y: 2500, w: 500+2*WT, h: WT },
+  { x: 500-WT, y: 2000, w: WT, h: 100 },
+  { x: 500-WT, y: 2100+DW, w: WT, h: 400-DW },
+  { x: 1000, y: 2000, w: WT, h: 300 },
+  { x: 1000, y: 2300+DW, w: WT, h: 200-DW },
+  { x: 500, y: 2250-WT/2, w: 100, h: WT },
+  { x: 600+DW, y: 2250-WT/2, w: 400-DW, h: WT },
+  { x: 750-WT/2, y: 2000, w: WT, h: 100 },
+  { x: 750-WT/2, y: 2100+DW, w: WT, h: 400-DW },
 
-    // Left
-    if (b.door.side === 'left') {
-        walls.push({ x: b.x, y: b.y, w: WT, h: b.door.offset });
-        walls.push({ x: b.x, y: b.y + b.door.offset + DW, w: WT, h: b.h - (b.door.offset + DW) });
-    } else { walls.push({ x: b.x, y: b.y, w: WT, h: b.h }); }
+  // B4 Walls
+  { x: 1200-WT, y: 2600-WT, w: 900+2*WT, h: WT },
+  { x: 1200-WT, y: 2800, w: 900+2*WT, h: WT },
+  { x: 1200-WT, y: 2600, w: WT, h: 50 },
+  { x: 1200-WT, y: 2650+DW, w: WT, h: 150-DW },
+  { x: 2100, y: 2600, w: WT, h: 50 },
+  { x: 2100, y: 2650+DW, w: WT, h: 150-DW },
+  { x: 1500-WT/2, y: 2600, w: WT, h: 50 },
+  { x: 1500-WT/2, y: 2650+DW, w: WT, h: 150-DW },
+  { x: 1800-WT/2, y: 2600, w: WT, h: 50 },
+  { x: 1800-WT/2, y: 2650+DW, w: WT, h: 150-DW }
+];
 
-    // Right
-    if (b.door.side === 'right') {
-        walls.push({ x: b.x + b.w - WT, y: b.y, w: WT, h: b.door.offset });
-        walls.push({ x: b.x + b.w - WT, y: b.y + b.door.offset + DW, w: WT, h: b.h - (b.door.offset + DW) });
-    } else { walls.push({ x: b.x + b.w - WT, y: b.y, w: WT, h: b.h }); }
-});
+const doors = [
+  { x: 900, y: 1400-WT, w: DW, h: WT*3 }, 
+  { x: 1300+WT, y: 1100-WT*2, w: DW, h: WT*3 }, 
+  { x: 1100-WT, y: 1200, w: WT*3, h: DW }, 
+  { x: 2400-WT*2, y: 700, w: WT*3, h: DW }, 
+  { x: 2100, y: 1300-WT, w: DW, h: WT*3 }, 
+  { x: 2000, y: 900-WT, w: DW, h: WT*3 }, 
+  { x: 500-WT*2, y: 2000+100, w: WT*3, h: DW }, 
+  { x: 1000-WT, y: 2300, w: WT*3, h: DW }, 
+  { x: 500+100, y: 2250-WT*1.5, w: DW, h: WT*3 }, 
+  { x: 750-WT*1.5, y: 2000+100, w: WT*3, h: DW }, 
+  { x: 1200-WT*2, y: 2650, w: WT*3, h: DW }, 
+  { x: 2100-WT, y: 2650, w: WT*3, h: DW }, 
+  { x: 1500-WT*1.5, y: 2650, w: WT*3, h: DW }, 
+  { x: 1800-WT*1.5, y: 2650, w: WT*3, h: DW }  
+];
+
+function createLumpyPit(cx, cy, r) {
+   const pts = [];
+   const numPoints = 16;
+   for(let i=0; i<numPoints; i++) {
+       const ang = (i / numPoints) * Math.PI * 2;
+       const noise = (Math.random() - 0.5) * (r * 0.4);
+       const dist = r + noise;
+       pts.push({ x: cx + Math.cos(ang) * dist, y: cy + Math.sin(ang) * dist });
+   }
+   return { x: cx, y: cy, r: r * 0.8, points: pts }; 
+}
 
 const pits = [
-  { x: 1000, y: 1500, r: 80 },
-  { x: 1600, y: 2200, r: 100 },
-  { x: 2200, y: 800, r: 60 }
+  createLumpyPit(300, 300, 100),
+  createLumpyPit(1000, 500, 150),
+  createLumpyPit(2500, 400, 120),
+  createLumpyPit(2700, 2400, 140),
+  createLumpyPit(500, 1200, 90),
+  createLumpyPit(1600, 1800, 80)
 ];
 
 function collidesWithWall(px, py, pr) {
@@ -91,11 +161,10 @@ function collidesWithPit(px, py, pr) {
     return false;
 }
 
-function getBuildingId(px, py) {
-    for (let b of buildings) {
-        // slightly inside the walls to trigger roof disappear
-        if (px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h) {
-            return b.id;
+function getRoomId(px, py) {
+    for (let r of roofs) {
+        if (px > r.x && px < r.x + r.w && py > r.y && py < r.y + r.h) {
+            return r.id;
         }
     }
     return null;
@@ -447,22 +516,32 @@ function drawGame(time) {
   ctx.strokeRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
   
   // Draw Pits
-  ctx.fillStyle = '#0f0f0f';
+  ctx.fillStyle = '#1c130d';
+  ctx.strokeStyle = '#0a0705';
+  ctx.lineWidth = 5;
   for (let p of pits) {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-      ctx.fill();
-      ctx.strokeStyle = '#2d1a11';
-      ctx.lineWidth = 5;
-      ctx.stroke();
+      if (p.points) {
+         ctx.beginPath();
+         ctx.moveTo(p.points[0].x, p.points[0].y);
+         for(let i=1; i<p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
+         ctx.closePath();
+         ctx.fill();
+         ctx.stroke();
+      }
+  }
+
+  // Draw Doors (Floor Mats)
+  ctx.fillStyle = '#8B4513';
+  for (let d of doors) {
+      ctx.fillRect(d.x, d.y, d.w, d.h);
   }
 
   // Draw Walls (interiors)
   ctx.fillStyle = '#95a5a6';
+  ctx.strokeStyle = '#7f8c8d';
+  ctx.lineWidth = 2;
   for (let w of walls) {
       ctx.fillRect(w.x, w.y, w.w, w.h);
-      ctx.strokeStyle = '#7f8c8d';
-      ctx.lineWidth = 2;
       ctx.strokeRect(w.x, w.y, w.w, w.h);
   }
 
@@ -470,15 +549,16 @@ function drawGame(time) {
     drawPlayer(players[id], id === myId, time);
   }
   
-  // Draw Roofs for Vision Blocking
-  let myBId = me ? getBuildingId(me.x, me.y) : null;
-  for (let b of buildings) {
-      if (b.id !== myBId) {
-          ctx.fillStyle = b.roofColor;
-          ctx.fillRect(b.x - 5, b.y - 5, b.w + 10, b.h + 10);
+  // Draw Roofs for Vision Blocking (Fog of War)
+  let myRoomId = me ? getRoomId(me.x, me.y) : null;
+  for (let r of roofs) {
+      if (r.id !== myRoomId) {
+          ctx.fillStyle = r.color;
+          // exact floor dimensions to preserve external wall visibility
+          ctx.fillRect(r.x, r.y, r.w, r.h); 
       } else {
           ctx.fillStyle = 'rgba(0,0,0,0.1)';
-          ctx.fillRect(b.x, b.y, b.w, b.h);
+          ctx.fillRect(r.x, r.y, r.w, r.h);
       }
   }
 
