@@ -79,8 +79,8 @@ socket.on('roomUpdate', (roomData) => {
     players = roomData.players;
     hostId = roomData.hostId;
     
-    // If we missed the transition playing
-    if (currentState !== roomData.state && roomData.state === 'PLAYING') {
+    // If we transition to playing
+    if (currentState === 'LOBBY' && roomData.state === 'PLAYING') {
        currentState = 'PLAYING';
        myRole = players[myId].role;
        updateScreenState();
