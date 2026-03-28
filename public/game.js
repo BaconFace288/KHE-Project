@@ -346,8 +346,11 @@ socket.on('roomUpdate', (roomData) => {
     // If we transition to playing
     if (currentState === 'LOBBY' && roomData.state === 'PLAYING') {
        currentState = 'PLAYING';
-       myRole = players[myId].role;
-       updateScreenState();
+       if (players[myId]) {
+           myRole = players[myId].role;
+           updateScreenState();
+           if (!introActive) showRoleIntro(myRole);
+       }
     }
     
     updateLobbyUI();
@@ -372,21 +375,20 @@ socket.on('playerMoved', (data) => {
     }
 });
 
-socket.on('gameStarted', (serverPlayers) => {
-    currentState = 'PLAYING'; // Set immediately to start render loop
+socket.on('gameStarted', (payload) => {
+    currentState = 'PLAYING'; 
     updateScreenState();
     
-    // Short delay to ensure roomUpdate state has finished processing data
-    setTimeout(() => {
-        players = serverPlayers;
-        bodies = []; // clear bodies from any previous game
+    // Process the server payload immediately if possible
+    players = payload.players || payload; // fallback for old schema
+    bodies = [];
+    
+    if (players[myId]) {
         myRole = players[myId].role;
         if (myRole === 'crewmate') assignMyTasks();
-        
-        // Re-update the localized HUD once role is set
         updateScreenState();
         if (!introActive) showRoleIntro(myRole);
-    }, 50);
+    }
 });
 
 socket.on('playerClubbed', (data) => {

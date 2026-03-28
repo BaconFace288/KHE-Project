@@ -244,15 +244,15 @@ io.on('connection', (socket) => {
          possibleImpostors.splice(idx, 1);
       }
 
-      // Sync the room state to everyone before starting
-      io.in(roomId).emit('roomUpdate', {
+      // Sync state and trigger the reveal across the room
+      const payload = {
           players: room.players,
           hostId: room.hostId,
           state: room.state
-      });
+      };
       
-      // Explicitly trigger the role reveal for everyone in the room
-      io.in(roomId).emit('gameStarted', room.players);
+      io.in(roomId).emit('roomUpdate', payload);
+      io.in(roomId).emit('gameStarted', payload);
     }
   });
 
