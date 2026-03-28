@@ -674,60 +674,174 @@ function drawGame(time) {
   ctx.save();
   ctx.translate(-camX, -camY);
 
-  ctx.strokeStyle = '#2ecc71';
-  ctx.lineWidth = 2;
-  
-  // To avoid drawing massive grids, just draw the whole thing
-  for(let i = 0; i <= MAP_WIDTH; i+=50) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, MAP_HEIGHT); ctx.stroke();
+  // =============================================
+  // GROUND — dark earthy mosaic with subtle grid
+  // =============================================
+  ctx.fillStyle = '#1a1a12';
+  ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
+
+  // Subtle dirt tile grid (50px cells with slight shade variation)
+  for (let gx = 0; gx < MAP_WIDTH; gx += 50) {
+    for (let gy = 0; gy < MAP_HEIGHT; gy += 50) {
+      const shade = ((gx/50 + gy/50) % 2 === 0) ? 'rgba(255,255,255,0.018)' : 'rgba(0,0,0,0.06)';
+      ctx.fillStyle = shade;
+      ctx.fillRect(gx, gy, 50, 50);
+    }
   }
-  for(let i = 0; i <= MAP_HEIGHT; i+=50) {
-      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(MAP_WIDTH, i); ctx.stroke();
+  // Dirt cracklines
+  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+  ctx.lineWidth = 1;
+  for (let gx = 0; gx <= MAP_WIDTH; gx += 50) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, MAP_HEIGHT); ctx.stroke();
+  }
+  for (let gy = 0; gy <= MAP_HEIGHT; gy += 50) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(MAP_WIDTH, gy); ctx.stroke();
   }
 
-  // Draw boundary wall
-  ctx.strokeStyle = '#1abc9c';
-  ctx.lineWidth = 10;
-  ctx.strokeRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
-  
-  // Draw Pits
-  ctx.fillStyle = '#1c130d';
-  ctx.strokeStyle = '#0a0705';
-  ctx.lineWidth = 5;
+  // =============================================
+  // DECORATIONS — rocks, grass clumps, path
+  // =============================================
+  drawMapDecorations(time);
+
+  // =============================================
+  // PITS — glowing abyss
+  // =============================================
   for (let p of pits) {
-      if (p.points) {
-         ctx.beginPath();
-         ctx.moveTo(p.points[0].x, p.points[0].y);
-         for(let i=1; i<p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
-         ctx.closePath();
-         ctx.fill();
-         ctx.stroke();
-      }
+    if (!p.points) continue;
+
+    // Outer glow
+    ctx.save();
+    ctx.shadowColor = '#ff4500';
+    ctx.shadowBlur = 28;
+
+    // Pit fill — deep dark with lava glow at edges
+    ctx.beginPath();
+    ctx.moveTo(p.points[0].x, p.points[0].y);
+    for (let i = 1; i < p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
+    ctx.closePath();
+
+    const pitGrad = ctx.createRadialGradient(p.x, p.y, p.r * 0.1, p.x, p.y, p.r * 1.3);
+    pitGrad.addColorStop(0,   '#0a0508');
+    pitGrad.addColorStop(0.55,'#1a0800');
+    pitGrad.addColorStop(0.8, '#5c1800');
+    pitGrad.addColorStop(1,   '#ff4500');
+    ctx.fillStyle = pitGrad;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Animated lava rim pulse
+    const pulse = 0.5 + 0.5 * Math.sin(time * 0.003);
+    ctx.strokeStyle = `rgba(255,${Math.floor(80 + 60*pulse)},0,${0.6 + 0.4*pulse})`;
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    // Inner "depth" ring
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * 0.45, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fill();
+
+    // Lava bubble sparks
+    for (let s = 0; s < 3; s++) {
+      const ang = (time * 0.002 + s * 2.1) % (Math.PI * 2);
+      const sr = p.r * (0.2 + 0.15 * s);
+      const sx = p.x + Math.cos(ang) * sr;
+      const sy = p.y + Math.sin(ang) * sr * 0.6;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3 + s, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,${140+s*30},0,${0.6 + 0.3*Math.sin(time*0.004+s)})`;
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Crumbling stone edge
+    ctx.beginPath();
+    ctx.moveTo(p.points[0].x, p.points[0].y);
+    for (let i = 1; i < p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
+    ctx.closePath();
+    ctx.strokeStyle = '#5c4033';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+    ctx.strokeStyle = '#3a2416';
+    ctx.lineWidth = 3;
+    ctx.stroke();
   }
 
-  // Draw Doors (Floor Mats)
-  ctx.fillStyle = '#8B4513';
+  // =============================================
+  // DOORS — stone archways with glow
+  // =============================================
   for (let d of doors) {
-      ctx.fillRect(d.x, d.y, d.w, d.h);
+    // Stone mat base
+    ctx.fillStyle = '#5d4037';
+    ctx.fillRect(d.x - 2, d.y - 2, d.w + 4, d.h + 4);
+    // Door surface
+    const isWide = d.w > d.h;
+    ctx.fillStyle = '#795548';
+    ctx.fillRect(d.x, d.y, d.w, d.h);
+    // Plank lines
+    ctx.strokeStyle = '#4e342e';
+    ctx.lineWidth = 2;
+    if (isWide) {
+      ctx.beginPath(); ctx.moveTo(d.x + d.w/3, d.y); ctx.lineTo(d.x + d.w/3, d.y + d.h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(d.x + 2*d.w/3, d.y); ctx.lineTo(d.x + 2*d.w/3, d.y + d.h); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(d.x, d.y + d.h/3); ctx.lineTo(d.x + d.w, d.y + d.h/3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(d.x, d.y + 2*d.h/3); ctx.lineTo(d.x + d.w, d.y + 2*d.h/3); ctx.stroke();
+    }
+    // Door knob
+    ctx.fillStyle = '#ffd54f';
+    ctx.beginPath();
+    ctx.arc(d.x + d.w/2, d.y + d.h/2, 4, 0, Math.PI * 2);
+    ctx.fill();
+    // Faint green glow around doorways
+    ctx.shadowColor = '#00e676';
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = 'rgba(0,230,118,0.35)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(d.x - 1, d.y - 1, d.w + 2, d.h + 2);
+    ctx.shadowBlur = 0;
   }
 
-  // Draw Walls (interiors)
-  ctx.fillStyle = '#95a5a6';
-  ctx.strokeStyle = '#7f8c8d';
-  ctx.lineWidth = 2;
+  // =============================================
+  // WALLS — stone masonry with highlight
+  // =============================================
   for (let w of walls) {
-      ctx.fillRect(w.x, w.y, w.w, w.h);
-      ctx.strokeRect(w.x, w.y, w.w, w.h);
+    const isThick = w.w >= w.h ? w.h >= 18 : w.w >= 18;
+    // Wall base — dark stone
+    ctx.fillStyle = '#37474f';
+    ctx.fillRect(w.x, w.y, w.w, w.h);
+
+    // Stone block lines
+    ctx.strokeStyle = '#263238';
+    ctx.lineWidth = 1;
+    const bw = 30, bh = 20;
+    if (w.w > w.h) {
+      // Horizontal wall — draw horizontal block lines
+      for (let bx = w.x; bx < w.x + w.w; bx += bw) {
+        ctx.beginPath(); ctx.moveTo(bx, w.y); ctx.lineTo(bx, w.y + w.h); ctx.stroke();
+      }
+    } else {
+      // Vertical wall
+      for (let by = w.y; by < w.y + w.h; by += bh) {
+        ctx.beginPath(); ctx.moveTo(w.x, by); ctx.lineTo(w.x + w.w, by); ctx.stroke();
+      }
+    }
+    // Top highlight edge
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(w.x, w.y, w.w, w.h);
   }
 
   // Draw Emergency Button
   drawEmergencyButton(time);
 
+  // =============================================
+  // PLAYERS & BODIES
+  // =============================================
   for (let id in players) {
     const p = players[id];
     const isMe = id === myId;
     const amIDead = players[myId] && players[myId].isDead;
-    // Ghosts are only visible to dead players (or themselves)
     if (p.isDead && !amIDead && !isMe) continue;
     if (!p.isDead) {
       drawPlayer(p, isMe, time);
@@ -736,38 +850,186 @@ function drawGame(time) {
     }
   }
 
-  // Draw dead bodies (always visible to everyone)
   for (let body of bodies) {
     drawDeadBody(body);
   }
   
-  // Draw tasks (only for alive crewmates and ghosts of crewmates)
   if (myRole === 'crewmate' || (players[myId] && players[myId].isDead)) {
     drawTasks();
   }
   
-  // Draw Roofs for Vision Blocking (Fog of War)
-  // Ghosts see through all roofs
+  // =============================================
+  // ROOFS — fog of war with improved look
+  // =============================================
   const amIDead = me && me.isDead;
   let myRoomId = (!amIDead && me) ? getRoomId(me.x, me.y) : null;
+
+  // Building config for roof styling
+  const BLDG_STYLES = {
+    'B1': { label: 'The Compound',  roofCol: 'rgba(40,55,70,0.95)',   windowCol: '#ffd54f', windowGlow: '#ff9800' },
+    'B2': { label: 'L-Block',       roofCol: 'rgba(55,55,60,0.95)',   windowCol: '#80deea', windowGlow: '#00bcd4' },
+    'B3': { label: 'The Maze',      roofCol: 'rgba(50,20,65,0.95)',   windowCol: '#ce93d8', windowGlow: '#9c27b0' },
+    'B4': { label: 'Longhouse',     roofCol: 'rgba(70,35,10,0.95)',   windowCol: '#ffcc80', windowGlow: '#ff6f00' },
+  };
+
   for (let r of roofs) {
-      if (amIDead) {
-          // Ghost: draw roof at 15% opacity so map is still visible but distinct
-          ctx.fillStyle = 'rgba(0,0,0,0.15)';
-          ctx.fillRect(r.x, r.y, r.w, r.h);
-      } else if (r.id !== myRoomId) {
-          ctx.fillStyle = r.color;
-          ctx.fillRect(r.x, r.y, r.w, r.h);
-      } else {
-          ctx.fillStyle = 'rgba(0,0,0,0.1)';
-          ctx.fillRect(r.x, r.y, r.w, r.h);
+    const bKey = r.id.slice(0, 2); // 'B1', 'B2', etc.
+    const style = BLDG_STYLES[bKey] || { roofCol: 'rgba(30,30,30,0.95)', windowCol: '#fff', windowGlow: '#fff' };
+
+    if (amIDead) {
+      // Ghost: see through roof, slight tint
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+    } else if (r.id !== myRoomId) {
+      // Closed roof — fully opaque, draw roof detail
+      ctx.fillStyle = style.roofCol;
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+
+      // Roof tile lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let tx = r.x; tx < r.x + r.w; tx += 40) {
+        ctx.beginPath(); ctx.moveTo(tx, r.y); ctx.lineTo(tx, r.y + r.h); ctx.stroke();
       }
+      for (let ty = r.y; ty < r.y + r.h; ty += 40) {
+        ctx.beginPath(); ctx.moveTo(r.x, ty); ctx.lineTo(r.x + r.w, ty); ctx.stroke();
+      }
+
+      // Windows (only draw if room is big enough)
+      drawRoofWindows(r, style, time);
+
+      // Roof border
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(r.x, r.y, r.w, r.h);
+
+    } else {
+      // Current room — very light tint so you can see inside
+      ctx.fillStyle = 'rgba(0,0,0,0.08)';
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+    }
+  }
+
+  // Building name signs (outside, above each building's first roof section)
+  if (!amIDead) {
+    drawBuildingSigns();
   }
 
   ctx.restore();
 
-  // Task HUD is drawn in screen-space (after world restore)
   drawTaskHUD();
+}
+
+// =============================================
+// Helper: draw windows on a roof panel
+// =============================================
+function drawRoofWindows(r, style, time) {
+  if (r.w < 80 || r.h < 80) return;
+  const cols = Math.max(1, Math.floor(r.w / 100));
+  const rows = Math.max(1, Math.floor(r.h / 100));
+  const ww = 18, wh = 14;
+  const pulse = 0.8 + 0.2 * Math.sin(time * 0.002);
+  for (let c = 0; c < cols; c++) {
+    for (let rr = 0; rr < rows; rr++) {
+      const wx = r.x + (r.w / cols) * (c + 0.5) - ww/2;
+      const wy = r.y + (r.h / rows) * (rr + 0.5) - wh/2;
+      // Window frame
+      ctx.fillStyle = '#263238';
+      ctx.fillRect(wx - 2, wy - 2, ww + 4, wh + 4);
+      // Window glass with glow
+      ctx.fillStyle = style.windowCol;
+      ctx.shadowColor = style.windowGlow;
+      ctx.shadowBlur = 8 * pulse;
+      ctx.fillRect(wx, wy, ww, wh);
+      ctx.shadowBlur = 0;
+      // Cross divider
+      ctx.strokeStyle = '#263238';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(wx + ww/2, wy); ctx.lineTo(wx + ww/2, wy + wh); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(wx, wy + wh/2); ctx.lineTo(wx + ww, wy + wh/2); ctx.stroke();
+    }
+  }
+}
+
+// =============================================
+// Helper: building name signs on map
+// =============================================
+const BLDG_SIGNS = [
+  { x: 950,  y: 770,  label: 'THE COMPOUND', color: '#f39c12' },
+  { x: 2200, y: 560,  label: 'L-BLOCK',       color: '#00bcd4' },
+  { x: 740,  y: 1960, label: 'THE MAZE',      color: '#ce93d8' },
+  { x: 1650, y: 2560, label: 'LONGHOUSE',     color: '#ff8f00' },
+];
+function drawBuildingSigns() {
+  for (let s of BLDG_SIGNS) {
+    // Sign background
+    const tw = s.label.length * 7 + 16;
+    ctx.fillStyle = 'rgba(10,10,20,0.75)';
+    ctx.beginPath();
+    ctx.roundRect(s.x - tw/2, s.y - 12, tw, 22, 5);
+    ctx.fill();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // Text
+    ctx.fillStyle = s.color;
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.label, s.x, s.y);
+  }
+}
+
+// =============================================
+// Helper: static map decorations
+// =============================================
+const DECORATIONS = (function() {
+  const rng = (seed) => { let s = seed; return () => { s = (s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; }; };
+  const r = rng(42);
+  const items = [];
+  // Rocks scattered across the map (avoid building areas)
+  for (let i = 0; i < 120; i++) {
+    const x = r() * MAP_WIDTH;
+    const y = r() * MAP_HEIGHT;
+    // Basic avoidance of building zones
+    const inB1 = x > 780 && x < 1610 && y > 780 && y < 1420;
+    const inB2 = x > 1980 && x < 2420 && y > 580 && y < 1320;
+    const inB3 = x > 480  && x < 1020 && y > 1980 && y < 2520;
+    const inB4 = x > 1180 && x < 2120 && y > 2580 && y < 2820;
+    if (inB1 || inB2 || inB3 || inB4) continue;
+    const type = r() < 0.6 ? 'rock' : 'grass';
+    items.push({ x, y, type, sz: 3 + r() * 10, rot: r() * Math.PI });
+  }
+  return items;
+})();
+
+function drawMapDecorations(time) {
+  for (let d of DECORATIONS) {
+    ctx.save();
+    ctx.translate(d.x, d.y);
+    ctx.rotate(d.rot);
+    if (d.type === 'rock') {
+      ctx.fillStyle = '#3d3428';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, d.sz, d.sz * 0.65, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.beginPath();
+      ctx.ellipse(-d.sz*0.2, -d.sz*0.15, d.sz*0.4, d.sz*0.25, -0.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Grass tuft
+      ctx.strokeStyle = `rgba(${40+Math.floor(d.sz*3)},${80+Math.floor(d.sz*5)},${20+Math.floor(d.sz*2)},0.7)`;
+      ctx.lineWidth = 1.5;
+      for (let b = -1; b <= 1; b++) {
+        ctx.beginPath();
+        ctx.moveTo(b * d.sz * 0.35, 0);
+        ctx.lineTo(b * d.sz * 0.2, -d.sz * 1.2);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
 }
 
 function drawPlayer(p, isMe, time) {
