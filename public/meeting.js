@@ -187,6 +187,16 @@ function showResult(data) {
     voteResultEl.style.color = '#95a5a6';
   }
 
+  // Apply server-assigned spawn positions to all players
+  if (data.spawnPositions) {
+    for (const id in data.spawnPositions) {
+      if (players[id]) {
+        players[id].x = data.spawnPositions[id].x;
+        players[id].y = data.spawnPositions[id].y;
+      }
+    }
+  }
+
   setTimeout(() => {
     closeMeeting();
     if (typeof checkWinCondition === 'function') checkWinCondition();
@@ -218,9 +228,13 @@ function sendChat() {
 }
 
 function appendChat(name, color, text, isDead) {
+  // Ghost messages only visible to other dead players
+  const iAmDead = players[myId] && players[myId].isDead;
+  if (isDead && !iAmDead) return; // hide ghost chat from alive players
+
   const d = document.createElement('div');
   d.className = 'chat-msg' + (isDead ? ' ghost-msg' : '');
-  d.innerHTML = `<span class="chat-name" style="color:${color}">${name}:</span> ${text}`;
+  d.innerHTML = `<span class="chat-name" style="color:${color}">${isDead ? '👻 ' : ''}${name}:</span> ${text}`;
   chatMessages.appendChild(d);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }

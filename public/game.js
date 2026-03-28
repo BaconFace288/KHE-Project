@@ -32,7 +32,8 @@ const MAP_WIDTH = 3000;
 const MAP_HEIGHT = 3000;
 
 // Emergency meeting button (center of map)
-const EMERGENCY_BTN = { x: 1500, y: 1500, r: 52 };
+// r = visual button radius, collisionR = physical block radius (includes pedestal)
+const EMERGENCY_BTN = { x: 1500, y: 1490, r: 22, collisionR: 36 };
 
 // === Map Obstacles ===
 const WT = 20; // Wall thickness
@@ -602,11 +603,15 @@ function updateLocalPlayer(dt) {
     } else {
       if (dx !== 0) {
           newX += dx * speed * dt;
-          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16)) newX = me.x;
+          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16) ||
+              Math.hypot(newX - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 16)
+            newX = me.x;
       }
       if (dy !== 0) {
           newY += dy * speed * dt;
-          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16)) newY = me.y;
+          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16) ||
+              Math.hypot(newX - EMERGENCY_BTN.x, newY - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 16)
+            newY = me.y;
       }
     }
     
@@ -1069,47 +1074,81 @@ function drawTaskHUD() {
 function drawEmergencyButton(time) {
   const b = EMERGENCY_BTN;
   const me = players[myId];
-  const nearby = me && Math.hypot(me.x - b.x, me.y - b.y) < b.r + 65;
-  const pulse = 0.7 + 0.3 * Math.sin(Date.now() * 0.005);
+  const nearby = me && Math.hypot(me.x - b.x, me.y - b.y) < b.collisionR + 65;
+  const pulse = 0.5 + 0.5 * Math.abs(Math.sin(Date.now() * 0.004));
 
   ctx.save();
   ctx.translate(b.x, b.y);
 
-  // Base pedestal (dark circle)
-  ctx.fillStyle = '#2c2c2c';
-  ctx.beginPath(); ctx.arc(0, 6, b.r + 8, 0, Math.PI * 2); ctx.fill();
+  // === Pedestal body (rectangular column) ===
+  const pw = 28, ph = 40; // pedestal width / height
+  // Side face (darker) for 3D illusion
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.moveTo(pw/2, 14);
+  ctx.lineTo(pw/2 + 6, 8);
+  ctx.lineTo(pw/2 + 6, 8 + ph);
+  ctx.lineTo(pw/2, 14 + ph);
+  ctx.closePath();
+  ctx.fill();
+  // Front face
+  ctx.fillStyle = '#2e2e2e';
+  ctx.fillRect(-pw/2, 14, pw, ph);
+  ctx.strokeStyle = '#111'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(-pw/2, 14, pw, ph);
+  // Top of pedestal
+  ctx.fillStyle = '#3a3a3a';
+  ctx.beginPath();
+  ctx.ellipse(0, 14, pw/2 + 3, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
+  ctx.stroke();
 
-  // Glow if nearby
+  // === Button cap (dome on pedestal top) ===
   if (nearby) {
     ctx.shadowColor = '#e74c3c';
-    ctx.shadowBlur = 30 * pulse;
+    ctx.shadowBlur = 22 * pulse;
   }
+  // Outer rim / base of button
+  ctx.fillStyle = '#7b1a1a';
+  ctx.beginPath();
+  ctx.ellipse(0, 12, b.r + 4, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
 
-  // Red button
-  const grad = ctx.createRadialGradient(-12, -12, 4, 0, 0, b.r);
-  grad.addColorStop(0, '#ff6b6b');
-  grad.addColorStop(0.5, '#e74c3c');
-  grad.addColorStop(1, '#922b21');
+  // Red dome cap
+  const grad = ctx.createRadialGradient(-b.r * 0.35, -b.r * 0.5, 1, 0, 0, b.r);
+  grad.addColorStop(0, '#ff8080');
+  grad.addColorStop(0.45, '#e74c3c');
+  grad.addColorStop(1, '#7b1a1a');
   ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.fill();
+  // Draw the dome as a flattened ellipse
+  ctx.beginPath();
+  ctx.ellipse(0, 8, b.r, b.r * 0.7, 0, Math.PI, 0); // upper arc
+  ctx.ellipse(0, 12, b.r + 4, 8, 0, 0, Math.PI);     // bottom rim
+  ctx.closePath();
+  ctx.fill();
   ctx.shadowBlur = 0;
 
-  // Border
-  ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.stroke();
+  // Highlight shine on button
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(-b.r * 0.3, 5, b.r * 0.4, b.r * 0.2, -0.5, 0, Math.PI * 2);
+  ctx.fill();
 
-  // "!" icon
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 26px Impact';
+  // "!" text on button face
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = `bold ${b.r}px Impact`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('!', 0, 0);
+  ctx.fillText('!', 0, 8);
+
   ctx.restore();
 
-  // "EMERGENCY" label below
+  // Label
   ctx.save();
-  ctx.fillStyle = nearby ? '#e74c3c' : '#95a5a6';
-  ctx.font = `bold 12px sans-serif`;
+  ctx.fillStyle = nearby ? '#e74c3c' : '#7f8c8d';
+  ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  ctx.fillText('EMERGENCY', b.x, b.y + b.r + 10);
+  ctx.fillText('EMERGENCY', b.x, b.y + 58);
   ctx.restore();
 }
 

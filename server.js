@@ -44,13 +44,27 @@ function endMeeting(roomId) {
   }
   const snap = room.meeting;
   room.meeting = null;
+
+  // Teleport all alive players to spawn circle around the button
+  const aliveIds = Object.keys(room.players).filter(id => !room.players[id].isDead);
+  const spawnPositions = {};
+  aliveIds.forEach((id, i) => {
+    const angle = (i / aliveIds.length) * Math.PI * 2;
+    const sx = Math.round(1500 + Math.cos(angle) * 200);
+    const sy = Math.round(1500 + Math.sin(angle) * 200);
+    room.players[id].x = sx;
+    room.players[id].y = sy;
+    spawnPositions[id] = { x: sx, y: sy };
+  });
+
   io.to(roomId).emit('meetingResult', {
     eliminated,
     eliminatedName: eliminated ? room.players[eliminated]?.name : null,
     deathX: eliminated ? room.players[eliminated]?.deathX : null,
     deathY: eliminated ? room.players[eliminated]?.deathY : null,
     votes: counts,
-    type: snap.type
+    type: snap.type,
+    spawnPositions
   });
 }
 
