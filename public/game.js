@@ -54,72 +54,80 @@ const roofs = [
 ];
 
 const walls = [
-  // B1 Walls
-  { x: 800-WT, y: 800-WT, w: 300+2*WT, h: WT },
-  { x: 800-WT, y: 800, w: WT, h: 600 },
-  { x: 800-WT, y: 1400, w: 100, h: WT }, 
-  { x: 900+DW, y: 1400, w: 200+WT-DW, h: WT },
-  { x: 1100, y: 800, w: WT, h: 300 },
-  { x: 1100, y: 1100, w: WT, h: 100 },
-  { x: 1100, y: 1200+DW, w: WT, h: 200-DW },
-  { x: 1100+WT, y: 1100-WT, w: 200, h: WT },
-  { x: 1300+DW+WT, y: 1100-WT, w: 300-DW-WT, h: WT },
-  { x: 1600, y: 1100-WT, w: WT, h: 300+2*WT },
-  { x: 1100+WT, y: 1400, w: 500, h: WT },
+  // B1 Walls (Compound)
+  { x: 780, y: 780, w: 20, h: 640 }, // Left A
+  { x: 800, y: 780, w: 320, h: 20 }, // Top A
+  { x: 1100, y: 800, w: 20, h: 300 }, // Right A (top part)
+  { x: 1120, y: 1080, w: 500, h: 20 }, // Top B
+  { x: 1600, y: 1080, w: 20, h: 120 }, // Right B top
+  { x: 1600, y: 1300, w: 20, h: 120 }, // Right B bot (Door at Y:1200-1300)
+  { x: 1120, y: 1400, w: 500, h: 20 }, // Bottom B
+  { x: 1100, y: 1100, w: 20, h: 100 }, // Inner A-B top
+  { x: 1100, y: 1300, w: 20, h: 100 }, // Inner A-B bot (Door at Y:1200-1300)
+  { x: 800, y: 1400, w: 100, h: 20 }, // Bottom A left
+  { x: 1000, y: 1400, w: 100, h: 20 }, // Bottom A right (Door at X:900-1000)
 
-  // B2 Walls 
-  { x: 2000-WT, y: 600-WT, w: 400+2*WT, h: WT },
-  { x: 2000-WT, y: 600, w: WT, h: 300 },
-  { x: 2400, y: 600, w: WT, h: 100 },
-  { x: 2400, y: 700+DW, w: WT, h: 200-DW },
-  { x: 2000-WT, y: 900, w: WT, h: WT },
-  { x: 2000, y: 900, w: 100, h: WT },
-  { x: 2100+DW, y: 900, w: 300-DW+WT, h: WT },
-  { x: 2000-WT, y: 900+WT, w: WT, h: 400 },
-  { x: 2200, y: 900+WT, w: WT, h: 400 },
-  { x: 2000-WT, y: 1300, w: 100+WT, h: WT },
-  { x: 2100+DW, y: 1300, w: 100, h: WT },
+  // B2 Walls (L-Block)
+  { x: 1980, y: 580, w: 440, h: 20 }, // Top A
+  { x: 1980, y: 600, w: 20, h: 300 }, // Left A
+  { x: 2400, y: 600, w: 20, h: 100 }, // Right A top
+  { x: 2400, y: 800, w: 20, h: 120 }, // Right A bot (Door at Y:700-800)
+  { x: 2200, y: 900, w: 200, h: 20 }, // Bottom A right part
+  { x: 1980, y: 900, w: 20, h: 420 }, // Left B
+  { x: 2200, y: 920, w: 20, h: 380 }, // Right B
+  { x: 2000, y: 900, w: 50, h: 20 }, // Inner left
+  { x: 2150, y: 900, w: 50, h: 20 }, // Inner right (Door at X:2050-2150)
+  { x: 2000, y: 1300, w: 50, h: 20 }, // Bottom left
+  { x: 2150, y: 1300, w: 70, h: 20 }, // Bottom right (Door at X:2050-2150)
   
-  // B3 Walls 
-  { x: 500-WT, y: 2000-WT, w: 500+2*WT, h: WT },
-  { x: 500-WT, y: 2500, w: 500+2*WT, h: WT },
-  { x: 500-WT, y: 2000, w: WT, h: 100 },
-  { x: 500-WT, y: 2100+DW, w: WT, h: 400-DW },
-  { x: 1000, y: 2000, w: WT, h: 300 },
-  { x: 1000, y: 2300+DW, w: WT, h: 200-DW },
-  { x: 500, y: 2250-WT/2, w: 100, h: WT },
-  { x: 600+DW, y: 2250-WT/2, w: 400-DW, h: WT },
-  { x: 750-WT/2, y: 2000, w: WT, h: 100 },
-  { x: 750-WT/2, y: 2100+DW, w: WT, h: 400-DW },
+  // B3 Walls (Maze)
+  { x: 480, y: 1980, w: 540, h: 20 }, // Top outer
+  { x: 480, y: 2500, w: 540, h: 20 }, // Bottom outer
+  { x: 480, y: 2000, w: 20, h: 100 }, // Left top
+  { x: 480, y: 2200, w: 20, h: 300 }, // Left bot (Door at Y:2100-2200)
+  { x: 1000, y: 1980, w: 20, h: 320 }, // Right top
+  { x: 1000, y: 2400, w: 20, h: 100 }, // Right bot (Door at Y:2300-2400)
+  { x: 500, y: 2240, w: 50, h: 20 }, // H-Inner left
+  { x: 650, y: 2240, w: 200, h: 20 }, // H-Inner mid (Doors at 550-650, 850-950)
+  { x: 950, y: 2240, w: 50, h: 20 }, // H-Inner right
+  { x: 740, y: 2000, w: 20, h: 50 }, // V-Inner top
+  { x: 740, y: 2150, w: 20, h: 200 }, // V-Inner mid (Doors at 2050-2150, 2350-2450)
+  { x: 740, y: 2450, w: 20, h: 50 }, // V-Inner bot
 
-  // B4 Walls
-  { x: 1200-WT, y: 2600-WT, w: 900+2*WT, h: WT },
-  { x: 1200-WT, y: 2800, w: 900+2*WT, h: WT },
-  { x: 1200-WT, y: 2600, w: WT, h: 50 },
-  { x: 1200-WT, y: 2650+DW, w: WT, h: 150-DW },
-  { x: 2100, y: 2600, w: WT, h: 50 },
-  { x: 2100, y: 2650+DW, w: WT, h: 150-DW },
-  { x: 1500-WT/2, y: 2600, w: WT, h: 50 },
-  { x: 1500-WT/2, y: 2650+DW, w: WT, h: 150-DW },
-  { x: 1800-WT/2, y: 2600, w: WT, h: 50 },
-  { x: 1800-WT/2, y: 2650+DW, w: WT, h: 150-DW }
+  // B4 Walls (Longhouse)
+  { x: 1180, y: 2580, w: 940, h: 20 }, // Top
+  { x: 1180, y: 2800, w: 940, h: 20 }, // Bottom
+  { x: 1180, y: 2600, w: 20, h: 50 }, // Left top
+  { x: 1180, y: 2750, w: 20, h: 50 }, // Left bot (Door at Y:2650-2750)
+  { x: 2100, y: 2600, w: 20, h: 50 }, // Right top
+  { x: 2100, y: 2750, w: 20, h: 50 }, // Right bot (Door at Y:2650-2750)
+  { x: 1490, y: 2600, w: 20, h: 50 }, // Inner AB top
+  { x: 1490, y: 2750, w: 20, h: 50 }, // Inner AB bot
+  { x: 1790, y: 2600, w: 20, h: 50 }, // Inner BC top
+  { x: 1790, y: 2750, w: 20, h: 50 }  // Inner BC bot
 ];
 
 const doors = [
-  { x: 900, y: 1400-WT, w: DW, h: WT*3 }, 
-  { x: 1300+WT, y: 1100-WT*2, w: DW, h: WT*3 }, 
-  { x: 1100-WT, y: 1200, w: WT*3, h: DW }, 
-  { x: 2400-WT*2, y: 700, w: WT*3, h: DW }, 
-  { x: 2100, y: 1300-WT, w: DW, h: WT*3 }, 
-  { x: 2000, y: 900-WT, w: DW, h: WT*3 }, 
-  { x: 500-WT*2, y: 2000+100, w: WT*3, h: DW }, 
-  { x: 1000-WT, y: 2300, w: WT*3, h: DW }, 
-  { x: 500+100, y: 2250-WT*1.5, w: DW, h: WT*3 }, 
-  { x: 750-WT*1.5, y: 2000+100, w: WT*3, h: DW }, 
-  { x: 1200-WT*2, y: 2650, w: WT*3, h: DW }, 
-  { x: 2100-WT, y: 2650, w: WT*3, h: DW }, 
-  { x: 1500-WT*1.5, y: 2650, w: WT*3, h: DW }, 
-  { x: 1800-WT*1.5, y: 2650, w: WT*3, h: DW }  
+  // B1
+  { x: 900, y: 1380, w: 100, h: 60 },
+  { x: 1080, y: 1200, w: 60, h: 100 },
+  { x: 1580, y: 1200, w: 60, h: 100 },
+  // B2
+  { x: 2380, y: 700, w: 60, h: 100 },
+  { x: 2050, y: 880, w: 100, h: 60 },
+  { x: 2050, y: 1280, w: 100, h: 60 },
+  // B3
+  { x: 440, y: 2100, w: 60, h: 100 }, // sticking out left so you see it well outside
+  { x: 980, y: 2300, w: 60, h: 100 },
+  { x: 550, y: 2230, w: 100, h: 40 },
+  { x: 850, y: 2230, w: 100, h: 40 },
+  { x: 730, y: 2050, w: 40, h: 100 },
+  { x: 730, y: 2350, w: 40, h: 100 },
+  // B4
+  { x: 1140, y: 2650, w: 60, h: 100 }, // stick out further left
+  { x: 2080, y: 2650, w: 60, h: 100 },
+  { x: 1470, y: 2650, w: 60, h: 100 },
+  { x: 1770, y: 2650, w: 60, h: 100 }
 ];
 
 function createLumpyPit(cx, cy, r) {
