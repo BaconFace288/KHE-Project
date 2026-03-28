@@ -1138,23 +1138,31 @@ function drawPlayer(p, isMe, time) {
     ctx.fillRect(2, 16, 8, 5);
   }
 
-  // --- Role Specific: Impostor Sword/Club ---
+  // --- Role Specific: Impostor Weapon (Club) ---
   if (p.role === 'impostor') {
+    // Only show weapon while swinging (only for local player for now, or based on anim state)
+    if (isMe && swingAnim > 0) {
       ctx.save();
       ctx.translate(14, 5);
-      if (isMe && swingAnim > 0) ctx.rotate(Math.PI / 2 * swingAnim);
-      else ctx.rotate(-Math.PI / 6);
+      ctx.rotate(Math.PI / 2 * swingAnim);
       
-      // Slick silver baton instead of wooden club
-      ctx.fillStyle = '#bdc3c7';
-      ctx.fillRect(-3, -24, 6, 24);
-      ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 1;
-      ctx.strokeRect(-3, -24, 6, 24);
-      // Glow on baton
-      ctx.shadowColor = '#3498db'; ctx.shadowBlur = 6;
-      ctx.fillStyle = 'rgba(52, 152, 219, 0.4)';
-      ctx.fillRect(-3, -24, 6, 24);
+      // Wooden club
+      ctx.fillStyle = '#8B4513';
+      ctx.beginPath();
+      ctx.arc(0, -20, 6, 0, Math.PI * 2);
+      ctx.lineTo(-3, 0); ctx.lineTo(-6, -20);
+      ctx.lineTo(6, -20); ctx.lineTo(3, 0);
+      ctx.fill();
+      ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5;
+      ctx.stroke();
+      
+      // Some texture/bands
+      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.beginPath(); ctx.moveTo(-4, -10); ctx.lineTo(4, -10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-5, -15); ctx.lineTo(5, -15); ctx.stroke();
+      
       ctx.restore();
+    }
   }
   
   ctx.restore();
