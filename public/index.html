@@ -6,6 +6,7 @@
   <title>The Primitive Peer</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="minigame.css">
+  <link rel="stylesheet" href="meeting.css">
 </head>
 <body>
   <div id="ui-layer">
@@ -54,6 +55,37 @@
     </div>
   </div>
   
+  <!-- MEETING FLASH -->
+  <div id="meeting-flash">
+    <div id="meeting-flash-text">⚠️ EMERGENCY<br>MEETING!</div>
+  </div>
+
+  <!-- VOTE SCREEN -->
+  <div id="vote-screen">
+    <div class="vote-card">
+      <div class="vote-header">
+        <h2 id="vote-title">Emergency Meeting</h2>
+        <div id="vote-timer">1:00</div>
+      </div>
+      <p id="caller-info"></p>
+      <div id="vote-player-list"></div>
+      <div class="skip-wrap">
+        <button class="skip-btn" id="skip-vote-btn">⏭ Skip Vote</button>
+      </div>
+      <div id="vote-result"></div>
+      <div class="chat-section">
+        <button id="chat-toggle-btn">💬 Open Chat ▼</button>
+        <div id="chat-panel">
+          <div id="chat-messages"></div>
+          <div class="chat-input-row">
+            <input type="text" id="chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
+            <button id="chat-send-btn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
   <!-- TASK MINIGAME MODAL -->
@@ -99,5 +131,6 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="game.js"></script>
   <script src="minigame.js"></script>
+  <script src="meeting.js"></script>
 </body>
 </html>

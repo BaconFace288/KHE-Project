@@ -31,6 +31,9 @@ const ctx = canvas.getContext('2d');
 const MAP_WIDTH = 3000;
 const MAP_HEIGHT = 3000;
 
+// Emergency meeting button (center of map)
+const EMERGENCY_BTN = { x: 1500, y: 1500, r: 52 };
+
 // === Map Obstacles ===
 const WT = 20; // Wall thickness
 const DW = 100; // Door width
@@ -239,6 +242,7 @@ let hostId = null;
 let completedTasks = new Set(); // task IDs completed by THIS player
 let bodies = []; // { x, y, color, name, role } - persisted dead body positions
 let myTaskIds = null; // Set of 7 task IDs assigned to this player
+let nearbyBody = null; // body object player is standing near
 
 function assignMyTasks() {
     const all = TASKS.map(t => t.id);
@@ -268,6 +272,40 @@ document.addEventListener('keyup', (e) => {
 });
 
 let swingAnim = 0; // 0 to 1 for caveman club swing
+
+// [E] = Report dead body near player
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'KeyE' && currentState === 'PLAYING' && !window.taskModalActive) {
+    const me = players[myId];
+    if (!me || me.isDead || !nearbyBody) return;
+    socket.emit('callMeeting', { type: 'report', bodyName: nearbyBody.name });
+  }
+  // [Q] = Emergency meeting (must be near button)
+  if (e.code === 'KeyQ' && currentState === 'PLAYING' && !window.taskModalActive) {
+    const me = players[myId];
+    if (!me || me.isDead) return;
+    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.r + 60) {
+      socket.emit('callMeeting', { type: 'emergency' });
+    }
+  }
+});
+
+// Canvas click → emergency button
+canvas.addEventListener('click', (e) => {
+  if (currentState !== 'PLAYING' || window.taskModalActive) return;
+  const me = players[myId];
+  if (!me || me.isDead) return;
+  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > EMERGENCY_BTN.r + 60) return;
+  const rect = canvas.getBoundingClientRect();
+  const camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, me.x - canvas.width / 2));
+  const camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, me.y - canvas.height / 2));
+  const wx = (e.clientX - rect.left) + camX;
+  const wy = (e.clientY - rect.top) + camY;
+  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < EMERGENCY_BTN.r) {
+    socket.emit('callMeeting', { type: 'emergency' });
+  }
+});
+
 
 // ==== Socket Events ====
 
@@ -586,6 +624,17 @@ function updateLocalPlayer(dt) {
       }
   }
 
+  // Body proximity (for [E] report) — alive non-ghost players only
+  nearbyBody = null;
+  if (!isGhost) {
+    for (let body of bodies) {
+      if (Math.hypot(me.x - body.x, me.y - body.y) < 60) {
+        nearbyBody = body;
+        break;
+      }
+    }
+  }
+
   // Task proximity detection (only alive crewmates with assigned tasks)
   if (!isGhost && myRole === 'crewmate' && myTaskIds) {
     for (let task of TASKS) {
@@ -662,6 +711,9 @@ function drawGame(time) {
       ctx.fillRect(w.x, w.y, w.w, w.h);
       ctx.strokeRect(w.x, w.y, w.w, w.h);
   }
+
+  // Draw Emergency Button
+  drawEmergencyButton(time);
 
   for (let id in players) {
     const p = players[id];
@@ -970,23 +1022,94 @@ function drawTaskHUD() {
   }
 
   // [F] prompt when near a task
-  if (!shownTaskId) return;
-  const task = TASKS.find(t => t.id === shownTaskId);
-  if (!task || completedTasks.has(task.id)) return;
-  
-  const cx = canvas.width / 2;
-  const cy = canvas.height - 80;
-  
+  if (shownTaskId) {
+    const task = TASKS.find(t => t.id === shownTaskId);
+    if (task && !completedTasks.has(task.id)) {
+      const cx = canvas.width / 2;
+      const cy = canvas.height - 80;
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.75)';
+      ctx.beginPath(); ctx.roundRect(cx - 150, cy - 22, 300, 44, 10); ctx.fill();
+      ctx.fillStyle = '#f1c40f'; ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(`[F] to start: ${task.label}`, cx, cy);
+      ctx.restore();
+    }
+  }
+
+  // [E] prompt when near a dead body
+  const me = players[myId];
+  if (nearbyBody && me && !me.isDead && !window.meetingActive) {
+    const cx = canvas.width / 2;
+    const cy = canvas.height - 130;
+    ctx.save();
+    ctx.fillStyle = 'rgba(150,0,0,0.82)';
+    ctx.beginPath(); ctx.roundRect(cx - 155, cy - 22, 310, 44, 10); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(`[E] Report body: ${nearbyBody.name}`, cx, cy);
+    ctx.restore();
+  }
+
+  // [Q] prompt when near emergency button
+  if (me && !me.isDead && !window.meetingActive &&
+      Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.r + 65) {
+    const cx = canvas.width / 2;
+    const cy = canvas.height - 175;
+    ctx.save();
+    ctx.fillStyle = 'rgba(180,30,0,0.85)';
+    ctx.beginPath(); ctx.roundRect(cx - 165, cy - 22, 330, 44, 10); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('[Q] or Click — Emergency Meeting', cx, cy);
+    ctx.restore();
+  }
+}
+
+function drawEmergencyButton(time) {
+  const b = EMERGENCY_BTN;
+  const me = players[myId];
+  const nearby = me && Math.hypot(me.x - b.x, me.y - b.y) < b.r + 65;
+  const pulse = 0.7 + 0.3 * Math.sin(Date.now() * 0.005);
+
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.75)';
-  ctx.beginPath();
-  ctx.roundRect(cx - 150, cy - 22, 300, 44, 10);
-  ctx.fill();
-  ctx.fillStyle = '#f1c40f';
-  ctx.font = 'bold 15px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(`[F] to start: ${task.label}`, cx, cy);
+  ctx.translate(b.x, b.y);
+
+  // Base pedestal (dark circle)
+  ctx.fillStyle = '#2c2c2c';
+  ctx.beginPath(); ctx.arc(0, 6, b.r + 8, 0, Math.PI * 2); ctx.fill();
+
+  // Glow if nearby
+  if (nearby) {
+    ctx.shadowColor = '#e74c3c';
+    ctx.shadowBlur = 30 * pulse;
+  }
+
+  // Red button
+  const grad = ctx.createRadialGradient(-12, -12, 4, 0, 0, b.r);
+  grad.addColorStop(0, '#ff6b6b');
+  grad.addColorStop(0.5, '#e74c3c');
+  grad.addColorStop(1, '#922b21');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Border
+  ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.stroke();
+
+  // "!" icon
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 26px Impact';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('!', 0, 0);
+  ctx.restore();
+
+  // "EMERGENCY" label below
+  ctx.save();
+  ctx.fillStyle = nearby ? '#e74c3c' : '#95a5a6';
+  ctx.font = `bold 12px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('EMERGENCY', b.x, b.y + b.r + 10);
   ctx.restore();
 }
 

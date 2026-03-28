@@ -19,6 +19,41 @@ const GAME_STATE = {
 
 const rooms = {};
 
+function endMeeting(roomId) {
+  const room = rooms[roomId];
+  if (!room || !room.meeting) return;
+  if (room.meetingTimer) { clearTimeout(room.meetingTimer); room.meetingTimer = null; }
+
+  const votes = room.meeting.votes;
+  const alive = Object.keys(room.players).filter(id => !room.players[id].isDead);
+  const counts = {};
+  let cast = 0;
+  for (let vid in votes) { const t = votes[vid]; counts[t] = (counts[t]||0)+1; cast++; }
+  const skipTotal = (counts['skip']||0) + (alive.length - cast);
+  let maxV = 0, top = [];
+  for (let id in counts) {
+    if (id === 'skip' || !room.players[id]) continue;
+    if (counts[id] > maxV) { maxV = counts[id]; top = [id]; }
+    else if (counts[id] === maxV) top.push(id);
+  }
+  let eliminated = (top.length === 1 && maxV > skipTotal) ? top[0] : null;
+  if (eliminated && room.players[eliminated]) {
+    room.players[eliminated].isDead = true;
+    room.players[eliminated].deathX = room.players[eliminated].x;
+    room.players[eliminated].deathY = room.players[eliminated].y;
+  }
+  const snap = room.meeting;
+  room.meeting = null;
+  io.to(roomId).emit('meetingResult', {
+    eliminated,
+    eliminatedName: eliminated ? room.players[eliminated]?.name : null,
+    deathX: eliminated ? room.players[eliminated]?.deathX : null,
+    deathY: eliminated ? room.players[eliminated]?.deathY : null,
+    votes: counts,
+    type: snap.type
+  });
+}
+
 // Helper: generate 4 letter code
 function generateRoomCode() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -167,6 +202,10 @@ io.on('connection', (socket) => {
       }
 
       room.state = GAME_STATE.PLAYING;
+      // Clear any ongoing meeting
+      if (room.meetingTimer) { clearTimeout(room.meetingTimer); room.meetingTimer = null; }
+      room.meeting = null;
+      room.tasksDone = null;
       
       // Assign roles
       playerIds.forEach(id => {
@@ -205,8 +244,7 @@ io.on('connection', (socket) => {
         if (killer && victim && killer.role === 'impostor' && !killer.isDead && !victim.isDead) {
           const dx = killer.x - victim.x;
           const dy = killer.y - victim.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
+          if (Math.sqrt(dx*dx + dy*dy) < 100) {
             victim.isDead = true;
             victim.deathX = victim.x;
             victim.deathY = victim.y;
@@ -215,6 +253,54 @@ io.on('connection', (socket) => {
         }
     }
   });
+
+  socket.on('callMeeting', ({ type, bodyName }) => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (room.state !== GAME_STATE.PLAYING) return;
+    if (room.meeting) return;
+    const caller = room.players[socket.id];
+    if (!caller || caller.isDead) return;
+
+    room.meeting = { type, calledBy: socket.id, votes: {} };
+    io.to(roomId).emit('meetingCalled', {
+      type, calledBy: socket.id,
+      callerName: caller.name, callerColor: caller.color,
+      bodyName: bodyName || null
+    });
+    room.meetingTimer = setTimeout(() => endMeeting(roomId), 60000);
+  });
+
+  socket.on('castVote', (targetId) => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (!room.meeting || room.state !== GAME_STATE.PLAYING) return;
+    const voter = room.players[socket.id];
+    if (!voter || voter.isDead) return;
+    if (room.meeting.votes[socket.id] !== undefined) return;
+    if (targetId !== 'skip' && (!room.players[targetId] || room.players[targetId].isDead)) return;
+    room.meeting.votes[socket.id] = targetId;
+    io.to(roomId).emit('voteCast', { voterId: socket.id });
+    const alive = Object.keys(room.players).filter(id => !room.players[id].isDead);
+    if (Object.keys(room.meeting.votes).length >= alive.length) endMeeting(roomId);
+  });
+
+  socket.on('meetingChat', (text) => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (!room.meeting) return;
+    const player = room.players[socket.id];
+    if (!player) return;
+    io.to(roomId).emit('meetingChatMsg', {
+      name: player.name, color: player.color,
+      text: String(text).slice(0, 150),
+      isDead: player.isDead
+    });
+  });
+
 
   socket.on('allTasksDone', () => {
     const roomId = socket.roomId;
