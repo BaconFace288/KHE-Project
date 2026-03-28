@@ -241,11 +241,10 @@ let currentState = 'MENU';
 let myRole = 'crewmate';
 let hostId = null;
 let completedTasks = new Set(); // task IDs completed by THIS player
-let bodies = []; // { x, y, color, name, role } - persisted dead body positions
-let myTaskIds = null; // Set of 7 task IDs assigned to this player
 let nearbyBody = null; // body object player is standing near
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
+let introActive = false; // blocks movement/actions during cinematic intro
 
 function assignMyTasks() {
     const all = TASKS.map(t => t.id);
@@ -374,6 +373,7 @@ socket.on('gameStarted', (serverPlayers) => {
     myRole = players[myId].role;
     if (myRole === 'crewmate') assignMyTasks();
     updateScreenState();
+    showRoleIntro(myRole);
 });
 
 socket.on('playerClubbed', (data) => {
@@ -436,6 +436,7 @@ actionBtn.addEventListener('click', triggerClub);
 // ==== Game Logic ====
 
 function triggerClub() {
+   if (introActive) return;
    if (myRole === 'impostor' && players[myId] && !players[myId].isDead) {
       const now = Date.now();
       if (now - lastSwingTime < SWING_COOLDOWN) return; // on cooldown
@@ -489,6 +490,38 @@ function updateScreenState() {
   else if (currentState === 'GAMEOVER') {
       endScreen.classList.remove('hidden');
   }
+}
+
+function showRoleIntro(role) {
+  const introOverlay = document.getElementById('role-intro');
+  const roleNameEl = document.getElementById('intro-role');
+  const roleImgEl = document.getElementById('intro-image');
+  const roleObjEl = document.getElementById('intro-objective');
+
+  introActive = true;
+  introOverlay.classList.remove('hidden');
+  introOverlay.classList.remove('fade-out');
+
+  if (role === 'impostor') {
+    roleNameEl.innerText = 'CAVEMAN';
+    roleNameEl.style.color = '#c0392b'; // dark red
+    roleImgEl.src = 'caveman_intro.png';
+    roleObjEl.innerText = 'Sabatoge and eliminate all Time Travelers!';
+  } else {
+    roleNameEl.innerText = 'TIME TRAVELER';
+    roleNameEl.style.color = '#3498db'; // bright blue
+    roleImgEl.src = 'timetraveler_intro.png';
+    roleObjEl.innerText = 'Complete all 7 tasks and find the Caveman!';
+  }
+
+  // Cinematic sequence
+  setTimeout(() => {
+    introOverlay.classList.add('fade-out');
+    setTimeout(() => {
+      introOverlay.classList.add('hidden');
+      introActive = false;
+    }, 1000); // match CSS fadeOut timing
+  }, 3500); // 3.5s of reading time + 1s fade = 4.5s total
 }
 
 function updateLobbyUI() {
@@ -602,7 +635,7 @@ const GHOST_SPEED = 280;
 
 function updateLocalPlayer(dt) {
   if (!players[myId]) return;
-  if (window.taskModalActive) return; // freeze movement during minigame
+  if (window.taskModalActive || introActive) return; // freeze movement during minigame or intro
   const me = players[myId];
   const isGhost = me.isDead;
   
