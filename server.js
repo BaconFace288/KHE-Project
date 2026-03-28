@@ -163,8 +163,8 @@ io.on('connection', (socket) => {
         room.players[id].role = 'crewmate';
         room.players[id].isDead = false;
         // set random spawn
-        room.players[id].x = 200 + Math.random() * 400;
-        room.players[id].y = 200 + Math.random() * 200;
+        room.players[id].x = 1500 + Math.random() * 200;
+        room.players[id].y = 1500 + Math.random() * 200;
       });
 
       // Pick randomly 1-2 impostors (Cavemen) depending on size

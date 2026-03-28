@@ -28,6 +28,9 @@ const endText = document.getElementById('end-text');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+const MAP_WIDTH = 3000;
+const MAP_HEIGHT = 3000;
+
 // Game State
 let players = {};
 let myId = null;
@@ -300,8 +303,8 @@ function updateLocalPlayer(dt) {
     players[myId].x += dx * SPEED * dt;
     players[myId].y += dy * SPEED * dt;
     
-    players[myId].x = Math.max(20, Math.min(canvas.width - 20, players[myId].x));
-    players[myId].y = Math.max(20, Math.min(canvas.height - 20, players[myId].y));
+    players[myId].x = Math.max(20, Math.min(MAP_WIDTH - 20, players[myId].x));
+    players[myId].y = Math.max(20, Math.min(MAP_HEIGHT - 20, players[myId].y));
     
     players[myId].isMoving = true;
     if (dx < 0) players[myId].flipX = true;
@@ -331,18 +334,39 @@ function drawGame(time) {
   
   if (currentState !== 'PLAYING' && currentState !== 'GAMEOVER') return;
 
+  const me = players[myId];
+  let camX = 0, camY = 0;
+  if (me) {
+     camX = me.x - canvas.width / 2;
+     camY = me.y - canvas.height / 2;
+     camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camX));
+     camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camY));
+  }
+  
+  ctx.save();
+  ctx.translate(-camX, -camY);
+
   ctx.strokeStyle = '#2ecc71';
   ctx.lineWidth = 2;
-  for(let i = 0; i < canvas.width; i+=50) {
-      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+  
+  // To avoid drawing massive grids, just draw the whole thing
+  for(let i = 0; i <= MAP_WIDTH; i+=50) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, MAP_HEIGHT); ctx.stroke();
   }
-  for(let i = 0; i < canvas.height; i+=50) {
-      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+  for(let i = 0; i <= MAP_HEIGHT; i+=50) {
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(MAP_WIDTH, i); ctx.stroke();
   }
+
+  // Draw boundary wall
+  ctx.strokeStyle = '#1abc9c';
+  ctx.lineWidth = 10;
+  ctx.strokeRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
   for (let id in players) {
     drawPlayer(players[id], id === myId, time);
   }
+  
+  ctx.restore();
 }
 
 function drawPlayer(p, isMe, time) {
