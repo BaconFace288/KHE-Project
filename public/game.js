@@ -373,14 +373,17 @@ socket.on('playerMoved', (data) => {
 });
 
 socket.on('gameStarted', (serverPlayers) => {
+    currentState = 'PLAYING'; // Set immediately to start render loop
+    updateScreenState();
+    
     // Short delay to ensure roomUpdate state has finished processing data
     setTimeout(() => {
         players = serverPlayers;
         bodies = []; // clear bodies from any previous game
-        currentState = 'PLAYING';
         myRole = players[myId].role;
         if (myRole === 'crewmate') assignMyTasks();
         
+        // Re-update the localized HUD once role is set
         updateScreenState();
         if (!introActive) showRoleIntro(myRole);
     }, 50);
@@ -732,21 +735,21 @@ function drawGame(time) {
   let camX = 0, camY = 0;
   
   if (me) {
-     camX = me.x - canvas.width / 2;
-     camY = me.y - canvas.height / 2;
+     camX = me.x - (canvas.width / 2);
+     camY = me.y - (canvas.height / 2);
      camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camX));
      camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camY));
   } else if (currentState === 'PLAYING') {
-      // If we are playing but 'me' is missing (reconnecting), draw centered on last known or map center
-      camX = 1500 - canvas.width / 2;
-      camY = 1500 - canvas.height / 2;
+      // Fallback camera position (map center) if player data is loading
+      camX = 1500 - (canvas.width / 2);
+      camY = 1500 - (canvas.height / 2);
   }
   
   ctx.save();
   ctx.translate(-camX, -camY);
 
   // =============================================
-  // GROUND — dark earthy mosaic with subtle grid
+  // GROUND — drawn every frame in PLAYING state
   // =============================================
   ctx.fillStyle = '#1a1a12';
   ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
