@@ -288,6 +288,7 @@ canvas {
   z-index: 2000;
   padding: 20px;
   backdrop-filter: blur(8px);
+  pointer-events: auto; /* Fix for clickable close button */
 }
 
 .modal-body {

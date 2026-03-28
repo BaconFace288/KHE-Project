@@ -533,7 +533,7 @@ function showRoleHandbook(role) {
     roleModal.classList.remove('hidden');
     if (role === 'impostor') {
         roleModalIcon.innerText = '🍖';
-        roleModalTitle.innerText = 'Caveman Strategy';
+        roleModalTitle.innerText = 'Caveman Guide';
         roleModalBody.innerHTML = `
             <div class="strategy-section">
                 <span class="strategy-title">Objective</span>
@@ -550,7 +550,7 @@ function showRoleHandbook(role) {
         `;
     } else {
         roleModalIcon.innerText = '⌚';
-        roleModalTitle.innerText = 'Secret Agent Strategy';
+        roleModalTitle.innerText = 'Time Traveler Guide';
         roleModalBody.innerHTML = `
             <div class="strategy-section">
                 <span class="strategy-title">Objective</span>
