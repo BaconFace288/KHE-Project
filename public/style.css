@@ -327,12 +327,41 @@ canvas {
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-50px); }
-  to { opacity: 1; transform: translateY(0); }
+.play-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  margin-top: 10px;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(50px); }
-  to { opacity: 1; transform: translateY(0); }
+.info-icon.lore {
+  position: relative; /* Overrides absolute positioning in top corner */
+  top: auto; left: auto; right: auto;
+  color: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  background: rgba(0,0,0,0.4);
+}
+
+.info-icon.lore:hover {
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+  background: rgba(0,0,0,0.7);
+}
+
+.lore-card {
+  max-width: 650px !important;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.lore-card p {
+  margin-bottom: 20px;
+  line-height: 1.6;
+  color: #bdc3c7;
+}
+
+#lore-modal {
+  z-index: 2500;
+  pointer-events: auto;
 }

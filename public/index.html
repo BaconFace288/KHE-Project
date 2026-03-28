@@ -29,7 +29,26 @@
         <div id="info-agent" class="info-icon right" title="Agent Strategy">ⓘ</div>
         <img src="landing_banner_wide.png" alt="Caveman vs Secret Agent" class="landing-banner">
       </div>
-      <button id="play-btn" class="play-btn">PLAY</button>
+      <div class="play-btn-row">
+        <button id="play-btn" class="play-btn">PLAY</button>
+        <div id="info-lore" class="info-icon lore" title="Game Lore">ⓘ</div>
+      </div>
+    </div>
+
+    <!-- LORE MODAL -->
+    <div id="lore-modal" class="hidden">
+      <div class="modal-card lore-card">
+        <div class="modal-header">
+          <span class="task-icon">📖</span>
+          <h2>The Story So Far</h2>
+        </div>
+        <div id="lore-modal-body" class="modal-body">
+          <!-- lore content injected here -->
+        </div>
+        <div class="modal-footer">
+          <button id="lore-modal-close" class="modal-submit-btn">Understood</button>
+        </div>
+      </div>
     </div>
 
     <!-- ROLE STRATEGY MODAL -->

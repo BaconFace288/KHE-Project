@@ -14,6 +14,10 @@ const roleModalIcon = document.getElementById('role-modal-icon');
 const roleModalTitle = document.getElementById('role-modal-title');
 const roleModalBody = document.getElementById('role-modal-body');
 const roleModalClose = document.getElementById('role-modal-close');
+const infoLore = document.getElementById('info-lore');
+const loreModal = document.getElementById('lore-modal');
+const loreModalBody = document.getElementById('lore-modal-body');
+const loreModalClose = document.getElementById('lore-modal-close');
 
 const playerNameInput = document.getElementById('player-name');
 const roomCodeInput = document.getElementById('room-code-input');
@@ -463,6 +467,8 @@ playBtn.addEventListener('click', () => {
 infoCaveman.addEventListener('click', () => showRoleHandbook('impostor'));
 infoAgent.addEventListener('click', () => showRoleHandbook('crewmate'));
 roleModalClose.addEventListener('click', () => { roleModal.classList.add('hidden'); });
+infoLore.addEventListener('click', showLoreModal);
+loreModalClose.addEventListener('click', () => { loreModal.classList.add('hidden'); });
 
 actionBtn.addEventListener('click', triggerClub);
 
@@ -566,6 +572,19 @@ function showRoleHandbook(role) {
             </div>
         `;
     }
+}
+
+function showLoreModal() {
+  loreModal.classList.remove('hidden');
+  loreModalBody.innerHTML = `
+    <p>Deep in the year 2342, the <b>Chronos Initiative</b> was formed by top-tier Secret Agents to stabilize humanity's fractured timeline. During a routine calibration of the "Portal Divide," a catastrophic tachyon surge ripped through the laboratories, opening a permanent rift to the Pleistocene Epoch. Dozens of elite Agents were pulled through the swirling neon-blue vortex, finding themselves stranded in a primitive world they were never meant to inhabit.</p>
+    
+    <p>The Agents arrived at a site they had abandoned centuries ago—a decaying, high-tech observation outpost originally built to monitor the ancient world. However, the mission took an immediate turn towards conflict: the local Cavemen, seeking shelter from their harsh surroundings, had already claimed the crumbling facility as their new sanctuary. To them, these "Metal-Walkers" are not scientists returning to their post, but intruders from the stars who threaten the sacred balance of their tribal home.</p>
+    
+    <p>One among the cavemen, known only as <b>The Peer</b>, is the tribe’s most relentless defender. Having seen the destructive power of the intruders’ strange, glowing tools, he has picked up his club to drive the invaders back through the portal. To him, this isn't a battle for history—it's a battle to protect his home, his family, and his people from the unknown invaders who have disturbed the peace of the lab-caves.</p>
+    
+    <p>Now, the battle for the timeline has begun. While the stranded Agents scramble to perform emergency coding repairs and gather chronological data to reopen their portal back home, <b>The Peer</b> stalks the shadows of the cave-like corridors. The Agents must work together to identify the watcher hiding among them before the club swings and another scientist is removed from history. It is a desperate race where the primitive meets the professional, and only one era will prevail.</p>
+  `;
 }
 
 function showRoleIntro(role) {
