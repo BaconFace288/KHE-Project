@@ -1068,15 +1068,15 @@ function drawGame(time) {
 
   // Building config for roof styling
   const BLDG_STYLES = {
-    'B1': { label: 'The Compound',  roofCol: 'rgba(40,55,70,0.95)',   windowCol: '#ffd54f', windowGlow: '#ff9800' },
-    'B2': { label: 'L-Block',       roofCol: 'rgba(55,55,60,0.95)',   windowCol: '#80deea', windowGlow: '#00bcd4' },
-    'B3': { label: 'The Maze',      roofCol: 'rgba(50,20,65,0.95)',   windowCol: '#ce93d8', windowGlow: '#9c27b0' },
-    'B4': { label: 'Longhouse',     roofCol: 'rgba(70,35,10,0.95)',   windowCol: '#ffcc80', windowGlow: '#ff6f00' },
+    'B1': { label: 'The Compound',  roofCol: 'rgb(40,55,70)',   windowCol: '#ffd54f', windowGlow: '#ff9800' },
+    'B2': { label: 'L-Block',       roofCol: 'rgb(55,55,60)',   windowCol: '#80deea', windowGlow: '#00bcd4' },
+    'B3': { label: 'The Maze',      roofCol: 'rgb(50,20,65)',   windowCol: '#ce93d8', windowGlow: '#9c27b0' },
+    'B4': { label: 'Longhouse',     roofCol: 'rgb(70,35,10)',   windowCol: '#ffcc80', windowGlow: '#ff6f00' },
   };
 
   for (let r of roofs) {
     const bKey = r.id.slice(0, 2); // 'B1', 'B2', etc.
-    const style = BLDG_STYLES[bKey] || { roofCol: 'rgba(30,30,30,0.95)', windowCol: '#fff', windowGlow: '#fff' };
+    const style = BLDG_STYLES[bKey] || { roofCol: 'rgb(30,30,30)', windowCol: '#fff', windowGlow: '#fff' };
 
     if (amIDead) {
       // Ghost: see through roof, slight tint
