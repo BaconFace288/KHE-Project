@@ -446,6 +446,13 @@ socket.on('crewmatesWinTasks', () => {
     updateScreenState();
 });
 
+socket.on('cavemanLeftWin', () => {
+    currentState = 'GAMEOVER';
+    endText.innerText = 'TIME TRAVELERS WIN! The Caveman has abandoned the mission.';
+    endText.style.color = '#2ecc71';
+    updateScreenState();
+});
+
 // ==== Event Listeners ====
 
 createBtn.addEventListener('click', () => {

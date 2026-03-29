@@ -157,17 +157,29 @@ io.on('connection', (socket) => {
     const roomId = socket.roomId;
     if (roomId && rooms[roomId]) {
         const room = rooms[roomId];
+        const disconnectedPlayerMatch = room.players[socket.id];
         delete room.players[socket.id];
         
         io.to(roomId).emit('playerDisconnected', socket.id);
         
         const remainingPlayers = Object.keys(room.players);
+        
+        // --- Added: Win Condition if Caveman Leaves ---
+        if (room.state === GAME_STATE.PLAYING && disconnectedPlayerMatch && disconnectedPlayerMatch.role === 'impostor') {
+            const remainingImpostors = Object.values(room.players).filter(p => p.role === 'impostor' && !p.isDead);
+            if (remainingImpostors.length === 0) {
+                room.state = GAME_STATE.GAMEOVER;
+                io.to(roomId).emit('cavemanLeftWin');
+            }
+        }
+        // ----------------------------------------------
+
         if (remainingPlayers.length === 0) {
             delete rooms[roomId]; // Cleanup room
         } else {
             // Re-assign host if the host disconnected
             if (room.hostId === socket.id) {
-                room.hostId = remainingPlayers[0]; // first remaining player (pseudo join-order given object key behavior)
+                room.hostId = remainingPlayers[0]; 
                 io.to(roomId).emit('hostChanged', room.hostId);
             }
             io.to(roomId).emit('roomUpdate', {
