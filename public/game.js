@@ -255,6 +255,8 @@ let myRole = 'crewmate';
 let hostId = null;
 let completedTasks = new Set(); // task IDs completed by THIS player
 let nearbyBody = null; // body object player is standing near
+let shownTaskId = null; // ID of the task current showing a prompt
+window.meetingActive = false;
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
 let introActive = false; // blocks movement/actions during cinematic intro
@@ -821,12 +823,11 @@ function updateLocalPlayer(dt) {
   }
 
   // Body proximity (for [E] report) — alive non-ghost players only
-  // Skip ejected (voted-out) bodies and already-reported bodies
   nearbyBody = null;
   if (!isGhost) {
     for (let body of bodies) {
-      if (body.ejected || body.reported) continue; // cannot report these
-      if (Math.hypot(me.x - body.x, me.y - body.y) < 60) {
+      if (body.ejected || body.reported) continue; 
+      if (Math.hypot(me.x - body.x, me.y - body.y) < 65) {
         nearbyBody = body;
         break;
       }
@@ -834,15 +835,21 @@ function updateLocalPlayer(dt) {
   }
 
   // Task proximity detection (only alive crewmates with assigned tasks)
+  let foundTask = null;
   if (!isGhost && myRole === 'crewmate' && myTaskIds) {
     for (let task of TASKS) {
-      if (!myTaskIds.has(task.id)) continue; // only assigned tasks
-      if (completedTasks.has(task.id)) continue;
-      if (Math.hypot(me.x - task.x, me.y - task.y) < 50) {
-        showTaskPrompt(task);
-        return;
+      if (myTaskIds.has(task.id) && !completedTasks.has(task.id)) {
+        if (Math.hypot(me.x - task.x, me.y - task.y) < 55) {
+          foundTask = task;
+          break;
+        }
       }
     }
+  }
+
+  if (foundTask) {
+    showTaskPrompt(foundTask);
+  } else {
     hideTaskPrompt();
   }
 }

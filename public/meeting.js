@@ -4,7 +4,6 @@
 //  bodies, checkWinCondition
 // =====================================================
 
-let meetingActive = false;
 let meetingTimerInterval = null;
 let meetingTimeLeft = 60;
 let myVote = null;
@@ -40,7 +39,7 @@ socket.on('meetingChatMsg', ({ name, color, text, isDead }) => {
 
 // ===== Open Meeting =====
 function openMeeting(data) {
-  meetingActive = true;
+  window.meetingActive = true;
   myVote = null;
   votedPlayers.clear();
   meetingTimeLeft = 60;
@@ -211,7 +210,7 @@ function showResult(data) {
 }
 
 function closeMeeting() {
-  meetingActive = false;
+  window.meetingActive = false;
   myVote = null;
   voteScreen.classList.remove('active');
   window.taskModalActive = false;
