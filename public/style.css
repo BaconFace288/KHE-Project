@@ -386,3 +386,39 @@ canvas {
   backdrop-filter: blur(8px);
   pointer-events: auto;
 }
+
+/* Audio Toggle HUD */
+.audio-toggle {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  z-index: 10000;
+  background: rgba(44, 62, 80, 0.85);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.audio-toggle:hover {
+  background: rgba(52, 73, 94, 0.95);
+  border-color: #3498db;
+  transform: translateY(-1px);
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.3);
+}
+
+.audio-toggle.active {
+  border-color: #2ecc71;
+  color: #2ecc71;
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.2);
+}

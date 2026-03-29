@@ -36,6 +36,7 @@ const hostStatus = document.getElementById('host-status');
 const roleText = document.getElementById('role-text');
 const actionBtn = document.getElementById('action-btn');
 const endText = document.getElementById('end-text');
+const audioToggle = document.getElementById('audio-toggle');
 
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
@@ -572,6 +573,14 @@ infoLore.addEventListener('click', showLoreModal);
 loreModalClose.addEventListener('click', () => { loreModal.classList.add('hidden'); });
 
 actionBtn.addEventListener('click', triggerClub);
+
+if (audioToggle) {
+  audioToggle.addEventListener('click', () => {
+    const isOn = toggleAmbientMusic();
+    audioToggle.innerText = isOn ? '🔊 Music: On' : '🔇 Music: Off';
+    audioToggle.classList.toggle('active', isOn);
+  });
+}
 
 // ==== Game Logic ====
 
