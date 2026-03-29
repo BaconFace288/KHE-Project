@@ -263,10 +263,10 @@ canvas {
 
 /* Credits Modal Specifics (Handbook Style) */
 .credits-card {
-    width: 90%;
-    max-width: 700px !important; /* Slightly narrower to fit smaller screens */
-    max-height: 85vh; /* Prevent vertical overflow */
-    overflow-y: auto; /* Allow scrolling if list gets too long */
+    width: 95%;
+    max-width: 1000px !important; /* Wide panoramic view to support more columns */
+    max-height: 85vh;
+    overflow-y: auto;
     border: 5px solid #f39c12; 
     text-align: center !important;
     background: #1e1e2e;
@@ -284,7 +284,7 @@ canvas {
 .credits-title {
     color: #f39c12;
     font-family: 'Montserrat', sans-serif;
-    font-size: 22px; /* Scales from 16px to 22px */
+    font-size: 22px; 
     text-transform: uppercase;
     letter-spacing: 4px;
     margin-bottom: 20px;
@@ -293,8 +293,8 @@ canvas {
 }
 
 .credits-name {
-    font-size: 20px; /* Scales from 16px to 20px */
-    font-family: 'Orbitron', sans-serif; /* Unique futuristic font for names */
+    font-size: 18px; /* Slightly refined to fit more columns */
+    font-family: 'Orbitron', sans-serif; 
     color: #ecf0f1;
     margin: 12px 0;
     font-weight: 700;
@@ -307,8 +307,8 @@ canvas {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px 40px;
-    max-width: 95%;
+    gap: 10px 25px; /* Tighter gap for more density */
+    max-width: 98%;
     margin: 0 auto;
     text-align: center !important;
 }
