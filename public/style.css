@@ -263,7 +263,7 @@ canvas {
 
 /* Credits Modal Specifics (Handbook Style) */
 .credits-card {
-    width: 95%;
+    width: 95% !important; /* Force override of the 520px minigame bottleneck */
     max-width: 1000px !important; /* Wide panoramic view to support more columns */
     max-height: 85vh;
     overflow-y: auto;
