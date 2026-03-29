@@ -609,6 +609,11 @@ if (addBotBtn) {
   });
 }
 
+// Global kick helper for onclick
+window.kick = (targetId) => {
+    socket.emit('kickPlayer', targetId);
+};
+
 // ==== Game Logic ====
 
 function triggerClub() {
@@ -772,7 +777,17 @@ function updateLobbyUI() {
         if (id === hostId) tag += ' 👑 HOST';
         if (p.isBot) tag += ' (AI)';
         
-        playerListDiv.innerHTML += `<div style="padding: 5px 0;"><span style="display:inline-block;width:12px;height:12px;background:${p.color};border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${p.name}${tag}</div>`;
+        let kickHtml = '';
+        if (myId === hostId && id !== myId) {
+            kickHtml = `<button class="kick-btn" onclick="window.kick('${id}')">Kick</button>`;
+        }
+        
+        playerListDiv.innerHTML += `
+          <div class="player-row">
+            <span class="player-dot" style="background:${p.color};"></span>
+            <span class="player-name-text">${p.name}${tag}</span>
+            ${kickHtml}
+          </div>`;
     }
     
     if (myId === hostId) {

@@ -495,6 +495,28 @@ io.on('connection', (socket) => {
     });
   });
 
+  socket.on('kickPlayer', (targetId) => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+
+    if (socket.id === room.hostId && room.state === GAME_STATE.LOBBY) {
+        if (targetId === socket.id) return;
+        if (room.players[targetId]) {
+            const isBot = targetId.startsWith('bot_');
+            delete room.players[targetId];
+            if (!isBot) {
+                const ts = io.sockets.sockets.get(targetId);
+                if (ts) {
+                    ts.emit('joinError', 'You have been kicked from the lobby.');
+                    ts.disconnect();
+                }
+            }
+            io.to(roomId).emit('roomUpdate', { players: room.players, hostId: room.hostId, state: room.state });
+        }
+    }
+  });
+
   socket.on('joinRoom', ({ code, name }) => {
       const upperCode = code.toUpperCase();
       const room = rooms[upperCode];

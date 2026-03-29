@@ -508,3 +508,96 @@ canvas {
   color: #2ecc71;
   box-shadow: 0 0 15px rgba(46, 204, 113, 0.2);
 }
+
+/* --- Lobby Player List Enhancements --- */
+#player-list {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: 15px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.player-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: background 0.2s;
+}
+
+.player-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.player-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+}
+
+.player-name-text {
+  flex-grow: 1;
+  font-size: 15px;
+  font-weight: bold;
+  color: #ecf0f1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kick-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 0 #c0392b;
+}
+
+.kick-btn:hover {
+  background: #ff4757;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 #c0392b;
+}
+
+.kick-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #c0392b;
+}
+
+/* --- Landing Page GitHub Link --- */
+#github-link-container {
+  position: fixed;
+  bottom: 25px;
+  left: 25px;
+  z-index: 1000;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#github-link-container:hover {
+  transform: scale(1.15) rotate(-5deg);
+}
+
+#github-link-container svg {
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+#github-link-container:hover svg {
+  opacity: 1;
+}
