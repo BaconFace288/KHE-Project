@@ -459,10 +459,16 @@ socket.on('playerDisconnected', (id) => {
 
 socket.on('playerMoved', (data) => {
     if (players[data.id]) {
-      players[data.id].x = data.player.x;
-      players[data.id].y = data.player.y;
-      players[data.id].flipX = data.player.flipX;
-      players[data.id].isMoving = data.player.isMoving;
+      const p = players[data.id];
+      // Track vertical direction for sprite facing
+      if (data.player.y < p.y - 1) p.facingUp = true;
+      else if (data.player.y > p.y + 1) p.facingUp = false;
+      
+      p.x = data.player.x;
+      p.y = data.player.y;
+      p.flipX = data.player.flipX;
+      p.isMoving = data.player.isMoving;
+      p.isDead = data.player.isDead;
     }
 });
 
@@ -1361,33 +1367,50 @@ function drawMapDecorations(time) {
 
 function drawPlayer(p, isMe, time) {
   if (!p) return;
-  let bob = p.isMoving ? Math.abs(Math.sin(time * 0.01)) * 5 : 0;
+  // Local player direction detection
+  if (isMe) {
+    if (keys['w']) p.facingUp = true;
+    else if (keys['s']) p.facingUp = false;
+  }
+
+  let bob = p.isMoving ? Math.abs(Math.sin(time * 0.01)) * 3 : 0;
   ctx.save();
   ctx.translate(p.x, p.y - bob);
   if (p.flipX) ctx.scale(-1, 1);
 
-  // --- Head (peach/skin tone) ---
-  ctx.fillStyle = '#ffdbac';
-  ctx.beginPath();
-  ctx.arc(0, -18, 12, 0, Math.PI * 2);
-  ctx.fill();
+  // --- Hair (Visible on front and back) ---
+  ctx.fillStyle = '#2d3436'; // Charcoal black for contrast
   ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
-  ctx.stroke();
+  ctx.beginPath();
+  if (p.facingUp) {
+    // Full back hair
+    ctx.arc(0, -18, 13, 0, Math.PI * 2);
+  } else {
+    // Front fringe
+    ctx.arc(0, -18, 12, Math.PI, Math.PI * 2.1);
+  }
+  ctx.fill(); ctx.stroke();
 
-  // --- Sunglasses ---
-  ctx.fillStyle = '#1e1e1e';
-  // Left lens
-  ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
-  // Right lens
-  ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
-  // Bridge (thinner)
-  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
-  
-  // Shine on glasses
-  ctx.fillStyle = 'white';
-  ctx.beginPath(); ctx.arc(-4, -19, 1, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(5, -19, 1, 0, Math.PI * 2); ctx.fill();
+  if (!p.facingUp) {
+    // --- Head (Front skin tone) ---
+    ctx.fillStyle = '#ffdbac';
+    ctx.beginPath();
+    ctx.arc(0, -18, 12, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // --- Sunglasses ---
+    ctx.fillStyle = '#1e1e1e';
+    ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill(); 
+    ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
+    ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
+    // Shine
+    ctx.fillStyle = 'white';
+    ctx.beginPath(); ctx.arc(-4, -19, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(5, -19, 1, 0, Math.PI * 2); ctx.fill();
+  }
 
   // --- Earpiece ---
   ctx.fillStyle = '#dfe6e9';
@@ -1400,13 +1423,26 @@ function drawPlayer(p, isMe, time) {
   ctx.bezierCurveTo(p.flipX ? 12 : -12, -12, p.flipX ? 8 : -8, -10, p.flipX ? 10 : -10, -8);
   ctx.stroke();
 
-  // --- Suit Body (p.color is the suit color) ---
+  // --- Suit Body ---
   ctx.fillStyle = p.color;
   ctx.beginPath();
   ctx.roundRect(-14, -8, 28, 24, 6);
   ctx.fill();
   ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  if (!p.facingUp) {
+    // --- Shirt & Tie (V-neck look) ---
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4); ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#000'; // black tie
+    ctx.beginPath();
+    ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
+    ctx.fill();
+  }
 
   // --- Shirt & Tie (V-neck look) ---
   ctx.fillStyle = 'white';
@@ -1425,12 +1461,15 @@ function drawPlayer(p, isMe, time) {
   ctx.closePath();
   ctx.fill();
 
-  // Foot movement (simplistic agent walking)
+  // Feet (stride animation)
   if (p.isMoving) {
-    const footBob = Math.sin(time * 0.02) * 4;
+    const stride = Math.sin(time * 0.02) * 8;
     ctx.fillStyle = '#333';
-    ctx.fillRect(-10, 16 + footBob, 8, 5); // left foot
-    ctx.fillRect(2, 16 - footBob, 8, 5);  // right foot
+    // If predominantly horizontal, stride sideways
+    // (Using p.flipX as proxy for horizontal movement)
+    // Actually, simple alternate bob is what feels best for top-down agents
+    ctx.fillRect(-10 + stride, 16, 8, 5); // foot 1
+    ctx.fillRect(2 - stride, 16, 8, 5);  // foot 2
   } else {
     ctx.fillStyle = '#333';
     ctx.fillRect(-10, 16, 8, 5);
@@ -1476,42 +1515,64 @@ function drawPlayer(p, isMe, time) {
 // Draw the ghost (dead player that can still move)
 function drawGhost(p, isMe, time) {
   if (!p) return;
+  // Local player direction detection
+  if (isMe) {
+    if (keys['w']) p.facingUp = true;
+    else if (keys['s']) p.facingUp = false;
+  }
+
   const bob = Math.sin(Date.now() * 0.003) * 6;
   ctx.save();
   ctx.translate(p.x, p.y + bob);
   if (p.flipX) ctx.scale(-1, 1);
-  ctx.globalAlpha = 0.45; // slightly more transparent
+  ctx.globalAlpha = 0.45;
 
-  // --- Head ---
-  ctx.fillStyle = '#dfe6e9'; // ghostly skin
+  // --- Hair (Spectral) ---
+  ctx.fillStyle = '#2d3436';
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.arc(0, -18, 12, 0, Math.PI * 2);
-  ctx.fill();
+  if (p.facingUp) {
+    ctx.arc(0, -18, 13.5, 0, Math.PI * 2);
+  } else {
+    ctx.arc(0, -18, 12, Math.PI, Math.PI * 2.1);
+  }
+  ctx.fill(); ctx.stroke();
 
-  // --- Spectral Suit Jacket (desaturated p.color) ---
-  // Simple desaturation by mixing with white/grey
+  if (!p.facingUp) {
+    // Head skin tone
+    ctx.fillStyle = '#dfe6e9';
+    ctx.beginPath();
+    ctx.arc(0, -18, 12, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+
+  // --- Spectral Suit (desaturated) ---
   ctx.fillStyle = p.color;
-  ctx.globalAlpha = 0.3; // extra faint for the jacket color
+  ctx.globalAlpha = 0.3;
   ctx.beginPath();
   ctx.roundRect(-14, -8, 28, 20, { tl: 6, tr: 6, bl: 0, br: 0 });
   ctx.fill();
   
-  ctx.globalAlpha = 0.45; // reset for the rest
+  ctx.globalAlpha = 0.45;
   ctx.fillStyle = '#dfe6e9';
   ctx.beginPath();
-  ctx.roundRect(-14, -8, 28, 18, { tl: 6, tr: 6, bl: 0, br: 0 }); // ghostly overlay
+  ctx.roundRect(-14, -8, 28, 18, { tl: 6, tr: 6, bl: 0, br: 0 });
   ctx.fill();
 
-  // --- Shirt & Tie (ghostly) ---
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.beginPath();
-  ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4); ctx.closePath();
-  ctx.fill();
+  if (!p.facingUp) {
+    // Shirt & Tie
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath();
+    ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4); ctx.closePath();
+    ctx.fill();
 
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.beginPath();
-  ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
-  ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.beginPath();
+    ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
+    ctx.fill();
+  }
 
   // --- Wavy triangle tail ---
   ctx.fillStyle = '#dfe6e9';
@@ -1523,12 +1584,14 @@ function drawGhost(p, isMe, time) {
   ctx.closePath();
   ctx.fill();
 
-  // --- Sunglasses ---
-  ctx.fillStyle = '#1e1e1e';
-  ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
-  ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
-  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
+  if (!p.facingUp) {
+    // Sunglasses (spectral)
+    ctx.fillStyle = '#1e1e1e';
+    ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
+    ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
+  }
 
   ctx.restore();
 
