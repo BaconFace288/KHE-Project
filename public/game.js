@@ -705,37 +705,41 @@ function checkTaskWinCondition() {
 
 let lastTime = Date.now();
 function gameLoop() {
-  const now = Date.now();
-  const dt = (now - lastTime) / 1000;
-  lastTime = now;
+  try {
+    const now = Date.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
 
-  if (currentState === 'PLAYING') {
-    updateLocalPlayer(dt);
-  }
-  
-  if (swingAnim > 0) {
-      swingAnim -= dt * 5; 
-      if (swingAnim < 0) swingAnim = 0;
-  }
+    if (currentState === 'PLAYING') {
+      updateLocalPlayer(dt);
+    }
+    
+    if (swingAnim > 0) {
+        swingAnim -= dt * 5; 
+        if (swingAnim < 0) swingAnim = 0;
+    }
 
-  // Update swing button (cooldown indicator)
-  if (myRole === 'impostor' && currentState === 'PLAYING') {
-      const remaining = Math.max(0, SWING_COOLDOWN - (now - lastSwingTime));
-      if (remaining > 0) {
-          const secs = Math.ceil(remaining / 1000);
-          actionBtn.innerText = `COOLDOWN (${secs}s)`;
-          actionBtn.classList.add('cooldown-state');
-          actionBtn.style.opacity = '0.6';
-          actionBtn.style.pointerEvents = 'none';
-      } else {
-          actionBtn.innerText = 'Club [Space]';
-          actionBtn.classList.remove('cooldown-state');
-          actionBtn.style.opacity = '1';
-          actionBtn.style.pointerEvents = 'auto';
-      }
-  }
+    // Update swing button (cooldown indicator)
+    if (myRole === 'impostor' && currentState === 'PLAYING') {
+        const remaining = Math.max(0, SWING_COOLDOWN - (now - lastSwingTime));
+        if (remaining > 0) {
+            const secs = Math.ceil(remaining / 1000);
+            actionBtn.innerText = `COOLDOWN (${secs}s)`;
+            actionBtn.classList.add('cooldown-state');
+            actionBtn.style.opacity = '0.6';
+            actionBtn.style.pointerEvents = 'none';
+        } else {
+            actionBtn.innerText = 'Club [Space]';
+            actionBtn.classList.remove('cooldown-state');
+            actionBtn.style.opacity = '1';
+            actionBtn.style.pointerEvents = 'auto';
+        }
+    }
 
-  drawGame(now);
+    drawGame(now);
+  } catch (err) {
+    console.error("Critical error in gameLoop, recovering...", err);
+  }
   requestAnimationFrame(gameLoop);
 }
 
@@ -830,7 +834,7 @@ function drawGame(time) {
   const me = players[myId];
   let camX = 0, camY = 0;
   
-  if (me) {
+  if (me && typeof me.x === 'number' && typeof me.y === 'number') {
      camX = me.x - (canvas.width / 2);
      camY = me.y - (canvas.height / 2);
      camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camX));
@@ -1238,6 +1242,7 @@ function drawMapDecorations(time) {
 }
 
 function drawPlayer(p, isMe, time) {
+  if (!p) return;
   let bob = p.isMoving ? Math.abs(Math.sin(time * 0.01)) * 5 : 0;
   ctx.save();
   ctx.translate(p.x, p.y - bob);
@@ -1352,6 +1357,7 @@ function drawPlayer(p, isMe, time) {
 
 // Draw the ghost (dead player that can still move)
 function drawGhost(p, isMe, time) {
+  if (!p) return;
   const bob = Math.sin(Date.now() * 0.003) * 6;
   ctx.save();
   ctx.translate(p.x, p.y + bob);
@@ -1419,6 +1425,7 @@ function drawGhost(p, isMe, time) {
 
 // Draw a sideways corpse at the death location
 function drawDeadBody(body) {
+  if (!body) return;
   ctx.save();
   ctx.translate(body.x, body.y);
   ctx.rotate(Math.PI / 2.2); // flat on ground
