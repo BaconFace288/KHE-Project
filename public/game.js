@@ -95,6 +95,7 @@ const MAP_DATA = {
 };
 
 function collidesWithWall(px, py, pr) {
+    const walls = MAP_DATA[currentMap]?.walls || MAP_DATA['Alpha'].walls;
     for (let w of walls) {
         let testX = px; let testY = py;
         if (px < w.x) testX = w.x; else if (px > w.x + w.w) testX = w.x + w.w;
@@ -106,29 +107,23 @@ function collidesWithWall(px, py, pr) {
 }
 
 function collidesWithProps(px, py, pr) {
-    for (let it of DECOR_FURNITURE) {
-        let w = 0, h = 0;
-        if (it.type === 'table') { w = 40; h = 25; }
-        else if (it.type === 'desk') { w = 55; h = 25; }
-        else if (it.type === 'dining_table') { w = 120; h = 60; }
-        else if (it.type === 'chair') { w = 16; h = 16; }
-        else if (it.type === 'stool') { w = 20; h = 20; }
-        
-        if (w > 0) {
-            let halfW = w / 2;
-            let halfH = h / 2;
-            let testX = px; let testY = py;
-            if (px < it.x - halfW) testX = it.x - halfW; else if (px > it.x + halfW) testX = it.x + halfW;
-            if (py < it.y - halfH) testY = it.y - halfH; else if (py > it.y + halfH) testY = it.y + halfH;
-            let distX = px - testX; let distY = py - testY;
-            if (Math.sqrt((distX*distX) + (distY*distY)) <= pr) return true;
-        }
+    const furniture = MAP_DATA[currentMap]?.furniture || MAP_DATA['Alpha'].furniture;
+    for (let it of furniture) {
+        // Simple rectangular collision for furniture
+        let testX = px; let testY = py;
+        const halfW = it.w / 2;
+        const halfH = it.h / 2;
+        if (px < it.x - halfW) testX = it.x - halfW; else if (px > it.x + halfW) testX = it.x + halfW;
+        if (py < it.y - halfH) testY = it.y - halfH; else if (py > it.y + halfH) testY = it.y + halfH;
+        let distX = px - testX; let distY = py - testY;
+        if (Math.sqrt((distX*distX) + (distY*distY)) <= pr) return true;
     }
     return false;
 }
 
 function collidesWithTasks(px, py, pr) {
-    for (let t of TASKS) {
+    const tasks = MAP_DATA[currentMap]?.tasks || MAP_DATA['Alpha'].tasks;
+    for (let t of tasks) {
         // Use a 20px radius for task object collision
         if (Math.hypot(px - t.x, py - t.y) <= pr + 20) return true;
     }
@@ -156,23 +151,26 @@ function distToSegmentSquared(px, py, vx, vy, wx, wy) {
 }
 
 function collidesWithPit(px, py, pr) {
+    const pits = MAP_DATA[currentMap]?.pits || MAP_DATA['Alpha'].pits;
     for (let p of pits) {
-        if (!p.points) continue;
-        
-        // Quick bounds check (p.r is roughly 80% of original radius scaling)
-        if (Math.hypot(px - p.x, py - p.y) > p.r * 2 + pr) continue;
-
-        if (isPointInPolygon(px, py, p.points)) return true;
-
-        for (let i = 0, j = p.points.length - 1; i < p.points.length; j = i++) {
-            let distSq = distToSegmentSquared(px, py, p.points[j].x, p.points[j].y, p.points[i].x, p.points[i].y);
-            if (distSq <= pr * pr) return true;
+        // Pits don't always have .points anymore in the new system (some are just circles)
+        // If they have points, use polygon logic. Otherwise use circle logic.
+        if (p.points) {
+            if (isPointInPolygon(px, py, p.points)) return true;
+            for (let i = 0, j = p.points.length - 1; i < p.points.length; j = i++) {
+                let distSq = distToSegmentSquared(px, py, p.points[j].x, p.points[j].y, p.points[i].x, p.points[i].y);
+                if (distSq <= pr * pr) return true;
+            }
+        } else {
+            // Circle pit
+            if (Math.hypot(px - p.x, py - p.y) <= pr + p.r) return true;
         }
     }
     return false;
 }
 
 function getRoomId(px, py) {
+    const roofs = MAP_DATA[currentMap]?.roofs || MAP_DATA['Alpha'].roofs;
     for (let r of roofs) {
         // give a 20px padding (WT) to the room detection so doorways count as being inside the room
         if (px > r.x - 20 && px < r.x + r.w + 20 && py > r.y - 20 && py < r.y + r.h + 20) {
@@ -191,8 +189,14 @@ let currentState = 'LANDING';
 let myRole = 'crewmate';
 let hostId = null;
 let completedTasks = new Set(); // task IDs completed by THIS player
+let myTaskIds = new Set(); // IDs of tasks assigned to this player
 let nearbyBody = null; // body object player is standing near
 let shownTaskId = null; // ID of the task current showing a prompt
+
+const EMERGENCY_BTN = { x: 1500, y: 1500, r: 18, collisionR: 35 };
+const DECOR_FURNITURE = []; // Deprecated: now in MAP_DATA
+const DECOR_FLORA = [];     // Deprecated: now in MAP_DATA
+const TASKS = [];           // Deprecated: now in MAP_DATA
 window.meetingActive = false;
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
@@ -1524,12 +1528,15 @@ function drawDeadBody(body) {
 }
 
 // Draw task markers on the map
-function drawTasks() {
-  if (!myTaskIds) return; // tasks not assigned yet
+function drawTasks(tasks) {
+  if (!myTaskIds) return; 
   const me = players[myId];
+  const activeTasks = tasks || MAP_DATA[currentMap]?.tasks || [];
 
-  for (let task of TASKS) {
-    if (!myTaskIds.has(task.id)) continue; // not assigned to this player
+  for (let task of activeTasks) {
+    // Generate an ID for comparison based on label/position if not provided
+    const tid = task.id || (task.label + task.x + task.y);
+    if (!myTaskIds.has(tid)) continue; 
     if (completedTasks.has(task.id)) {
       // Draw faint checkmark for completed tasks
       ctx.save();
@@ -1893,6 +1900,23 @@ function drawEmergencyButton(time) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText('EMERGENCY', b.x, b.y + 58);
   ctx.restore();
+}
+
+function assignMyTasks() {
+  myTaskIds.clear();
+  completedTasks.clear();
+  const tasks = MAP_DATA[currentMap]?.tasks || MAP_DATA['Alpha'].tasks;
+  const pool = [...tasks];
+  
+  // Pick 7 unique tasks
+  for (let i = 0; i < 7 && pool.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    const task = pool.splice(idx, 1)[0];
+    // In our payload, some tasks might not have IDs yet, so we generate one
+    const tid = task.id || (task.label + task.x + task.y);
+    task.id = tid; // ensure consistency
+    myTaskIds.add(tid);
+  }
 }
 
 requestAnimationFrame(gameLoop);

@@ -699,7 +699,8 @@ io.on('connection', (socket) => {
       const payload = {
           players: room.players,
           hostId: room.hostId,
-          state: room.state
+          state: room.state,
+          mapId: room.mapId
       };
       
       io.in(roomId).emit('roomUpdate', payload);
