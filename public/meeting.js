@@ -1,7 +1,7 @@
 // =====================================================
 //  MEETING SYSTEM — The Primitive Peer
-//  Uses globals from game.js: socket, players, myId,
-//  bodies, checkWinCondition
+//  Uses globals from game.js: window.socket, window.players,
+//  window.myId, window.bodies, checkWinCondition
 // =====================================================
 
 let meetingTimerInterval = null;
@@ -57,6 +57,13 @@ function openMeeting(data) {
     return;
   }
 
+  // Visual Setup
+  const isReport = data.type === 'report';
+  flashText.style.color = isReport ? '#e74c3c' : '#f39c12';
+  flashText.innerHTML = isReport
+    ? '💀 DEAD BODY<br>REPORTED!'
+    : '⚠️ EMERGENCY<br>MEETING!';
+
   console.log("MEETING SYSTEM: openMeeting called with data:", data);
   
   flashEl.classList.add('active');
@@ -69,13 +76,18 @@ function openMeeting(data) {
   }, 2500);
 
   // Mark the reported body immediately so no one can re-report it
-  if (data.type === 'report' && data.bodyName) {
-    const b = bodies.find(bd => bd.name === data.bodyName && !bd.ejected);
+  if (data.type === 'report' && data.bodyName && window.bodies) {
+    const b = window.bodies.find(bd => bd.name === data.bodyName && !bd.ejected);
     if (b) b.reported = true;
   }
 }
 
 function showVoteScreen(data) {
+  if (!voteTitle || !callerInfoEl || !voteResultEl || !chatPanel) {
+      console.error("MEETING SYSTEM: Vote screen elements missing!");
+      return;
+  }
+  
   voteTitle.textContent = data.type === 'report' ? 'Dead Body Reported' : 'Emergency Meeting';
   const col = data.callerColor || '#ecf0f1';
   callerInfoEl.innerHTML = `<span style="color:${col};font-weight:bold">${data.callerName}</span> called ${data.type === 'report' ? 'a body report' : 'an emergency meeting'}` +
@@ -95,6 +107,8 @@ function showVoteScreen(data) {
 
   voteScreen.classList.add('active');
   updateTimer();
+  
+  if (meetingTimerInterval) clearInterval(meetingTimerInterval);
   meetingTimerInterval = setInterval(() => {
     meetingTimeLeft--;
     updateTimer();
@@ -103,11 +117,12 @@ function showVoteScreen(data) {
 }
 
 function buildPlayerList() {
+  if (!playerListEl || !window.players) return;
   playerListEl.innerHTML = '';
-  const amIDead = players[myId] && players[myId].isDead;
+  const amIDead = window.players[window.myId] && window.players[window.myId].isDead;
 
-  for (let id in players) {
-    const p = players[id];
+  for (let id in window.players) {
+    const p = window.players[id];
     const row = document.createElement('div');
     row.className = 'vote-player-row' + (p.isDead ? ' dead' : '');
     row.id = `vrow-${id}`;
@@ -118,7 +133,7 @@ function buildPlayerList() {
 
     const name = document.createElement('span');
     name.className = 'vote-player-name';
-    name.textContent = (p.isDead ? '💀 ' : '') + p.name + (id === myId ? ' (You)' : '');
+    name.textContent = (p.isDead ? '💀 ' : '') + p.name + (id === window.myId ? ' (You)' : '');
 
     const check = document.createElement('span');
     check.className = 'voted-check';
@@ -131,7 +146,7 @@ function buildPlayerList() {
 
     row.append(dot, name, tally, check);
 
-    if (!amIDead && !p.isDead && id !== myId) {
+    if (!amIDead && !p.isDead && id !== window.myId) {
       const btn = document.createElement('button');
       btn.className = 'vote-btn';
       btn.textContent = 'Vote';
@@ -144,17 +159,19 @@ function buildPlayerList() {
 }
 
 function castVote(targetId) {
-  if (myVote !== null) return;
+  if (myVote !== null || !window.socket) return;
   myVote = targetId;
-  socket.emit('castVote', targetId);
+  window.socket.emit('castVote', targetId);
 
   // Disable all vote buttons
   document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
-  skipBtn.disabled = true;
+  if (skipBtn) skipBtn.disabled = true;
 
   if (targetId === 'skip') {
-    skipBtn.className = 'skip-btn chosen';
-    skipBtn.textContent = '✓ Skipped';
+    if (skipBtn) {
+      skipBtn.className = 'skip-btn chosen';
+      skipBtn.textContent = '✓ Skipped';
+    }
   } else {
     const b = document.getElementById(`vbtn-${targetId}`);
     if (b) { b.classList.add('chosen'); b.textContent = '✓ Voted'; }
@@ -164,6 +181,7 @@ function castVote(targetId) {
 skipBtn.addEventListener('click', () => castVote('skip'));
 
 function updateTimer() {
+  if (!voteTimerEl) return;
   const m = Math.floor(meetingTimeLeft / 60);
   const s = meetingTimeLeft % 60;
   voteTimerEl.textContent = `${m}:${String(s).padStart(2,'0')}`;
@@ -174,7 +192,7 @@ function updateTimer() {
 function showResult(data) {
   clearInterval(meetingTimerInterval);
   document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
-  skipBtn.disabled = true;
+  if (skipBtn) skipBtn.disabled = true;
 
   // Show vote tallies
   for (let id in data.votes) {
@@ -182,34 +200,40 @@ function showResult(data) {
     if (el && id !== 'skip') el.textContent = `×${data.votes[id]}`;
   }
 
-  voteResultEl.style.display = 'block';
+  if (voteResultEl) voteResultEl.style.display = 'block';
+  
   if (data.eliminated) {
-    voteResultEl.textContent = `🚀 ${data.eliminatedName} was killed!`;
-    voteResultEl.style.color = '#e74c3c';
+    if (voteResultEl) {
+      voteResultEl.textContent = `🚀 ${data.eliminatedName} was killed!`;
+      voteResultEl.style.color = '#e74c3c';
+    }
     const row = document.getElementById(`vrow-${data.eliminated}`);
     if (row) row.classList.add('ejected');
+    
     // Add body to game world
-    if (players[data.eliminated]) {
-      players[data.eliminated].isDead = true;
-      const p = players[data.eliminated];
+    if (window.players && window.players[data.eliminated]) {
+      window.players[data.eliminated].isDead = true;
+      const p = window.players[data.eliminated];
       const bx = data.deathX ?? p.x;
       const by = data.deathY ?? p.y;
-      if (!bodies.some(b => b.name === p.name && Math.hypot(b.x-bx, b.y-by) < 5)) {
+      if (window.bodies && !window.bodies.some(b => b.name === p.name && Math.hypot(b.x-bx, b.y-by) < 5)) {
         // ejected:true means this body was voted out and cannot be reported
-        bodies.push({ x: bx, y: by, color: p.color, name: p.name, role: p.role, ejected: true });
+        window.bodies.push({ x: bx, y: by, color: p.color, name: p.name, role: p.role, ejected: true });
       }
     }
   } else {
-    voteResultEl.textContent = 'No one was killed. (Tie or skip)';
-    voteResultEl.style.color = '#95a5a6';
+    if (voteResultEl) {
+      voteResultEl.textContent = 'No one was killed. (Tie or skip)';
+      voteResultEl.style.color = '#95a5a6';
+    }
   }
 
   // Apply server-assigned spawn positions to all players
-  if (data.spawnPositions) {
+  if (data.spawnPositions && window.players) {
     for (const id in data.spawnPositions) {
-      if (players[id]) {
-        players[id].x = data.spawnPositions[id].x;
-        players[id].y = data.spawnPositions[id].y;
+      if (window.players[id]) {
+        window.players[id].x = data.spawnPositions[id].x;
+        window.players[id].y = data.spawnPositions[id].y;
       }
     }
   }
@@ -223,7 +247,7 @@ function showResult(data) {
 function closeMeeting() {
   window.meetingActive = false;
   myVote = null;
-  voteScreen.classList.remove('active');
+  if (voteScreen) voteScreen.classList.remove('active');
   window.taskModalActive = false;
   
   // Restore focus to game canvas for immediate keyboard response
@@ -232,25 +256,36 @@ function closeMeeting() {
 }
 
 // ===== Chat =====
-chatToggleBtn.addEventListener('click', () => {
-  const open = chatPanel.classList.toggle('open');
-  chatToggleBtn.textContent = open ? '💬 Close Chat ▲' : '💬 Open Chat ▼';
-  if (open) { chatInput.focus(); chatMessages.scrollTop = chatMessages.scrollHeight; }
-});
+if (chatToggleBtn) {
+    chatToggleBtn.addEventListener('click', () => {
+      const open = chatPanel.classList.toggle('open');
+      chatToggleBtn.textContent = open ? '💬 Close Chat ▲' : '💬 Open Chat ▼';
+      if (open) { 
+          if (chatInput) chatInput.focus(); 
+          if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight; 
+      }
+    });
+}
 
-chatInput.addEventListener('keydown', e => { if (e.code === 'Enter') sendChat(); });
-chatSendBtn.addEventListener('click', sendChat);
+if (chatInput) {
+    chatInput.addEventListener('keydown', e => { if (e.code === 'Enter') sendChat(); });
+}
+if (chatSendBtn) {
+    chatSendBtn.addEventListener('click', sendChat);
+}
 
 function sendChat() {
+  if (!chatInput || !window.socket) return;
   const t = chatInput.value.trim();
-  if (!t || !meetingActive) return;
+  if (!t || !window.meetingActive) return;
   chatInput.value = '';
-  socket.emit('meetingChat', t);
+  window.socket.emit('meetingChat', t);
 }
 
 function appendChat(name, color, text, isDead) {
+  if (!window.players || !chatMessages) return;
   // Ghost messages only visible to other dead players
-  const iAmDead = players[myId] && players[myId].isDead;
+  const iAmDead = window.players[window.myId] && window.players[window.myId].isDead;
   if (isDead && !iAmDead) return; // hide ghost chat from alive players
 
   const d = document.createElement('div');

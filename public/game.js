@@ -338,7 +338,6 @@ window.bodies = bodies;
 var nearbyBody = null;
 var shownTaskId = null;
 window.meetingActive = false;
-window.meetingActive = false;
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
 let introActive = false; // blocks movement/actions during cinematic intro
