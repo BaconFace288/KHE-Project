@@ -347,7 +347,8 @@ function assignMyTasks() {
 }
 
 // Input Handling
-const keys = { w: false, a: false, s: false, d: false, space: false };
+window.keys = { w: false, a: false, s: false, d: false, space: false };
+const keys = window.keys;
 
 function handleKey(e, isDown) {
   const code = e.code;

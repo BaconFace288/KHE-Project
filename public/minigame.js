@@ -289,17 +289,28 @@ closeBtn.addEventListener('click', closeModal);
 cancelBtn2.addEventListener('click', closeModal);
 
 function closeModal() {
-  modal.classList.remove('active');
-  currentTask = null;
-  currentQuestion = null;
-  codingAttempts = 0;
-  // Clean up any minigame timers
-  if (simonTimeout) { clearTimeout(simonTimeout); simonTimeout = null; }
-  // clear any global listeners from valve/dish/etc
-  window.onmousemove = null;
-  window.onmouseup = null;
-  // re-enable game keys
-  window.taskModalActive = false;
+  try {
+    modal.classList.remove('active');
+    currentTask = null;
+    currentQuestion = null;
+    codingAttempts = 0;
+    // Clean up any minigame timers
+    if (simonTimeout) { clearTimeout(simonTimeout); simonTimeout = null; }
+    // clear any global listeners from valve/dish/etc
+    window.onmousemove = null;
+    window.onmouseup = null;
+
+    // keyboard state purge: ensure no keys are "stuck" down in game.js
+    if (window.keys) {
+      for (let k in window.keys) window.keys[k] = false;
+    }
+  } finally {
+    // re-enable game keys
+    window.taskModalActive = false;
+    // Restore focus to game canvas for immediate keyboard response
+    const gc = document.getElementById('gameCanvas');
+    if (gc) gc.focus();
+  }
 }
 
 // Called from game.js keydown [F]
@@ -1080,18 +1091,24 @@ function updateAttemptUI() {
 //  Task complete!
 // ===========================
 function onTaskFullyComplete() {
+  const task = currentTask;
+  if (!task) return closeModal();
+
   progressFill.style.width = '100%';
   codingFeedback.style.color = '#2ecc71';
   codingFeedback.textContent = '✅ Task Complete!';
 
-  const task = currentTask;
   setTimeout(() => {
-    completedTasks.add(task.id);
-    socket.emit('taskComplete', task.id);
-    // Check if this player finished all 7 assigned tasks
-    if (typeof checkTaskWinCondition === 'function') checkTaskWinCondition();
-    closeModal();
-
+    try {
+      if (task) {
+        completedTasks.add(task.id);
+        socket.emit('taskComplete', task.id);
+        // Check if player finished all 7 assigned tasks
+        if (typeof checkTaskWinCondition === 'function') checkTaskWinCondition();
+      }
+    } finally {
+      closeModal();
+    }
   }, 700);
 }
 

@@ -39,6 +39,9 @@ socket.on('meetingChatMsg', ({ name, color, text, isDead }) => {
 
 // ===== Open Meeting =====
 function openMeeting(data) {
+  // Clear any active task modal
+  if (typeof closeModal === 'function') closeModal();
+  
   window.meetingActive = true;
   myVote = null;
   votedPlayers.clear();
