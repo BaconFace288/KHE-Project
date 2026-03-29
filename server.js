@@ -72,7 +72,13 @@ function tickBots() {
 }
 
 function handleBotMeeting(room) {
-    // Basic auto-vote logic for bots
+    // Wait for all alive humans to vote before bots step in
+    const aliveHumans = Object.keys(room.players).filter(id => !room.players[id].isBot && !room.players[id].isDead);
+    const humansVoted = aliveHumans.every(id => room.meeting.votes[id] !== undefined);
+    
+    if (!humansVoted && aliveHumans.length > 0) return;
+
+    // Boss Step: AI players vote instantly when humans are done
     for (let id in room.players) {
         const p = room.players[id];
         if (p.isBot && !p.isDead && room.meeting.votes[id] === undefined) {
@@ -88,7 +94,10 @@ function handleBotMeeting(room) {
              room.meeting.votes[id] = target;
              io.to(room.code).emit('voteCast', { voterId: id });
              const alive = Object.keys(room.players).filter(pid => !room.players[pid].isDead);
-             if (Object.keys(room.meeting.votes).length >= alive.length) endMeeting(room.code);
+             if (Object.keys(room.meeting.votes).length >= alive.length) {
+                 endMeeting(room.code);
+                 return; // Avoid multiple calls if multiple bots vote
+             }
         }
     }
 }
