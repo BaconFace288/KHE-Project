@@ -204,6 +204,16 @@ window.meetingActive = false;
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
 let introActive = false; // blocks movement/actions during cinematic intro
+
+// Persistent camera (prevents snapping to map center on frame drops)
+let currentCamX = 1500 - (1000 / 2); // Default to map center initially
+let currentCamY = 1500 - (1000 / 2);
+
+function findMe() {
+    if (players[myId]) return players[myId];
+    // Fallback: search by name if ID flickered
+    return Object.values(players).find(p => p.name === window.myName);
+}
 if (!window.hasOwnProperty('taskModalActive')) window.taskModalActive = false;
 
 function assignMyTasks() {
@@ -341,9 +351,9 @@ socket.on('roomUpdate', (roomData) => {
         }
     }
     
-    // Remove disconnected players
+    // Remove disconnected players (but NEVER delete myself from local state)
     for (let id in players) {
-        if (!newPlayers[id]) delete players[id];
+        if (!newPlayers[id] && id !== myId) delete players[id];
     }
     
     // If we transition to playing (e.g. late join or game start)
@@ -462,16 +472,19 @@ socket.on('crewmateWinVote', () => {
 
 createBtn.addEventListener('click', () => {
     const name = playerNameInput.value.trim();
+    if (!name) return;
+    window.myName = name; // Guard for identity resilience
     socket.emit('createRoom', name);
 });
 
 joinBtn.addEventListener('click', () => {
     const name = playerNameInput.value.trim();
     const code = roomCodeInput.value.trim();
-    if (code.length === 4) {
+    if (code.length === 4 && name) {
+        window.myName = name; // Guard for identity resilience
         socket.emit('joinRoom', { code, name });
     } else {
-        errorMsg.innerText = 'Code must be 4 letters';
+        errorMsg.innerText = !name ? 'Enter a name' : 'Code must be 4 letters';
     }
 });
 
@@ -789,9 +802,9 @@ const SPEED = 200;
 const GHOST_SPEED = 280;
 
 function updateLocalPlayer(dt) {
-  if (!players[myId]) return;
+  const me = findMe();
+  if (!me) return;
   if (window.taskModalActive || introActive) return; // freeze movement during minigame or intro
-  const me = players[myId];
   const isGhost = me.isDead;
   
   let dx = 0; let dy = 0;
@@ -833,7 +846,10 @@ function updateLocalPlayer(dt) {
     if (dx < 0) me.flipX = true;
     else if (dx > 0) me.flipX = false;
     
-    socket.emit('playerMovement', { x: me.x, y: me.y, flipX: me.flipX, isMoving: true });
+    // Throttled movement emission
+    if (Date.now() % 100 < 20) {
+        socket.emit('playerMovement', { x: me.x, y: me.y, flipX: me.flipX, isMoving: true });
+    }
   } else {
       if (me.isMoving) {
           me.isMoving = false;
@@ -879,22 +895,17 @@ function drawGame(time) {
   
   if (currentState !== 'PLAYING' && currentState !== 'GAMEOVER') return;
 
-  const me = players[myId];
-  let camX = 0, camY = 0;
+  const me = findMe();
   
   if (me && typeof me.x === 'number' && typeof me.y === 'number') {
-     camX = me.x - (canvas.width / 2);
-     camY = me.y - (canvas.height / 2);
-     camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camX));
-     camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camY));
-  } else if (currentState === 'PLAYING') {
-      // Fallback camera position (map center) if player data is loading
-      camX = 1500 - (canvas.width / 2);
-      camY = 1500 - (canvas.height / 2);
+     let tx = me.x - (canvas.width / 2);
+     let ty = me.y - (canvas.height / 2);
+     currentCamX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, tx));
+     currentCamY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, ty));
   }
   
   ctx.save();
-  ctx.translate(-camX, -camY);
+  ctx.translate(-currentCamX, -currentCamY);
 
   // =============================================
   // GROUND — drawn every frame in PLAYING state
@@ -1036,10 +1047,11 @@ function drawGame(time) {
   // =============================================
   // PLAYERS & BODIES
   // =============================================
+  const localMe = findMe();
   for (let id in players) {
     const playerObj = players[id];
-    const isLocal = id === myId;
-    const amIDead = players[myId] && players[myId].isDead;
+    const isLocal = playerObj === localMe;
+    const amIDead = localMe && localMe.isDead;
     if (playerObj.isDead && !amIDead && !isLocal) continue;
     if (!playerObj.isDead) {
       drawPlayer(playerObj, isLocal, time);
