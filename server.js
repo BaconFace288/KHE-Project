@@ -20,7 +20,7 @@ const GAME_STATE = {
 const rooms = {};
 
 // BOT RELEVANT DATA (Simplified for server-side logic)
-const BOT_WALK_SPEED = 20;
+const BOT_WALK_SPEED = 15;
 const SERVER_TASKS = [
     { x: 900,  y: 1100 }, { x: 1350, y: 1250 }, { x: 2100, y: 720 },
     { x: 2080, y: 1100 }, { x: 600,  y: 2100 }, { x: 860,  y: 2100 },
@@ -153,6 +153,32 @@ function handleBotMeeting(room) {
 
 const BOT_RADIUS = 16;
 function handleCrewmateBot(bot, room) {
+    if (bot.tasksCompleted >= 7) {
+        bot.botState = 'FOLLOWING';
+    }
+
+    if (bot.botState === 'FOLLOWING') {
+        // Safety Stalking: Find nearest alive non-hostile player
+        let nearest = null; let minDist = Infinity;
+        Object.entries(room.players).forEach(([id, p]) => {
+            if (p.isDead || p.role === 'impostor' || p === bot) return;
+            const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+            if (d < minDist) { minDist = d; nearest = p; }
+        });
+
+        if (nearest) {
+            if (minDist > 80) {
+                moveTowards(bot, nearest.x, nearest.y);
+                bot.isMoving = true;
+            } else {
+                bot.isMoving = false;
+            }
+        } else {
+            bot.isMoving = false;
+        }
+        return;
+    }
+
     if (bot.botState === 'IDLE' || !bot.target) {
         bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
         bot.botState = 'MOVING';
@@ -163,15 +189,24 @@ function handleCrewmateBot(bot, room) {
         const dist = Math.hypot(bot.target.x - bot.x, bot.target.y - bot.y);
         if (dist < 25) {
             bot.botState = 'TASKING';
-            bot.targetTime = Date.now() + (5000 + Math.random() * 5000);
+            // Each task takes solid 25 seconds
+            bot.taskTimer = Date.now() + 25000;
             bot.isMoving = false;
         } else {
             moveTowards(bot, bot.target.x, bot.target.y);
         }
     }
 
-    if (bot.botState === 'TASKING' && Date.now() > bot.targetTime) {
-        bot.botState = 'IDLE';
+    if (bot.botState === 'TASKING') {
+        if (Date.now() > bot.taskTimer) {
+            bot.tasksCompleted = (bot.tasksCompleted || 0) + 1;
+            room.completedTasksCount = (room.completedTasksCount || 0) + 1;
+            
+            io.to(room.code).emit('taskCompleted', { taskId: 'bot_task', playerId: bot.id });
+            bot.botState = 'IDLE';
+            bot.target = null;
+            checkWinCondition(room.code);
+        }
     }
 }
 
@@ -310,6 +345,14 @@ function endMeeting(roomId) {
   const snap = room.meeting;
   room.meeting = null;
   room.roundStartTime = Date.now();
+  
+  // Interruption Reset: Reset AI task timers
+  Object.values(room.players).forEach(p => {
+    if (p.isBot && p.role === 'crewmate' && p.botState === 'TASKING') {
+        p.botState = 'IDLE';
+        p.taskTimer = 0;
+    }
+  });
 
   // Teleport all alive players to spawn circle around the button
   const aliveIds = Object.keys(room.players).filter(id => !room.players[id].isDead);
@@ -352,6 +395,16 @@ function checkWinCondition(roomId) {
     } else if (aliveImpostors >= aliveCrewmates) {
         room.state = GAME_STATE.GAMEOVER;
         io.to(roomId).emit('cavemenWin');
+    } else {
+        // Task Win Check: 7 tasks per crewmate (alive or dead)
+        const totalCrew = Object.values(room.players).filter(p => p.role === 'crewmate').length;
+        const requiredTasks = totalCrew * 7;
+        const completed = room.completedTasksCount || 0;
+        
+        if (completed >= requiredTasks) {
+            room.state = GAME_STATE.GAMEOVER;
+            io.to(roomId).emit('crewmateWinTasks');
+        }
     }
 }
 
@@ -383,7 +436,9 @@ io.on('connection', (socket) => {
         isDead: false,
         name: name || `Player_${Math.floor(Math.random() * 1000)}`,
         flipX: false,
-        isMoving: false
+        isMoving: false,
+        tasksCompleted: 0,
+        taskTimer: 0
       };
   }
 
@@ -518,7 +573,10 @@ io.on('connection', (socket) => {
     const room = rooms[roomId];
     if (!room.completedTasks) room.completedTasks = new Set();
     room.completedTasks.add(taskId);
+    
+    room.completedTasksCount = (room.completedTasksCount || 0) + 1;
     io.to(roomId).emit('taskCompleted', { taskId, playerId: socket.id });
+    checkWinCondition(roomId);
   });
 
   socket.on('startGame', () => {
