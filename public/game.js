@@ -194,12 +194,12 @@ const DECOR_FURNITURE = [
   { x: 975,  y: 950,  type: 'chair', dir: 'left' },
   { x: 2100, y: 680,  type: 'desk' },  // B2_A
   { x: 2100, y: 710,  type: 'chair', dir: 'up' },
-  { x: 1500, y: 2700, type: 'dining_table' }, // B4
-  { x: 1800, y: 2700, type: 'dining_table' }, // B4
-  { x: 1480, y: 2735, type: 'stool' },
-  { x: 1520, y: 2735, type: 'stool' },
-  { x: 1780, y: 2735, type: 'stool' },
-  { x: 1820, y: 2735, type: 'stool' }
+  { x: 1650, y: 2700, type: 'dining_table' }, // B4
+  { x: 1955, y: 2700, type: 'dining_table' }, // B4
+  { x: 1630, y: 2735, type: 'stool' },
+  { x: 1670, y: 2735, type: 'stool' },
+  { x: 1935, y: 2735, type: 'stool' },
+  { x: 1975, y: 2735, type: 'stool' }
 ];
 
 const DECOR_FLORA = [
@@ -209,9 +209,9 @@ const DECOR_FLORA = [
   { x: 2200, y: 2200, type: 'bush' },
   { x: 200,  y: 2800, type: 'grass' },
   { x: 1500, y: 1650, type: 'grass' },
-  { x: 1000, y: 400,  type: 'bush' },
+  { x: 1180, y: 420,  type: 'bush' },
   { x: 2600, y: 500,  type: 'bush' },
-  { x: 1650, y: 1850, type: 'bush' },
+  { x: 1750, y: 1900, type: 'bush' },
   { x: 500,  y: 400,  type: 'grass' },
   { x: 1400, y: 200,  type: 'grass' },
   { x: 300,  y: 1500, type: 'grass' },
@@ -226,6 +226,28 @@ function collidesWithWall(px, py, pr) {
         if (py < w.y) testY = w.y; else if (py > w.y + w.h) testY = w.y + w.h;
         let distX = px - testX; let distY = py - testY;
         if (Math.sqrt((distX*distX) + (distY*distY)) <= pr) return true;
+    }
+    return false;
+}
+
+function collidesWithProps(px, py, pr) {
+    for (let it of DECOR_FURNITURE) {
+        let w = 0, h = 0;
+        if (it.type === 'table') { w = 40; h = 25; }
+        else if (it.type === 'desk') { w = 55; h = 25; }
+        else if (it.type === 'dining_table') { w = 120; h = 60; }
+        else if (it.type === 'chair') { w = 16; h = 16; }
+        else if (it.type === 'stool') { w = 20; h = 20; }
+        
+        if (w > 0) {
+            let halfW = w / 2;
+            let halfH = h / 2;
+            let testX = px; let testY = py;
+            if (px < it.x - halfW) testX = it.x - halfW; else if (px > it.x + halfW) testX = it.x + halfW;
+            if (py < it.y - halfH) testY = it.y - halfH; else if (py > it.y + halfH) testY = it.y + halfH;
+            let distX = px - testX; let distY = py - testY;
+            if (Math.sqrt((distX*distX) + (distY*distY)) <= pr) return true;
+        }
     }
     return false;
 }
@@ -828,13 +850,13 @@ function updateLocalPlayer(dt) {
     } else {
       if (dx !== 0) {
           newX += dx * speed * dt;
-          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16) ||
+          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16) || collidesWithProps(newX, me.y, 16) ||
               Math.hypot(newX - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 16)
             newX = me.x;
       }
       if (dy !== 0) {
           newY += dy * speed * dt;
-          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16) ||
+          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16) || collidesWithProps(newX, newY, 16) ||
               Math.hypot(newX - EMERGENCY_BTN.x, newY - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 16)
             newY = me.y;
       }
