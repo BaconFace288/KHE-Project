@@ -1373,7 +1373,7 @@ function drawPlayer(p, isMe, time) {
     else if (keys['s']) p.facingUp = false;
   }
 
-  let bob = p.isMoving ? Math.abs(Math.sin(time * 0.01)) * 3 : 0;
+  let bob = p.isMoving ? Math.abs(Math.sin(time * 0.015)) * 5 : 0;
   ctx.save();
   ctx.translate(p.x, p.y - bob);
   if (p.flipX) ctx.scale(-1, 1);
@@ -1430,6 +1430,13 @@ function drawPlayer(p, isMe, time) {
   ctx.fill();
   ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
   ctx.stroke();
+
+  if (p.facingUp) {
+    // --- Back Suit Details (Seam & Vent) ---
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 16); ctx.stroke(); // Seam
+    ctx.beginPath(); ctx.moveTo(-4, 16); ctx.lineTo(4, 16); ctx.stroke(); // Vent
+  }
 
   if (!p.facingUp) {
     // --- Shirt & Tie (V-neck look) ---
@@ -1554,6 +1561,11 @@ function drawGhost(p, isMe, time) {
   ctx.beginPath();
   ctx.roundRect(-14, -8, 28, 20, { tl: 6, tr: 6, bl: 0, br: 0 });
   ctx.fill();
+  
+  if (p.facingUp) {
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 12); ctx.stroke();
+  }
   
   ctx.globalAlpha = 0.45;
   ctx.fillStyle = '#dfe6e9';
