@@ -106,7 +106,7 @@ function tickBots() {
 
         for (let botId in room.players) {
             const bot = room.players[botId];
-            if (!bot.isBot || bot.isDead) continue;
+            if (!bot.isBot) continue;
 
             if (bot.role === 'crewmate') {
                 handleCrewmateBot(bot, room);
@@ -114,8 +114,9 @@ function tickBots() {
                 handleCavemanBot(bot, room, botId);
             }
             
-            // Sync bot movement
-            io.to(roomId).emit('playerMoved', { id: botId, player: { x: bot.x, y: bot.y, flipX: bot.flipX, isMoving: bot.isMoving } });
+            // Sync bot movement (Ghosts move too!)
+            const p = room.players[botId];
+            io.to(roomId).emit('playerMoved', { id: botId, player: { x: p.x, y: p.y, flipX: p.flipX, isMoving: p.isMoving, isDead: p.isDead } });
         }
     }
 }
@@ -211,6 +212,12 @@ function handleCrewmateBot(bot, room) {
 }
 
 function handleCavemanBot(bot, room, botId) {
+    // Ghosts can't kill!
+    if (bot.isDead) {
+        bot.isMoving = false;
+        return;
+    }
+
     // 1. Cool-off / Faking Logic
     if (bot.fakeUntil && Date.now() < bot.fakeUntil) {
         handleCrewmateBot(bot, room); // Act like a crewmate
@@ -251,8 +258,8 @@ function handleCavemanBot(bot, room, botId) {
 function moveTowards(bot, tx, ty) {
     const directAngle = Math.atan2(ty - bot.y, tx - bot.x);
     
-    // Try multiple angles to find path: Direct, +/- 30, +/- 60, +/- 90
-    const probes = [0, 0.52, -0.52, 1.04, -1.04, 1.57, -1.57];
+    // Finer navigation: check every 15 degrees (0, +/- 0.26, +/- 0.52...)
+    const probes = [0, 0.26, -0.26, 0.52, -0.52, 0.78, -0.78, 1.04, -1.04, 1.31, -1.31, 1.57, -1.57];
     let selectedAngle = null;
 
     for (let offset of probes) {
@@ -306,9 +313,13 @@ function moveTowards(bot, tx, ty) {
         bot.isMoving = false;
         bot.stuckTicks = (bot.stuckTicks || 0) + 1;
         
-        // Panic Recovery: If stuck for 1.5s or progress is zero, pick a new task
-        if (bot.stuckTicks > 15) {
-            // Pick a different task location
+        // Panic Recovery: If stuck for 0.7s or progress is zero, pick a new target
+        if (bot.stuckTicks > 7) {
+            // Nudge out: tele slightly towards target to un-wedge
+            const nudgeX = Math.cos(directAngle) * 5;
+            const nudgeY = Math.sin(directAngle) * 5;
+            bot.x += nudgeX; bot.y += nudgeY;
+
             bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
             bot.botState = 'IDLE';
             bot.stuckTicks = 0;
