@@ -81,115 +81,64 @@ const MAP_DATA = {
   },
   'Britney': {
     tasks: [
-        { x: 650, y: 530, label: '💎 Prism Lab' },
-        { x: 2470, y: 650, label: '💧 Water Ops' },
+        { x: 650, y: 550, label: '💎 Prism Lab' },
+        { x: 2350, y: 550, label: '💧 Water Ops' },
         { x: 1500, y: 1500, label: '📡 Hub Sync' },
-        { x: 480, y: 2380, label: '🌿 Flora Dorm A' },
-        { x: 640, y: 2380, label: '🌿 Flora Dorm B' },
-        { x: 2400, y: 2380, label: '⚡ Core Power' },
-        { x: 2720, y: 2420, label: '📦 Cargo Pod' }
+        { x: 650, y: 2350, label: '🌿 Flora Room' },
+        { x: 2400, y: 2350, label: '⚡ Core Power' },
+        { x: 2720, y: 2420, label: '📦 Cargo Pod' },
+        { x: 1500, y: 650, label: '🔋 N-Oasis' }
     ],
     walls: [
-      // NEO-DISTRICT (NW) — outer shell
-      { x: 400, y: 400, w: 20, h: 250 },  // Left wall top segment
-      { x: 400, y: 700, w: 20, h: 200 },  // Left wall bottom segment (gap = door at y:650-700)
-      { x: 400, y: 400, w: 500, h: 20 },  // Top wall
-      { x: 900, y: 400, w: 20, h: 250 },  // Right wall top
-      { x: 900, y: 700, w: 20, h: 200 },  // Right wall bottom
-      { x: 400, y: 900, w: 500, h: 20 },  // Bottom wall
-      // NW internal divider (creates two rooms)
-      { x: 400, y: 650, w: 180, h: 20 }, { x: 720, y: 650, w: 200, h: 20 },
+      // NEO-DISTRICT (NW) — Roof: 400, 400, 500, 500
+      { x: 380, y: 380, w: 20, h: 540 }, { x: 400, y: 380, w: 500, h: 20 },
+      { x: 900, y: 380, w: 20, h: 540 }, { x: 400, y: 900, w: 210, h: 20 }, { x: 690, y: 900, w: 210, h: 20 }, // Bottom wall with 80px door gap
+      { x: 400, y: 650, w: 500, h: 20 }, // Internal room divider
       
-      // PULSE-WING (NE) — outer shell
-      { x: 2100, y: 400, w: 500, h: 20 }, // Top
-      { x: 2100, y: 900, w: 500, h: 20 }, // Bottom
-      { x: 2100, y: 400, w: 20, h: 200 }, { x: 2100, y: 660, w: 20, h: 240 }, // Left wall with door gap
-      { x: 2600, y: 400, w: 20, h: 500 }, // Right wall
-      // NE internal corridor wall
-      { x: 2350, y: 400, w: 20, h: 200 }, { x: 2350, y: 660, w: 20, h: 240 }, // Corridor wall with gap
-      { x: 2100, y: 650, w: 180, h: 20 }, // Office divider
+      // PULSE-WING (NE) — Roof: 2100, 400, 500, 500
+      { x: 2080, y: 380, w: 20, h: 540 }, { x: 2100, y: 380, w: 500, h: 20 },
+      { x: 2600, y: 380, w: 20, h: 540 }, { x: 2100, y: 900, w: 210, h: 20 }, { x: 2690, y: 900, w: 210, h: 20 }, // Bottom door gap (fixed coords)
+      { x: 2100, y: 650, w: 500, h: 20 }, // Internal room divider
       
-      // CENTRAL-HUB (Center)
-      { x: 1200, y: 1200, w: 250, h: 20 }, { x: 1500, y: 1200, w: 300, h: 20 }, // Top with gap
-      { x: 1200, y: 1800, w: 300, h: 20 }, { x: 1550, y: 1800, w: 250, h: 20 }, // Bottom with gap
-      { x: 1200, y: 1200, w: 20, h: 250 }, { x: 1200, y: 1500, w: 20, h: 300 }, // Left with gap
-      { x: 1800, y: 1200, w: 20, h: 250 }, { x: 1800, y: 1500, w: 20, h: 300 }, // Right with gap
-      { x: 1360, y: 1360, w: 40, h: 40 }, { x: 1600, y: 1360, w: 40, h: 40 }, // Pillars
+      // CENTRAL-HUB (Center) — Roof: 1200, 1200, 600, 600
+      { x: 1180, y: 1180, w: 20, h: 640 }, { x: 1800, y: 1180, w: 20, h: 640 },
+      { x: 1200, y: 1180, w: 260, h: 20 }, { x: 1540, y: 1180, w: 260, h: 20 }, // Top Door
+      { x: 1200, y: 1800, w: 260, h: 20 }, { x: 1540, y: 1800, w: 260, h: 20 }, // Bottom Door
+      { x: 1360, y: 1360, w: 40, h: 40 }, { x: 1600, y: 1360, w: 40, h: 40 }, // Interior Pillars
       { x: 1360, y: 1600, w: 40, h: 40 }, { x: 1600, y: 1600, w: 40, h: 40 },
       
-    // SPARK-HALL (SW) — 3 dorms
-      { x: 400, y: 2100, w: 500, h: 20 }, // Top
-      // Bottom wall split into 4 segments to leave 3 entrance gaps (one per dorm)
-      { x: 400, y: 2600, w: 55, h: 20 }, // Left edge
-      { x: 515, y: 2600, w: 95, h: 20 }, // Between dorm 1 and 2
-      { x: 670, y: 2600, w: 95, h: 20 }, // Between dorm 2 and 3
-      { x: 825, y: 2600, w: 75, h: 20 }, // Right edge
-      { x: 400, y: 2100, w: 20, h: 500 }, // Left wall
-      { x: 900, y: 2100, w: 20, h: 500 }, // Right wall
-      { x: 560, y: 2100, w: 20, h: 420 }, { x: 740, y: 2180, w: 20, h: 420 }, // Room dividers
+      // SPARK-HALL (SW) — Roof: 400, 2100, 500, 500
+      { x: 380, y: 2080, w: 20, h: 540 }, { x: 900, y: 2080, w: 20, h: 540 },
+      { x: 400, y: 2080, w: 500, h: 20 }, { x: 400, y: 2600, w: 210, h: 20 }, { x: 690, y: 2600, w: 210, h: 20 },
+      { x: 560, y: 2100, w: 20, h: 500 }, { x: 740, y: 2100, w: 20, h: 500 }, // Dorm Dividers
       
-      // COBALT-WING (SE) — core room
-      { x: 2200, y: 2100, w: 400, h: 20 }, // Top
-      { x: 2200, y: 2600, w: 400, h: 20 }, // Bottom
-      { x: 2200, y: 2100, w: 20, h: 200 }, { x: 2200, y: 2360, w: 20, h: 240 }, // Left with gap
-      { x: 2600, y: 2100, w: 20, h: 200 }, { x: 2600, y: 2360, w: 20, h: 240 }, // Right wall with gap
-      // Cobalt annex (control booth)
-      { x: 2600, y: 2300, w: 240, h: 20 }, { x: 2840, y: 2300, w: 20, h: 240 }, { x: 2600, y: 2540, w: 240, h: 20 }
+      // COBALT-WING (SE) — Roof 1: 2200, 2100, 400, 500
+      { x: 2180, y: 2080, w: 20, h: 540 }, { x: 2200, y: 2080, w: 400, h: 20 },
+      { x: 2200, y: 2600, w: 400, h: 20 }, { x: 2580, y: 2080, w: 20, h: 240 }, { x: 2580, y: 2540, w: 20, h: 80 },
+      // Annex Roof 2: 2600, 2300, 240, 240
+      { x: 2600, y: 2280, w: 260, h: 20 }, { x: 2600, y: 2540, w: 260, h: 20 }, { x: 2840, y: 2300, w: 20, h: 240 }
     ],
     pits: [
-      { points: [{x:1300,y:600},{x:1500,y:540},{x:1750,y:640},{x:1820,y:840},{x:1660,y:1010},{x:1400,y:1060},{x:1190,y:900},{x:1240,y:700}] },
-      { points: [{x:1240,y:2150},{x:1460,y:2090},{x:1710,y:2190},{x:1810,y:2460},{x:1590,y:2660},{x:1340,y:2610},{x:1180,y:2450}] },
-      { points: [{x:690,y:1290},{x:960,y:1340},{x:1010,y:1540},{x:860,y:1760},{x:590,y:1710},{x:540,y:1490}] },
-      { points: [{x:2090,y:1390},{x:2410,y:1340},{x:2660,y:1440},{x:2610,y:1660},{x:2340,y:1760},{x:2090,y:1610}] }
+      { x: 1500, y: 650, r: 110 }, { x: 1500, y: 2350, r: 110 },
+      { x: 800, y: 1500, r: 90 }, { x: 2200, y: 1500, r: 90 }
     ],
     furniture: [
        { x: 1500, y: 1450, w: 120, h: 40 }, { x: 1500, y: 1550, w: 120, h: 40 }
     ],
     roofs: [
-      // Neo-District: 2 rooms
-      {id:'B1a',x:400,y:400,w:500,h:250},
-      {id:'B1b',x:400,y:650,w:500,h:250},
-      // Pulse-Wing: corridor + 2 offices
-      {id:'B2h',x:2350,y:400,w:250,h:500},
-      {id:'B2o1',x:2100,y:400,w:250,h:250},
-      {id:'B2o2',x:2100,y:650,w:250,h:250},
-      // Central Hub: 1 big room
+      {id:'B1',x:400,y:400,w:500,h:500},
+      {id:'B2',x:2100,y:400,w:500,h:500},
       {id:'B3',x:1200,y:1200,w:600,h:600},
-      // Spark-Hall: 3 dorms
-      {id:'B4d1',x:400,y:2100,w:160,h:500},
-      {id:'B4d2',x:560,y:2100,w:180,h:500},
-      {id:'B4d3',x:740,y:2100,w:160,h:500},
-      // Cobalt-Wing: core + annex
-      {id:'B5r',x:2200,y:2100,w:400,h:500},
-      {id:'B5c',x:2600,y:2300,w:240,h:240}
+      {id:'B4',x:400,y:2100,w:500,h:500},
+      {id:'B5',x:2200,y:2100,w:640,h:500}
     ],
     doors: [
-      // NW Building — left outer entrance (gap in left wall x=400, y=650-700)
-      {x:395,y:645,w:16,h:60},
-      // NW Building — internal room divider gap (y=650, x=580-720)
-      {x:580,y:640,w:140,h:16},
-      // NE Building — left outer entrance (gap in left wall x=2100, y=600-660)
-      {x:2090,y:595,w:16,h:70},
-      // NE Building — corridor wall passage (gap x=2350, y=600-660)
-      {x:2345,y:595,w:16,h:70},
-      // Central Hub — top entrance (gap y=1200, x=1450-1500)
-      {x:1440,y:1190,w:70,h:16},
-      // Central Hub — bottom entrance (gap y=1800, x=1500-1550)
-      {x:1490,y:1790,w:70,h:16},
-      // Central Hub — left entrance (gap x=1200, y=1450-1500)
-      {x:1190,y:1440,w:16,h:70},
-      // Central Hub — right entrance (gap x=1800, y=1450-1500)
-      {x:1790,y:1440,w:16,h:70},
-      // SW Dorm 1 bottom entrance (gap y=2600, x=455-515)
-      {x:450,y:2590,w:70,h:16},
-      // SW Dorm 2 bottom entrance (gap y=2600, x=610-670)
-      {x:610,y:2590,w:64,h:16},
-      // SW Dorm 3 bottom entrance (gap y=2600, x=765-825)
-      {x:765,y:2590,w:64,h:16},
-      // SE Cobalt — left outer entrance (gap x=2200, y=2300-2360)
-      {x:2190,y:2295,w:16,h:70},
-      // SE Cobalt — annex passage (gap x=2600, y=2300-2360)
-      {x:2595,y:2295,w:16,h:70}
+      {x:590,y:895,w:100,h:30,target:'NEO-DISTRICT'}, // Northwest Main
+      {x:2310,y:895,w:100,h:30,target:'PULSE-WING'}, // Northeast Main
+      {x:1460,y:1175,w:80,h:30,target:'CENTRAL-HUB'}, // Hub Top
+      {x:1460,y:1795,w:80,h:30,target:'CENTRAL-HUB'}, // Hub Bottom
+      {x:590,y:2595,w:100,h:30,target:'SPARK-HALL'}, // Southwest Main
+      {x:2175,y:2300,w:30,h:100,target:'COBALT-WING'} // Southeast Left
     ]
   },
   'Charlie': {
@@ -1099,6 +1048,7 @@ function drawGame(time) {
            ctx.closePath();
            ctx.clip();
        } else {
+           // Circle clip for Alpha-style circular pits
            ctx.beginPath();
            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
            ctx.clip();
@@ -1341,27 +1291,27 @@ function drawRoofWindows(r, style, time) {
 // =============================================
 function drawWoodenSigns() {
   const theme = MAP_THEMES[currentMap] || MAP_THEMES['Alpha'];
-  const SIGNS = [];
-  // Approximate sign placement for each map's buildings
-  const roofs = MAP_DATA[currentMap]?.roofs || [];
-  roofs.forEach((r, i) => {
-    SIGNS.push({ x: r.x + r.w/2, y: r.y + r.h + 20, label: theme.bldgLabels[i] || 'HQ' });
-  });
-
-  for (let s of SIGNS) {
+  const doors = MAP_DATA[currentMap]?.doors || [];
+  
+  for (let d of doors) {
+    if (!d.target) continue;
+    // Place sign near the door
+    const sx = d.x + d.w/2;
+    const sy = d.y + (d.h > 40 ? d.h + 20 : d.h + 35);
+    
     ctx.save();
-    ctx.translate(s.x, s.y);
+    ctx.translate(sx, sy);
 
     // Sign post
     ctx.fillStyle = '#3e2723';
-    ctx.fillRect(-2, 0, 4, 30); // taller and thinner post
+    ctx.fillRect(-2, 0, 4, 30);
     ctx.strokeStyle = '#1b1100';
     ctx.lineWidth = 1;
     ctx.strokeRect(-2, 0, 4, 30);
 
     // Sign board
-    ctx.font = 'bold 10px Courier New, monospace'; // set font first for measurement
-    const tw = ctx.measureText(s.label).width + 10;
+    ctx.font = 'bold 10px Courier New, monospace';
+    const tw = ctx.measureText(d.target).width + 12;
     const bh = 22;
     ctx.fillStyle = '#5d4037';
     ctx.beginPath();
@@ -1371,7 +1321,7 @@ function drawWoodenSigns() {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Wood grain detail on board
+    // Wood grain detail
     ctx.strokeStyle = 'rgba(0,0,0,0.15)';
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -1379,15 +1329,14 @@ function drawWoodenSigns() {
     ctx.moveTo(-tw/2 + 8, -bh + 14); ctx.lineTo(tw/2 - 8, -bh + 14);
     ctx.stroke();
 
-    // Text (carved look)
+    // Text
     ctx.shadowColor = 'rgba(0,0,0,0.5)';
     ctx.shadowBlur = 2;
     ctx.shadowOffsetY = 1;
     ctx.fillStyle = '#efebe9';
-    ctx.font = 'bold 10px Courier New, monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(s.label, 0, -bh/2);
+    ctx.fillText(d.target, 0, -bh/2);
     
     ctx.restore();
   }
