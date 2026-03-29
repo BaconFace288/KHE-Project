@@ -307,6 +307,19 @@ canvas {
     text-align: center !important;
 }
 
+#credits-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2500;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    pointer-events: auto;
+}
+
 
 /* HANDBOOK MODAL OVERLAY */
 #role-modal {
