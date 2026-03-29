@@ -287,17 +287,17 @@ function moveTowards(bot, tx, ty) {
         const nextX = bot.x + Math.cos(selectedAngle) * BOT_WALK_SPEED;
         const nextY = bot.y + Math.sin(selectedAngle) * BOT_WALK_SPEED;
         
-        // Progress tracking: If we haven't moved much in 20 ticks (2s), we are "ramming"
+        // Progress tracking: If we haven't gotten closer to TARGET in 6 ticks (0.6s), we are "ramming"
         if (!bot.progressCheckTicks) bot.progressCheckTicks = 0;
-        if (bot.progressCheckTicks % 20 === 0) {
-            if (bot.lastPosX !== undefined) {
-                const moved = Math.hypot(nextX - bot.lastPosX, nextY - bot.lastPosY);
-                if (moved < 10) { 
-                    selectedAngle = null; // Force panic
+        if (bot.progressCheckTicks % 6 === 0) {
+            const currentDist = Math.hypot(tx - nextX, ty - nextY);
+            if (bot.lastDistToTarget !== undefined) {
+                // We must get at least 20px closer in 0.6s (expected max is 90px close)
+                if (currentDist > bot.lastDistToTarget - 20) {
+                    selectedAngle = null; // Force redirect
                 }
             }
-            bot.lastPosX = nextX;
-            bot.lastPosY = nextY;
+            bot.lastDistToTarget = currentDist;
         }
         bot.progressCheckTicks++;
     }
@@ -313,18 +313,13 @@ function moveTowards(bot, tx, ty) {
         bot.isMoving = false;
         bot.stuckTicks = (bot.stuckTicks || 0) + 1;
         
-        // Panic Recovery: If stuck for 0.7s or progress is zero, pick a new target
-        if (bot.stuckTicks > 7) {
-            // Nudge out: tele slightly towards target to un-wedge
-            const nudgeX = Math.cos(directAngle) * 5;
-            const nudgeY = Math.sin(directAngle) * 5;
-            bot.x += nudgeX; bot.y += nudgeY;
-
-            bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
-            bot.botState = 'IDLE';
-            bot.stuckTicks = 0;
-            bot.progressCheckTicks = 0; 
-        }
+        // Panic Recovery: Immediate redirect
+        // Pick a different task location
+        bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
+        bot.botState = 'IDLE';
+        bot.stuckTicks = 0;
+        bot.progressCheckTicks = 0;
+        bot.lastDistToTarget = undefined;
     }
 }
 
