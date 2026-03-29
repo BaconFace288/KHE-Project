@@ -309,12 +309,12 @@ canvas {
 
 .credits-grid {
     display: grid;
+    width: 100% !important; /* Force grid horizontally wide within centered card */
     /* Grid forces 3-4 columns on wide screens */
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px 20px;
-    max-width: 100%;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px 25px;
     margin: 0 auto;
-    text-align: center !important;
+    justify-items: center; /* Center names within their grid cells */
 }
 
 /* Ensure the Close button is centered in the wide view */
