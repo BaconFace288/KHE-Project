@@ -199,7 +199,11 @@ const DECOR_FURNITURE = [
   { x: 1630, y: 2735, type: 'stool' },
   { x: 1670, y: 2735, type: 'stool' },
   { x: 1935, y: 2735, type: 'stool' },
-  { x: 1975, y: 2735, type: 'stool' }
+  { x: 1975, y: 2735, type: 'stool' },
+  { x: 1630, y: 2665, type: 'stool' },
+  { x: 1670, y: 2665, type: 'stool' },
+  { x: 1935, y: 2665, type: 'stool' },
+  { x: 1975, y: 2665, type: 'stool' }
 ];
 
 const DECOR_FLORA = [
@@ -248,6 +252,14 @@ function collidesWithProps(px, py, pr) {
             let distX = px - testX; let distY = py - testY;
             if (Math.sqrt((distX*distX) + (distY*distY)) <= pr) return true;
         }
+    }
+    return false;
+}
+
+function collidesWithTasks(px, py, pr) {
+    for (let t of TASKS) {
+        // Use a 20px radius for task object collision
+        if (Math.hypot(px - t.x, py - t.y) <= pr + 20) return true;
     }
     return false;
 }
@@ -850,13 +862,13 @@ function updateLocalPlayer(dt) {
     } else {
       if (dx !== 0) {
           newX += dx * speed * dt;
-          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16) || collidesWithProps(newX, me.y, 16) ||
+          if (collidesWithWall(newX, me.y, 16) || collidesWithPit(newX, me.y, 16) || collidesWithProps(newX, me.y, 16) || collidesWithTasks(newX, me.y, 16) ||
               Math.hypot(newX - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 16)
             newX = me.x;
       }
       if (dy !== 0) {
           newY += dy * speed * dt;
-          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16) || collidesWithProps(newX, newY, 16) ||
+          if (collidesWithWall(newX, newY, 16) || collidesWithPit(newX, newY, 16) || collidesWithProps(newX, newY, 16) || collidesWithTasks(newX, newY, 16) ||
               Math.hypot(newX - EMERGENCY_BTN.x, newY - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 16)
             newY = me.y;
       }
