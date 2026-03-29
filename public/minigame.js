@@ -400,7 +400,9 @@ function startRelayGame() {
   }
   draw();
 
+  let active = true;
   canvas.onmousedown = e => {
+    if (!active) return;
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
     leftPegs.forEach((p,i) => {
@@ -411,13 +413,13 @@ function startRelayGame() {
     });
   };
   canvas.onmousemove = e => {
-    if (!dragging) return;
+    if (!dragging || !active) return;
     const r = canvas.getBoundingClientRect();
     dragging.x = e.clientX - r.left; dragging.y = e.clientY - r.top;
     draw();
   };
   canvas.onmouseup = e => {
-    if (!dragging) return;
+    if (!dragging || !active) return;
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
     rightPegs.forEach((p,ri) => {
@@ -425,8 +427,12 @@ function startRelayGame() {
     });
     dragging = null; draw();
     if (Object.keys(connections).length === C.length) {
-      if (C.every((c,i) => c === rightPegs[connections[i]].c)) onMinigameComplete();
-      else mgFeedback.textContent = 'Circuit mismatch! Rewire correctly.';
+      if (C.every((c,i) => c === rightPegs[connections[i]].c)) {
+        active = false;
+        onMinigameComplete();
+      } else {
+        mgFeedback.textContent = 'Circuit mismatch! Rewire correctly.';
+      }
     }
   };
 }
@@ -522,8 +528,9 @@ function startDishGame() {
   });
   mgWrap.appendChild(controls);
 
+  let active = true;
   function draw() {
-    if (mgWrap.innerHTML === '') return;
+    if (mgWrap.innerHTML === '' || !active) return;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     // Draw Target
     ctx.beginPath(); ctx.strokeStyle = 'rgba(243, 156, 18, 0.3)'; ctx.lineWidth = 3;
@@ -542,6 +549,7 @@ function startDishGame() {
 
     const diff = Math.abs(freq - targetFreq) + Math.abs(amp - targetAmp);
     if (diff < 0.08) {
+      active = false;
       ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 5; ctx.stroke();
       setTimeout(onMinigameComplete, 600);
       return;
@@ -570,6 +578,7 @@ function startMixGame() {
   paper.innerHTML = '<strong>RECIPE:</strong><br>' + recipe.map(c => `<span style="color:${c.val}">${c.name}</span>`).join(' → ');
   mgWrap.appendChild(paper);
 
+  let active = true;
   const rack = document.createElement('div');
   rack.className = 'flask-rack';
   COLORS.forEach(c => {
@@ -577,12 +586,17 @@ function startMixGame() {
     f.className = 'flask';
     f.style.background = c.val;
     f.onclick = () => {
+      if (!active) return;
       if (c.name === recipe[step].name) {
         f.style.filter = 'brightness(1.5) drop-shadow(0 0 10px white)';
         f.style.pointerEvents = 'none';
         step++;
-        if (step === recipe.length) onMinigameComplete();
+        if (step === recipe.length) {
+          active = false;
+          onMinigameComplete();
+        }
       } else {
+        active = false;
         mgFeedback.textContent = 'Contaminated! Restarting recipe...';
         setTimeout(startMixGame, 800);
       }
@@ -603,14 +617,19 @@ function startPowerGame() {
   let state = [false, false, false, false];
   const items = [];
 
+  let active = true;
   for(let i=0; i<4; i++) {
     const fuse = document.createElement('div');
     fuse.className = 'fuse-item';
     fuse.innerHTML = '<div class="fuse-knob"></div>';
     fuse.onclick = () => {
+      if (!active) return;
       state[i] = !state[i];
       fuse.classList.toggle('on', state[i]);
-      if (state.every(s => s)) setTimeout(onMinigameComplete, 400);
+      if (state.every(s => s)) {
+        active = false;
+        setTimeout(onMinigameComplete, 400);
+      }
     };
     grid.appendChild(fuse);
     items.push(fuse);
@@ -641,11 +660,16 @@ function startUploadGame() {
     p.style.top = y + 'px';
     
     p.onclick = () => {
+      if (!active) return;
       caught++;
       progressFill.style.width = (caught / total * 100) + '%';
       p.remove();
-      if (caught >= total) onMinigameComplete();
-      else spawn();
+      if (caught >= total) {
+        active = false;
+        onMinigameComplete();
+      } else {
+        spawn();
+      }
     };
     area.appendChild(p);
 
@@ -679,9 +703,9 @@ function startReactorGame() {
   let totalRotation = 0;
   let dragging = false;
 
-  wheel.onmousedown = () => dragging = true;
+  wheel.onmousedown = () => { if(active) dragging = true; };
   window.onmousemove = e => {
-    if (!dragging) return;
+    if (!dragging || !active) return;
     const r = wheel.getBoundingClientRect();
     const cx = r.left + r.width/2;
     const cy = r.top + r.height/2;
@@ -697,6 +721,7 @@ function startReactorGame() {
     lastAngle = curAngle;
     progressFill.style.width = Math.min(100, Math.abs(totalRotation)/360 * 100) + '%';
     if (Math.abs(totalRotation) >= 350) {
+      active = false;
       dragging = false; 
       window.onmousemove = null;
       onMinigameComplete();
@@ -793,11 +818,13 @@ function startSamplesGame() {
     itemRow.appendChild(el);
   });
 
+  let active = true;
   [binOrg, binMin].forEach(bin => {
     const binType = bin === binOrg ? 'org' : 'min';
     bin.ondragover = e => e.preventDefault();
     bin.ondrop = e => {
       e.preventDefault();
+      if (!active) return;
       const droppedType = e.dataTransfer.getData('type');
       if (droppedType === binType) {
         bin.style.borderColor = '#2ecc71';
@@ -812,7 +839,10 @@ function startSamplesGame() {
         }
         doneCount++;
         progressFill.style.width = (doneCount / items.length * 100) + '%';
-        if (doneCount >= items.length) onMinigameComplete();
+        if (doneCount >= items.length) {
+          active = false;
+          onMinigameComplete();
+        }
       } else {
         bin.style.borderColor = '#e74c3c';
         setTimeout(() => bin.style.borderColor = '', 300);
@@ -859,13 +889,18 @@ function startSurveyGame() {
     if (!spikes.every(s => s.hit)) requestAnimationFrame(draw);
   }
 
+  let active = true;
   canvas.onclick = e => {
+    if (!active) return;
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
     spikes.forEach(s => {
       if (Math.hypot(mx - s.x, my - (s.y+10)) < 25) s.hit = true;
     });
-    if (spikes.every(s => s.hit)) setTimeout(onMinigameComplete, 400);
+    if (spikes.every(s => s.hit)) {
+      active = false;
+      setTimeout(onMinigameComplete, 400);
+    }
   };
   draw();
 }
