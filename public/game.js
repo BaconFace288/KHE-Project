@@ -1451,32 +1451,13 @@ function drawPlayer(p, isMe, time) {
     ctx.fill();
   }
 
-  // --- Shirt & Tie (V-neck look) ---
-  ctx.fillStyle = 'white';
-  ctx.beginPath();
-  ctx.moveTo(-6, -8);
-  ctx.lineTo(6, -8);
-  ctx.lineTo(0, 4);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = '#000'; // black tie
-  ctx.beginPath();
-  ctx.moveTo(-1.5, -8);
-  ctx.lineTo(1.5, -8);
-  ctx.lineTo(0, 2);
-  ctx.closePath();
-  ctx.fill();
-
-  // Feet (stride animation)
+  // Feet (stride animation with bob)
   if (p.isMoving) {
     const stride = Math.sin(time * 0.02) * 8;
+    const footBob = Math.abs(Math.sin(time * 0.02)) * 3;
     ctx.fillStyle = '#333';
-    // If predominantly horizontal, stride sideways
-    // (Using p.flipX as proxy for horizontal movement)
-    // Actually, simple alternate bob is what feels best for top-down agents
-    ctx.fillRect(-10 + stride, 16, 8, 5); // foot 1
-    ctx.fillRect(2 - stride, 16, 8, 5);  // foot 2
+    ctx.fillRect(-10 + stride, 16 - footBob, 8, 5); // foot 1
+    ctx.fillRect(2 - stride, 16 - footBob, 8, 5);  // foot 2
   } else {
     ctx.fillStyle = '#333';
     ctx.fillRect(-10, 16, 8, 5);
