@@ -18,102 +18,73 @@ const GAME_STATE = {
 };
 
 const rooms = {};
-const EMERGENCY_BTN = { x: 1500, y: 1500, r: 36 };
 
-// MAP CONFIGURATIONS
-const MAP_DATA = {
-  'Alpha': {
-    tasks: [
-        { x: 900,  y: 1100 }, { x: 1350, y: 1250 }, { x: 2100, y: 720 },
-        { x: 2080, y: 1100 }, { x: 600,  y: 2100 }, { x: 860,  y: 2100 },
-        { x: 1340, y: 2690 }, { x: 1180, y: 500 },  { x: 400,  y: 600 },
-        { x: 2200, y: 1700 }, { x: 700,  y: 2800 }, { x: 2600, y: 1200 }
-    ],
-    walls: [
-      { x: 780, y: 780, w: 20, h: 640 }, { x: 800, y: 780, w: 320, h: 20 },
-      { x: 1100, y: 800, w: 20, h: 300 }, { x: 1120, y: 1080, w: 500, h: 20 },
-      { x: 1600, y: 1080, w: 20, h: 120 }, { x: 1600, y: 1300, w: 20, h: 120 },
-      { x: 1120, y: 1400, w: 500, h: 20 }, { x: 1100, y: 1100, w: 20, h: 100 },
-      { x: 1100, y: 1300, w: 20, h: 100 }, { x: 800, y: 1400, w: 100, h: 20 },
-      { x: 1000, y: 1400, w: 100, h: 20 },
-      { x: 1980, y: 580, w: 440, h: 20 }, { x: 1980, y: 600, w: 20, h: 300 },
-      { x: 2400, y: 600, w: 20, h: 100 }, { x: 2400, y: 800, w: 20, h: 120 },
-      { x: 2200, y: 900, w: 200, h: 20 }, { x: 1980, y: 900, w: 20, h: 420 },
-      { x: 2200, y: 920, w: 20, h: 380 }, { x: 2000, y: 900, w: 50, h: 20 },
-      { x: 2150, y: 900, w: 50, h: 20 }, { x: 2000, y: 1300, w: 50, h: 20 },
-      { x: 2150, y: 1300, w: 70, h: 20 },
-      { x: 480, y: 1980, w: 540, h: 20 }, { x: 480, y: 2500, w: 540, h: 20 },
-      { x: 480, y: 2000, w: 20, h: 100 }, { x: 480, y: 2200, w: 20, h: 300 },
-      { x: 1000, y: 1980, w: 20, h: 320 }, { x: 1000, y: 2400, w: 20, h: 100 },
-      { x: 500, y: 2240, w: 50, h: 20 }, { x: 650, y: 2240, w: 200, h: 20 },
-      { x: 950, y: 2240, w: 50, h: 20 }, { x: 740, y: 2000, w: 20, h: 50 },
-      { x: 740, y: 2150, w: 20, h: 200 }, { x: 740, y: 2450, w: 20, h: 50 },
-      { x: 1180, y: 2580, w: 940, h: 20 }, { x: 1180, y: 2800, w: 940, h: 20 },
-      { x: 1180, y: 2600, w: 20, h: 50 }, { x: 1180, y: 2750, w: 20, h: 50 },
-      { x: 2100, y: 2600, w: 20, h: 50 }, { x: 2100, y: 2750, w: 20, h: 50 },
-      { x: 1490, y: 2600, w: 20, h: 50 }, { x: 1490, y: 2750, w: 20, h: 50 },
-      { x: 1790, y: 2600, w: 20, h: 50 }, { x: 1790, y: 2750, w: 20, h: 50 }
-    ],
-    pits: [
-      { x: 300, y: 300, r: 80 }, { x: 1000, y: 500, r: 120 },
-      { x: 2500, y: 400, r: 96 }, { x: 2700, y: 2400, r: 112 },
-      { x: 500, y: 1200, r: 72 }, { x: 1600, y: 1800, r: 64 }
-    ],
-    furniture: [
-      { x: 950, y: 950, w: 40, h: 25 }, { x: 2100, y: 680, w: 55, h: 25 },
-      { x: 1650, y: 2700, w: 120, h: 60 }, { x: 1955, y: 2700, w: 120, h: 60 }
-    ]
-  }
-};
+// BOT RELEVANT DATA (Simplified for server-side logic)
+const BOT_WALK_SPEED = 15;
+const SERVER_TASKS = [
+    { x: 900,  y: 1100 }, { x: 1350, y: 1250 }, { x: 2100, y: 720 },
+    { x: 2080, y: 1100 }, { x: 600,  y: 2100 }, { x: 860,  y: 2100 },
+    { x: 1340, y: 2690 }, { x: 1180, y: 500 },  { x: 400,  y: 600 },
+    { x: 2200, y: 1700 }, { x: 700,  y: 2800 }, { x: 2600, y: 1200 }
+];
+const SERVER_WALLS = [
+  { x: 780, y: 780, w: 20, h: 640 }, { x: 800, y: 780, w: 320, h: 20 },
+  { x: 1100, y: 800, w: 20, h: 300 }, { x: 1120, y: 1080, w: 500, h: 20 },
+  { x: 1600, y: 1080, w: 20, h: 120 }, { x: 1600, y: 1300, w: 20, h: 120 },
+  { x: 1120, y: 1400, w: 500, h: 20 }, { x: 1100, y: 1100, w: 20, h: 100 },
+  { x: 1100, y: 1300, w: 20, h: 100 }, { x: 800, y: 1400, w: 100, h: 20 },
+  { x: 1000, y: 1400, w: 100, h: 20 },
+  { x: 1980, y: 580, w: 440, h: 20 }, { x: 1980, y: 600, w: 20, h: 300 },
+  { x: 2400, y: 600, w: 20, h: 100 }, { x: 2400, y: 800, w: 20, h: 120 },
+  { x: 2200, y: 900, w: 200, h: 20 }, { x: 1980, y: 900, w: 20, h: 420 },
+  { x: 2200, y: 920, w: 20, h: 380 }, { x: 2000, y: 900, w: 50, h: 20 },
+  { x: 2150, y: 900, w: 50, h: 20 }, { x: 2000, y: 1300, w: 50, h: 20 },
+  { x: 2150, y: 1300, w: 70, h: 20 },
+  { x: 480, y: 1980, w: 540, h: 20 }, { x: 480, y: 2500, w: 540, h: 20 },
+  { x: 480, y: 2000, w: 20, h: 100 }, { x: 480, y: 2200, w: 20, h: 300 },
+  { x: 1000, y: 1980, w: 20, h: 320 }, { x: 1000, y: 2400, w: 20, h: 100 },
+  { x: 500, y: 2240, w: 50, h: 20 }, { x: 650, y: 2240, w: 200, h: 20 },
+  { x: 950, y: 2240, w: 50, h: 20 }, { x: 740, y: 2000, w: 20, h: 50 },
+  { x: 740, y: 2150, w: 20, h: 200 }, { x: 740, y: 2450, w: 20, h: 50 },
+  { x: 1180, y: 2580, w: 940, h: 20 }, { x: 1180, y: 2800, w: 940, h: 20 },
+  { x: 1180, y: 2600, w: 20, h: 50 }, { x: 1180, y: 2750, w: 20, h: 50 },
+  { x: 2100, y: 2600, w: 20, h: 50 }, { x: 2100, y: 2750, w: 20, h: 50 },
+  { x: 1490, y: 2600, w: 20, h: 50 }, { x: 1490, y: 2750, w: 20, h: 50 },
+  { x: 1790, y: 2600, w: 20, h: 50 }, { x: 1790, y: 2750, w: 20, h: 50 }
+];
 
-function isPointInPolygon(px, py, poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    let xi = poly[i].x, yi = poly[i].y;
-    let xj = poly[j].x, yj = poly[j].y;
-    let intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
-    if (intersect) inside = !inside;
-  }
-  return inside;
-}
+const SERVER_PITS = [
+  { x: 300, y: 300, r: 80 }, { x: 1000, y: 500, r: 120 },
+  { x: 2500, y: 400, r: 96 }, { x: 2700, y: 2400, r: 112 },
+  { x: 500, y: 1200, r: 72 }, { x: 1600, y: 1800, r: 64 }
+];
 
-function distToSegmentSquared(px, py, vx, vy, wx, wy) {
-  let l2 = (wx - vx) * (wx - vx) + (wy - vy) * (wy - vy);
-  if (l2 === 0) return (px - vx) ** 2 + (py - vy) ** 2;
-  let t = ((px - vx) * (wx - vx) + (py - vy) * (wy - vy)) / l2;
-  t = Math.max(0, Math.min(1, t));
-  return (px - (vx + t * (wx - vx))) ** 2 + (py - (vy + t * (wy - vy))) ** 2;
-}
+const SERVER_FURNITURE = [
+  { x: 950, y: 950, w: 40, h: 25 }, { x: 2100, y: 680, w: 55, h: 25 },
+  { x: 1650, y: 2700, w: 120, h: 60 }, { x: 1955, y: 2700, w: 120, h: 60 }
+];
 
-function collides(px, py, pr, mapId = 'Alpha') {
-    const map = MAP_DATA[mapId] || MAP_DATA['Alpha'];
+function collides(px, py, pr) {
     // 1. Walls
-    for (let w of map.walls) {
+    for (let w of SERVER_WALLS) {
         let testX = px; let testY = py;
         if (px < w.x) testX = w.x; else if (px > w.x + w.w) testX = w.x + w.w;
         if (py < w.y) testY = w.y; else if (py > w.y + w.h) testY = w.y + w.h;
         if (Math.hypot(px - testX, py - testY) <= pr) return true;
     }
     // 2. Pits
-    for (let pit of map.pits) {
-        if (pit.points) {
-            if (isPointInPolygon(px, py, pit.points)) return true;
-            for (let i = 0, j = pit.points.length - 1; i < pit.points.length; j = i++) {
-                if (distToSegmentSquared(px, py, pit.points[j].x, pit.points[j].y, pit.points[i].x, pit.points[i].y) <= pr * pr) return true;
-            }
-        } else if (pit.r) {
-            if (Math.hypot(px - pit.x, py - pit.y) <= pit.r + pr) return true;
-        }
+    for (let pit of SERVER_PITS) {
+        if (Math.hypot(px - pit.x, py - pit.y) <= pit.r + pr) return true;
     }
     // 3. Furniture
-    for (let f of map.furniture || []) {
+    for (let f of SERVER_FURNITURE) {
         let testX = px; let testY = py;
         if (px < f.x - f.w/2) testX = f.x - f.w/2; else if (px > f.x + f.w/2) testX = f.x + f.w/2;
         if (py < f.y - f.h/2) testY = f.y - f.h/2; else if (py > f.y + f.h/2) testY = f.y + f.h/2;
         if (Math.hypot(px - testX, py - testY) <= pr) return true;
     }
     // 4. Emergency Button
-    if (Math.hypot(px - EMERGENCY_BTN.x, py - EMERGENCY_BTN.y) <= EMERGENCY_BTN.r + pr) return true;
+    if (Math.hypot(px - 1500, py - 1490) <= 36 + pr) return true;
 
     return false;
 }
@@ -210,8 +181,7 @@ function handleCrewmateBot(bot, room) {
     }
 
     if (bot.botState === 'IDLE' || !bot.target) {
-        const map = MAP_DATA[room.mapId] || MAP_DATA['Alpha'];
-        bot.target = map.tasks[Math.floor(Math.random() * map.tasks.length)];
+        bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
         bot.botState = 'MOVING';
         bot.isMoving = true;
     }
@@ -297,7 +267,7 @@ function moveTowards(bot, tx, ty) {
         const nextX = bot.x + Math.cos(testAngle) * BOT_WALK_SPEED;
         const nextY = bot.y + Math.sin(testAngle) * BOT_WALK_SPEED;
         
-        if (!collides(nextX, nextY, BOT_RADIUS, room.mapId)) {
+        if (!collides(nextX, nextY, BOT_RADIUS)) {
             selectedAngle = testAngle;
             break;
         }
@@ -308,7 +278,7 @@ function moveTowards(bot, tx, ty) {
         const midX = bot.x + Math.cos(selectedAngle) * (BOT_WALK_SPEED / 2);
         const midY = bot.y + Math.sin(selectedAngle) * (BOT_WALK_SPEED / 2);
         
-        if (collides(midX, midY, BOT_RADIUS, room.mapId)) {
+        if (collides(midX, midY, BOT_RADIUS)) {
             selectedAngle = null; // Midpoint blocked!
         }
     }
@@ -345,8 +315,7 @@ function moveTowards(bot, tx, ty) {
         
         // Panic Recovery: Immediate redirect
         // Pick a different task location
-        const map = MAP_DATA[room.mapId] || MAP_DATA['Alpha'];
-        bot.target = map.tasks[Math.floor(Math.random() * map.tasks.length)];
+        bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
         bot.botState = 'IDLE';
         bot.stuckTicks = 0;
         bot.progressCheckTicks = 0;
@@ -485,8 +454,7 @@ io.on('connection', (socket) => {
           code: code,
           state: GAME_STATE.LOBBY,
           hostId: socket.id,
-          players: {},
-          mapId: 'Alpha'
+          players: {}
       };
       
       room.players[socket.id] = buildPlayer(name, room);
@@ -499,20 +467,8 @@ io.on('connection', (socket) => {
       io.to(code).emit('roomUpdate', {
           players: room.players,
           hostId: room.hostId,
-          state: room.state,
-          mapId: room.mapId
+          state: room.state
       });
-  });
-
-  socket.on('selectMap', (mapId) => {
-      const roomId = socket.roomId;
-      if (!roomId || !rooms[roomId]) return;
-      const room = rooms[roomId];
-      if (room.hostId !== socket.id || room.state !== GAME_STATE.LOBBY) return;
-      if (!MAP_DATA[mapId]) return;
-
-      room.mapId = mapId;
-      io.to(roomId).emit('mapSelected', mapId);
   });
 
   socket.on('addBot', () => {
@@ -535,8 +491,7 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('roomUpdate', {
         players: room.players,
         hostId: room.hostId,
-        state: room.state,
-        mapId: room.mapId
+        state: room.state
     });
   });
 
@@ -562,8 +517,7 @@ io.on('connection', (socket) => {
       io.to(upperCode).emit('roomUpdate', {
           players: room.players,
           hostId: room.hostId,
-          state: room.state,
-          mapId: room.mapId
+          state: room.state
       });
   });
 
@@ -686,8 +640,7 @@ io.on('connection', (socket) => {
       const payload = {
           players: room.players,
           hostId: room.hostId,
-          state: room.state,
-          mapId: room.mapId
+          state: room.state
       };
       
       io.in(roomId).emit('roomUpdate', payload);
