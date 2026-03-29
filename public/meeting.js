@@ -117,44 +117,48 @@ function showVoteScreen(data) {
 }
 
 function buildPlayerList() {
-  if (!playerListEl || !window.players) return;
-  playerListEl.innerHTML = '';
-  const amIDead = window.players[window.myId] && window.players[window.myId].isDead;
+  try {
+    if (!playerListEl || !window.players) return;
+    playerListEl.innerHTML = '';
+    const amIDead = window.players[window.myId] && window.players[window.myId].isDead;
 
-  for (let id in window.players) {
-    const p = window.players[id];
-    const row = document.createElement('div');
-    row.className = 'vote-player-row' + (p.isDead ? ' dead' : '');
-    row.id = `vrow-${id}`;
+    for (let id in window.players) {
+      const p = window.players[id];
+      const row = document.createElement('div');
+      row.className = 'vote-player-row' + (p.isDead ? ' dead' : '');
+      row.id = `vrow-${id}`;
 
-    const dot = document.createElement('span');
-    dot.className = 'vote-color-dot';
-    dot.style.background = p.color;
+      const dot = document.createElement('span');
+      dot.className = 'vote-color-dot';
+      dot.style.background = p.color;
 
-    const name = document.createElement('span');
-    name.className = 'vote-player-name';
-    name.textContent = (p.isDead ? '💀 ' : '') + p.name + (id === window.myId ? ' (You)' : '');
+      const name = document.createElement('span');
+      name.className = 'vote-player-name';
+      name.textContent = (p.isDead ? '💀 ' : '') + p.name + (id === window.myId ? ' (You)' : '');
 
-    const check = document.createElement('span');
-    check.className = 'voted-check';
-    check.id = `vck-${id}`;
-    check.textContent = '';
+      const check = document.createElement('span');
+      check.className = 'voted-check';
+      check.id = `vck-${id}`;
+      check.textContent = '';
 
-    const tally = document.createElement('span');
-    tally.className = 'vote-tally';
-    tally.id = `vtl-${id}`;
+      const tally = document.createElement('span');
+      tally.className = 'vote-tally';
+      tally.id = `vtl-${id}`;
 
-    row.append(dot, name, tally, check);
+      row.append(dot, name, tally, check);
 
-    if (!amIDead && !p.isDead && id !== window.myId) {
-      const btn = document.createElement('button');
-      btn.className = 'vote-btn';
-      btn.textContent = 'Vote';
-      btn.id = `vbtn-${id}`;
-      btn.addEventListener('click', () => castVote(id));
-      row.appendChild(btn);
+      if (!amIDead && !p.isDead && id !== window.myId) {
+        const btn = document.createElement('button');
+        btn.className = 'vote-btn';
+        btn.textContent = 'Vote';
+        btn.id = `vbtn-${id}`;
+        btn.addEventListener('click', () => castVote(id));
+        row.appendChild(btn);
+      }
+      playerListEl.appendChild(row);
     }
-    playerListEl.appendChild(row);
+  } catch (err) {
+    console.error("MEETING SYSTEM: Error in buildPlayerList:", err);
   }
 }
 
@@ -190,52 +194,56 @@ function updateTimer() {
 
 // ===== Meeting Result =====
 function showResult(data) {
-  clearInterval(meetingTimerInterval);
-  document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
-  if (skipBtn) skipBtn.disabled = true;
+  try {
+    clearInterval(meetingTimerInterval);
+    document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
+    if (skipBtn) skipBtn.disabled = true;
 
-  // Show vote tallies
-  for (let id in data.votes) {
-    const el = document.getElementById(`vtl-${id}`);
-    if (el && id !== 'skip') el.textContent = `×${data.votes[id]}`;
-  }
-
-  if (voteResultEl) voteResultEl.style.display = 'block';
-  
-  if (data.eliminated) {
-    if (voteResultEl) {
-      voteResultEl.textContent = `🚀 ${data.eliminatedName} was killed!`;
-      voteResultEl.style.color = '#e74c3c';
+    // Show vote tallies
+    for (let id in data.votes) {
+      const el = document.getElementById(`vtl-${id}`);
+      if (el && id !== 'skip') el.textContent = `×${data.votes[id]}`;
     }
-    const row = document.getElementById(`vrow-${data.eliminated}`);
-    if (row) row.classList.add('ejected');
+
+    if (voteResultEl) voteResultEl.style.display = 'block';
     
-    // Add body to game world
-    if (window.players && window.players[data.eliminated]) {
-      window.players[data.eliminated].isDead = true;
-      const p = window.players[data.eliminated];
-      const bx = data.deathX ?? p.x;
-      const by = data.deathY ?? p.y;
-      if (window.bodies && !window.bodies.some(b => b.name === p.name && Math.hypot(b.x-bx, b.y-by) < 5)) {
-        // ejected:true means this body was voted out and cannot be reported
-        window.bodies.push({ x: bx, y: by, color: p.color, name: p.name, role: p.role, ejected: true });
+    if (data.eliminated) {
+      if (voteResultEl) {
+        voteResultEl.textContent = `🚀 ${data.eliminatedName} was killed!`;
+        voteResultEl.style.color = '#e74c3c';
+      }
+      const row = document.getElementById(`vrow-${data.eliminated}`);
+      if (row) row.classList.add('ejected');
+      
+      // Add body to game world
+      if (window.players && window.players[data.eliminated]) {
+        window.players[data.eliminated].isDead = true;
+        const p = window.players[data.eliminated];
+        const bx = data.deathX ?? p.x;
+        const by = data.deathY ?? p.y;
+        if (window.bodies && !window.bodies.some(b => b.name === p.name && Math.hypot(b.x-bx, b.y-by) < 5)) {
+          // ejected:true means this body was voted out and cannot be reported
+          window.bodies.push({ x: bx, y: by, color: p.color, name: p.name, role: p.role, ejected: true });
+        }
+      }
+    } else {
+      if (voteResultEl) {
+        voteResultEl.textContent = 'No one was killed. (Tie or skip)';
+        voteResultEl.style.color = '#95a5a6';
       }
     }
-  } else {
-    if (voteResultEl) {
-      voteResultEl.textContent = 'No one was killed. (Tie or skip)';
-      voteResultEl.style.color = '#95a5a6';
-    }
-  }
 
-  // Apply server-assigned spawn positions to all players
-  if (data.spawnPositions && window.players) {
-    for (const id in data.spawnPositions) {
-      if (window.players[id]) {
-        window.players[id].x = data.spawnPositions[id].x;
-        window.players[id].y = data.spawnPositions[id].y;
+    // Apply server-assigned spawn positions to all players
+    if (data.spawnPositions && window.players) {
+      for (const id in data.spawnPositions) {
+        if (window.players[id]) {
+          window.players[id].x = data.spawnPositions[id].x;
+          window.players[id].y = data.spawnPositions[id].y;
+        }
       }
     }
+  } catch (err) {
+    console.error("MEETING SYSTEM: Error in showResult:", err);
   }
 
   setTimeout(() => {
