@@ -1412,6 +1412,21 @@ function drawPlayer(p, isMe, time) {
     ctx.beginPath(); ctx.arc(5, -19, 1, 0, Math.PI * 2); ctx.fill();
   }
 
+  // Pre-calculate stride for depth layering
+  let anim = 0;
+  let isVertical = false;
+  if (p.isMoving) {
+    anim = Math.sin(time * 0.02) * 6;
+    isVertical = p.facingUp || (Math.abs(p.y - p.lastDrawY || 0) > Math.abs(p.x - p.lastDrawX || 0));
+  }
+
+  // --- Feet (Back-layer: hide foot going "up" behind body) ---
+  if (p.isMoving && isVertical) {
+    ctx.fillStyle = '#333';
+    if (anim < 0) ctx.fillRect(-10, 16 + anim, 8, 5);
+    else ctx.fillRect(2, 16 - anim, 8, 5);
+  }
+
   // --- Earpiece ---
   ctx.fillStyle = '#dfe6e9';
   ctx.beginPath();
@@ -1451,27 +1466,19 @@ function drawPlayer(p, isMe, time) {
     ctx.fill();
   }
 
-  // Feet (stride animation based on direction)
+  // --- Feet (Front-layer: show foot going "down" or sliding over body) ---
+  ctx.fillStyle = '#333';
   if (p.isMoving) {
-    const anim = Math.sin(time * 0.02) * 6;
-    ctx.fillStyle = '#333';
-    
-    // We assume vertical movement if not flipping horizontally much
-    // or by checking the facing state.
-    const isVertical = p.facingUp || (Math.abs(p.y - p.lastDrawY || 0) > Math.abs(p.x - p.lastDrawX || 0));
-
     if (isVertical) {
-      // Stepping toward/away: Vertical alternate bob
-      ctx.fillRect(-10, 16 + anim, 8, 5); // foot 1 (front/back)
-      ctx.fillRect(2, 16 - anim, 8, 5);  // foot 2 (back/front)
+      if (anim >= 0) ctx.fillRect(-10, 16 + anim, 8, 5);
+      else ctx.fillRect(2, 16 - anim, 8, 5);
     } else {
       // Stepping left/right: Horizontal alternate stride
-      ctx.fillRect(-10 + anim, 16, 8, 5); // foot 1
-      ctx.fillRect(2 - anim, 16, 8, 5);  // foot 2
+      ctx.fillRect(-10 + anim, 16, 8, 5);
+      ctx.fillRect(2 - anim, 16, 8, 5);
     }
     p.lastDrawX = p.x; p.lastDrawY = p.y;
   } else {
-    ctx.fillStyle = '#333';
     ctx.fillRect(-10, 16, 8, 5);
     ctx.fillRect(2, 16, 8, 5);
   }
