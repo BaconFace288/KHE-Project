@@ -80,12 +80,52 @@ const MAP_DATA = {
     doors: [{x:1095,y:1200,w:30,h:60},{x:1600,y:1180,w:20,h:80},{x:1180,y:2575,w:80,h:30},{x:1180,y:2795,w:80,h:30}]
   },
   'Britney': {
-    tasks: [{x:500,y:500,label:'💎 Calibrate Prism'},{x:2500,y:500,label:'💧 Filter Water'},{x:1500,y:1500,label:'📡 Sync Uplink'},{x:500,y:2500,label:'🌿 Harvest Flora'},{x:2500,y:2500,label:'⚡ Power Grid'},{x:1500,y:400,label:'🔋 Cell Swap'},{x:2600,y:1500,label:'📦 Load Cargo'}],
-    walls: [{x:400,y:400,w:20,h:400},{x:400,y:400,w:400,h:20},{x:2200,y:400,w:400,h:20},{x:2600,y:400,w:20,h:400},{x:1200,y:1200,w:600,h:20},{x:1200,y:1800,w:600,h:20},{x:1200,y:1200,w:20,h:600},{x:1800,y:1200,w:20,h:600},{x:400,y:2200,w:20,h:400},{x:400,y:2600,w:400,h:20},{x:2200,y:2600,w:400,h:20},{x:2600,y:2200,w:20,h:400}],
-    pits: [{x:1500,y:800,r:150},{x:1500,y:2200,r:150},{x:800,y:1500,r:100},{x:2200,y:1500,r:100}],
-    furniture: [{x:1500,y:1400,w:100,h:40},{x:1500,y:1600,w:100,h:40}],
-    roofs: [{id:'B1',x:400,y:400,w:400,h:400},{id:'B2',x:2200,y:400,w:400,h:400},{id:'B3',x:1200,y:1200,w:600,h:600},{id:'B4',x:400,y:2200,w:400,h:400},{id:'B5',x:2200,y:2200,w:400,h:400}],
-    doors: []
+    tasks: [
+        { x: 500, y: 550, label: '💎 Prism Lab' }, { x: 2450, y: 500, label: '💧 Water Ops' }, 
+        { x: 1500, y: 1500, label: '📡 Hub Sync' }, { x: 550, y: 2450, label: '🌿 Flora Dorm' }, 
+        { x: 2350, y: 2400, label: '⚡ Core Power' }, { x: 1500, y: 450, label: '🔋 N-Oasis' }, 
+        { x: 2750, y: 2400, label: '📦 Cargo Pod' }
+    ],
+    walls: [
+      { x: 400, y: 400, w: 20, h: 500 }, { x: 400, y: 400, w: 500, h: 20 }, 
+      { x: 900, y: 400, w: 20, h: 250 }, { x: 650, y: 650, w: 250, h: 20 },
+      { x: 650, y: 650, w: 20, h: 250 }, { x: 400, y: 900, w: 250, h: 20 },
+      { x: 550, y: 400, w: 20, h: 150 }, 
+      { x: 2100, y: 400, w: 500, h: 20 }, { x: 2100, y: 900, w: 500, h: 20 },
+      { x: 2100, y: 400, w: 20, h: 500 }, { x: 2600, y: 400, w: 20, h: 500 },
+      { x: 2350, y: 400, w: 20, h: 350 }, { x: 2350, y: 550, w: 250, h: 20 }, 
+      { x: 1200, y: 1200, w: 600, h: 20 }, { x: 1200, y: 1800, w: 600, h: 20 },
+      { x: 1200, y: 1200, w: 20, h: 600 }, { x: 1800, y: 1200, w: 20, h: 600 },
+      { x: 1350, y: 1350, w: 40, h: 40 }, { x: 1610, y: 1350, w: 40, h: 40 }, 
+      { x: 1350, y: 1610, w: 40, h: 40 }, { x: 1610, y: 1610, w: 40, h: 40 },
+      { x: 400, y: 2100, w: 500, h: 20 }, { x: 400, y: 2600, w: 500, h: 20 },
+      { x: 400, y: 2100, w: 20, h: 500 }, { x: 900, y: 2100, w: 20, h: 500 },
+      { x: 560, y: 2100, w: 20, h: 400 }, { x: 740, y: 2200, w: 20, h: 400 }, 
+      { x: 2200, y: 2100, w: 400, h: 20 }, { x: 2200, y: 2600, w: 400, h: 20 },
+      { x: 2200, y: 2100, w: 20, h: 500 }, { x: 2600, y: 2100, w: 20, h: 200 },
+      { x: 2600, y: 2450, w: 20, h: 150 }, { x: 2600, y: 2300, w: 200, h: 20 }, 
+      { x: 2800, y: 2300, w: 20, h: 200 }, { x: 2600, y: 2500, w: 200, h: 20 }
+    ],
+    pits: [
+      { points: [{x:1300,y:600},{x:1500,y:550},{x:1750,y:650},{x:1800,y:850},{x:1650,y:1000},{x:1400,y:1050},{x:1200,y:900},{x:1250,y:700}] },
+      { points: [{x:1250,y:2150},{x:1450,y:2100},{x:1700,y:2200},{x:1800,y:2450},{x:1600,y:2650},{x:1350,y:2600},{x:1200,y:2450}] },
+      { points: [{x:700,y:1300},{x:950,y:1350},{x:1000,y:1550},{x:850,y:1750},{x:600,y:1700},{x:550,y:1500}] },
+      { points: [{x:2100,y:1400},{x:2400,y:1350},{x:2650,y:1450},{x:2600,y:1650},{x:2350,y:1750},{x:2100,y:1600}] }
+    ],
+    furniture: [
+       { x: 1500, y: 1450, w: 120, h: 40, type: 'dining_table' }, { x: 1500, y: 1550, w: 120, h: 40, type: 'dining_table' },
+       { x: 500, y: 500, w: 60, h: 30, type: 'desk' }
+    ],
+    roofs: [
+      {id:'B1',x:400,y:400,w:500,h:500}, {id:'B2',x:2100,y:400,w:500,h:500},
+      {id:'B3',x:1200,y:1200,w:600,h:600}, {id:'B4',x:400,y:2100,w:500,h:500},
+      {id:'B5',x:2200,y:2100,w:600,h:500}
+    ],
+    doors: [
+      {x:450,y:895,w:100,h:20}, {x:2400,y:895,w:100,h:20},
+      {x:1450,y:1795,w:100,h:20}, {x:500,y:2595,w:100,h:20},
+      {x:2300,y:2595,w:100,h:20}
+    ]
   },
   'Charlie': {
     tasks: [{x:1000,y:500,label:'📜 Read Glyphs'},{x:2000,y:500,label:'🕯️ Lite Torch'},{x:1500,y:1000,label:'⚙️ Repair Vault'},{x:500,y:1500,label:'🧪 Extract Venom'},{x:2500,y:1500,label:'🪨 Clean Altar'},{x:1500,y:2000,label:'🔐 Lock Catacomb'},{x:1000,y:2500,label:'🌿 Trim Vines'},{x:2000,y:2500,label:'🌡️ Monitor Heat'}],
@@ -938,38 +978,56 @@ function drawGame(time) {
   const pits = MAP_DATA[currentMap]?.pits || [];
   for (let p of pits) {
     ctx.save();
-    ctx.translate(p.x, p.y);
-
+    
     // Outer glow
     ctx.shadowColor = theme.pitOuter;
     ctx.shadowBlur = theme.pitEffect === 'Abyss' ? 10 : 25;
 
-    // Pit Core
+    // Pit core drawing (Polygon or Circle)
     ctx.fillStyle = theme.pitCol;
     ctx.beginPath();
-    ctx.arc(0, 0, p.r, 0, Math.PI * 2);
+    if (p.points) {
+        ctx.moveTo(p.points[0].x, p.points[0].y);
+        for (let i = 1; i < p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
+        ctx.closePath();
+    } else {
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    }
     ctx.fill();
     ctx.shadowBlur = 0;
 
     // Thematic detail
     if (theme.pitEffect === 'Water') {
-       ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+       ctx.strokeStyle = 'rgba(255,255,255,0.35)';
        ctx.lineWidth = 2;
-       for(let i=0; i<3; i++) {
-         const wy = Math.sin(time*0.003 + i)*10;
-         ctx.beginPath(); ctx.moveTo(-p.r*0.7, wy + i*15 - 15); ctx.lineTo(p.r*0.7, wy + i*15 - 15); ctx.stroke();
+       // Advanced organic waves using bezier curves
+       const bounds = p.points ? p.points.reduce((acc, pt) => ({
+           minX: Math.min(acc.minX, pt.x), maxX: Math.max(acc.maxX, pt.x),
+           minY: Math.min(acc.minY, pt.y), maxY: Math.max(acc.maxY, pt.y)
+       }), {minX:9999,maxX:-9999,minY:9999,maxY:-9999}) : {minX:p.x-p.r, maxX:p.x+p.r, minY:p.y-p.r, maxY:p.y+p.r};
+
+       for(let i=0; i<4; i++) {
+         const move = Math.sin(time*0.002 + i*1.2) * 15;
+         const yPos = bounds.minY + (bounds.maxY - bounds.minY) * (0.2 + i * 0.2) + move;
+         
+         ctx.beginPath();
+         // Check if wave is inside polygon
+         let startX = bounds.minX + 20, endX = bounds.maxX - 20;
+         ctx.moveTo(startX, yPos);
+         for (let x = startX + 20; x < endX; x += 40) {
+             const cp1x = x - 20;
+             const cp1y = yPos + Math.sin(time * 0.003 + x * 0.01) * 8;
+             ctx.quadraticCurveTo(cp1x, cp1y, x, yPos);
+         }
+         ctx.stroke();
        }
     } else if (theme.pitEffect === 'Acid') {
        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+       const cx = p.x || 1500, cy = p.y || 1500, cr = p.r || 100;
        for(let i=0; i<5; i++) {
-         const bubY = (time * 0.05 + i * 20) % p.r;
-         ctx.beginPath(); ctx.arc(Math.sin(i)*p.r*0.5, -bubY, 4, 0, Math.PI*2); ctx.fill();
+         const bubY = (time * 0.05 + i * 20) % cr;
+         ctx.beginPath(); ctx.arc(cx + Math.sin(i)*cr*0.5, cy - bubY, 4, 0, Math.PI*2); ctx.fill();
        }
-    } else {
-       // Abyss
-       ctx.strokeStyle = '#2d3436';
-       ctx.lineWidth = 4;
-       ctx.stroke();
     }
     
     ctx.restore();
