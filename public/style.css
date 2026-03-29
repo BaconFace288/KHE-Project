@@ -263,45 +263,48 @@ canvas {
 
 /* Credits Modal Specifics (Handbook Style) */
 .credits-card {
-    max-width: 650px;
-    border: 4px solid #f39c12; /* Signature Amber Border */
-    text-align: center !important; /* User explicitly requested full centering */
-    background: #1e1e2e; /* Matched to the official Guide navy background */
-    border-radius: 16px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(243, 156, 18, 0.2);
-    padding: 20px;
+    max-width: 800px !important; /* Larger to fit the bigger text */
+    border: 5px solid #f39c12; 
+    text-align: center !important;
+    background: #1e1e2e;
+    border-radius: 20px;
+    box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 30px rgba(243, 156, 18, 0.25);
+    padding: 35px;
 }
 
 .credits-section {
-    margin-bottom: 35px;
-    padding-bottom: 10px;
+    margin-bottom: 45px;
+    padding-bottom: 15px;
     text-align: center !important;
 }
 
 .credits-title {
     color: #f39c12;
-    font-size: 16px; /* Matched to guide subheader sizing */
+    font-family: 'Montserrat', sans-serif;
+    font-size: 22px; /* Scales from 16px to 22px */
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
     font-weight: 900;
     text-align: center !important;
 }
 
 .credits-name {
-    font-size: 16px;
-    color: #bdc3c7; /* Matched to guide body text color */
-    margin: 8px 0;
-    font-weight: 300;
-    line-height: 1.6;
+    font-size: 20px; /* Scales from 16px to 20px */
+    font-family: 'Orbitron', sans-serif; /* Unique futuristic font for names */
+    color: #ecf0f1;
+    margin: 12px 0;
+    font-weight: 700;
+    letter-spacing: 1.5px;
     text-align: center !important;
+    text-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
 }
 
 .credits-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 12px 30px;
+    gap: 15px 40px;
     max-width: 95%;
     margin: 0 auto;
     text-align: center !important;
