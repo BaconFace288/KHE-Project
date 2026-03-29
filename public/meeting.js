@@ -217,6 +217,10 @@ function closeMeeting() {
   myVote = null;
   voteScreen.classList.remove('active');
   window.taskModalActive = false;
+  
+  // Restore focus to game canvas for immediate keyboard response
+  const gc = document.getElementById('gameCanvas');
+  if (gc) gc.focus();
 }
 
 // ===== Chat =====

@@ -246,6 +246,10 @@ function handleCavemanBot(bot, room, botId) {
             // Trigger faking for 15-60s after a kill
             bot.fakeUntil = Date.now() + (15000 + Math.random() * 45000);
             
+            // Force the bot to pick a new destination immediately
+            bot.botState = 'IDLE';
+            bot.target = null;
+            
             io.to(room.code).emit('playerClubbed', { id: Object.keys(room.players).find(k => room.players[k] === nearest), deathX: nearest.deathX, deathY: nearest.deathY });
             checkWinCondition(room.code);
         }

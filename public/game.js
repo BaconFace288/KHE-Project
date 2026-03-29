@@ -47,6 +47,9 @@ const addBotBtn = document.getElementById('add-bot-btn');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+const minimapCanvas = document.getElementById('minimap-canvas');
+const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
+
 const MAP_WIDTH = 3000;
 const MAP_HEIGHT = 3000;
 
@@ -388,15 +391,30 @@ let swingAnim = 0; // 0 to 1 for caveman club swing
 document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyE' && currentState === 'PLAYING' && !window.taskModalActive) {
     const me = players[myId];
-    if (!me || me.isDead || !nearbyBody) return;
-    if (nearbyBody.ejected || nearbyBody.reported) return; // safety guard
-    socket.emit('callMeeting', { type: 'report', bodyName: nearbyBody.name });
+    if (!me || me.isDead) return;
+    
+    // Increased detection from 65 to 90 for better "feel"
+    let foundBody = null;
+    for (const body of bodies) {
+        if (body.ejected || body.reported) continue;
+        if (Math.hypot(me.x - body.x, me.y - body.y) < 90) {
+            foundBody = body;
+            break;
+        }
+    }
+
+    if (foundBody) {
+        console.log("Report triggered via KeyE on body:", foundBody.name);
+        socket.emit('callMeeting', { type: 'report', bodyName: foundBody.name });
+    }
   }
   // [Q] = Emergency meeting (must be near button)
   if (e.code === 'KeyQ' && currentState === 'PLAYING' && !window.taskModalActive) {
     const me = players[myId];
     if (!me || me.isDead) return;
-    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.r + 60) {
+    // Increased radius from 60+r to 100 for easier activation
+    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 100) {
+      console.log("Emergency Meeting triggered via KeyQ");
       socket.emit('callMeeting', { type: 'emergency' });
     }
   }
@@ -407,13 +425,19 @@ canvas.addEventListener('click', (e) => {
   if (currentState !== 'PLAYING' || window.taskModalActive) return;
   const me = players[myId];
   if (!me || me.isDead) return;
-  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > EMERGENCY_BTN.r + 60) return;
+  
+  // Logic simplified: if player is within 100px of table, permit the click
+  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > 100) return;
+  
   const rect = canvas.getBoundingClientRect();
   const camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, me.x - canvas.width / 2));
   const camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, me.y - canvas.height / 2));
   const wx = (e.clientX - rect.left) + camX;
   const wy = (e.clientY - rect.top) + camY;
-  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < EMERGENCY_BTN.r) {
+  
+  // Increased clickable radius from 22 to 45
+  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < 45) {
+    console.log("Emergency Meeting triggered via Canvas Click");
     socket.emit('callMeeting', { type: 'emergency' });
   }
 });
@@ -891,10 +915,65 @@ function gameLoop() {
     }
 
     drawGame(now);
+    if (currentState === 'PLAYING') renderMinimap();
   } catch (err) {
     console.error("Critical error in gameLoop, recovering...", err);
   }
   requestAnimationFrame(gameLoop);
+}
+
+function renderMinimap() {
+  if (!minimapCtx || !players[myId]) return;
+  const mm = minimapCanvas;
+  const mctx = minimapCtx;
+  const scale = mm.width / MAP_WIDTH; // 160 / 3000
+
+  mctx.clearRect(0, 0, mm.width, mm.height);
+
+  // Background
+  mctx.fillStyle = 'rgba(10, 15, 25, 0.85)';
+  mctx.fillRect(0, 0, mm.width, mm.height);
+
+  // Draw scaled walls
+  mctx.fillStyle = 'rgba(100, 120, 140, 0.6)';
+  for (let w of walls) {
+    mctx.fillRect(w.x * scale, w.y * scale, Math.max(1, w.w * scale), Math.max(1, w.h * scale));
+  }
+
+  // Draw scaled roofs/buildings (faint)
+  mctx.fillStyle = 'rgba(52, 152, 219, 0.15)';
+  for (let r of roofs) {
+     mctx.fillRect(r.x * scale, r.y * scale, r.w * scale, r.h * scale);
+  }
+
+  // Emergency Button (White dot)
+  mctx.fillStyle = '#fff';
+  mctx.beginPath();
+  mctx.arc(EMERGENCY_BTN.x * scale, EMERGENCY_BTN.y * scale, 2.5, 0, Math.PI * 2);
+  mctx.fill();
+
+  // Tasks (Yellow dots - only for current player's tasks)
+  if (myTaskIds) {
+    mctx.fillStyle = '#f1c40f';
+    for (let t of TASKS) {
+      if (myTaskIds.has(t.id) && !completedTasks.has(t.id)) {
+        // Subtle pulse for tasks
+        const tPulse = 1 + 0.3 * Math.sin(Date.now() * 0.006);
+        mctx.beginPath();
+        mctx.arc(t.x * scale, t.y * scale, 3 * tPulse, 0, Math.PI * 2);
+        mctx.fill();
+        
+        // Glow effect
+        mctx.shadowBlur = 8;
+        mctx.shadowColor = '#f1c40f';
+        mctx.stroke();
+        mctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  // BALANCE: No player dots are rendered here. 
+  // The map only serves as a guide for walls and task locations.
 }
 
 const SPEED = 200;
