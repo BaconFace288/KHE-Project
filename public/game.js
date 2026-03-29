@@ -1451,13 +1451,25 @@ function drawPlayer(p, isMe, time) {
     ctx.fill();
   }
 
-  // Feet (stride animation with bob)
+  // Feet (stride animation based on direction)
   if (p.isMoving) {
-    const stride = Math.sin(time * 0.02) * 8;
-    const footBob = Math.abs(Math.sin(time * 0.02)) * 3;
+    const anim = Math.sin(time * 0.02) * 6;
     ctx.fillStyle = '#333';
-    ctx.fillRect(-10 + stride, 16 - footBob, 8, 5); // foot 1
-    ctx.fillRect(2 - stride, 16 - footBob, 8, 5);  // foot 2
+    
+    // We assume vertical movement if not flipping horizontally much
+    // or by checking the facing state.
+    const isVertical = p.facingUp || (Math.abs(p.y - p.lastDrawY || 0) > Math.abs(p.x - p.lastDrawX || 0));
+
+    if (isVertical) {
+      // Stepping toward/away: Vertical alternate bob
+      ctx.fillRect(-10, 16 + anim, 8, 5); // foot 1 (front/back)
+      ctx.fillRect(2, 16 - anim, 8, 5);  // foot 2 (back/front)
+    } else {
+      // Stepping left/right: Horizontal alternate stride
+      ctx.fillRect(-10 + anim, 16, 8, 5); // foot 1
+      ctx.fillRect(2 - anim, 16, 8, 5);  // foot 2
+    }
+    p.lastDrawX = p.x; p.lastDrawY = p.y;
   } else {
     ctx.fillStyle = '#333';
     ctx.fillRect(-10, 16, 8, 5);
