@@ -515,7 +515,8 @@ io.on('connection', (socket) => {
       io.to(code).emit('roomUpdate', {
           players: room.players,
           hostId: room.hostId,
-          state: room.state
+          state: room.state,
+          mapId: room.mapId
       });
   });
 
@@ -550,7 +551,8 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('roomUpdate', {
         players: room.players,
         hostId: room.hostId,
-        state: room.state
+        state: room.state,
+        mapId: room.mapId
     });
   });
 
@@ -576,7 +578,8 @@ io.on('connection', (socket) => {
       io.to(upperCode).emit('roomUpdate', {
           players: room.players,
           hostId: room.hostId,
-          state: room.state
+          state: room.state,
+          mapId: room.mapId
       });
   });
 

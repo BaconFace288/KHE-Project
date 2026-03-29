@@ -315,8 +315,9 @@ socket.on('roomJoined', (data) => {
 });
 
 socket.on('roomUpdate', (roomData) => {
-    players = roomData.players;
-    hostId = roomData.hostId;
+    players = roomData.players || players;
+    hostId = roomData.hostId || hostId;
+    currentMap = roomData.mapId || currentMap; // CRITICAL: Fix for re-joiners/late-joiners missing map layout
     
     // If we transition to playing (e.g. late join or game start)
     if (currentState === 'LOBBY' && roomData.state === 'PLAYING') {
@@ -627,13 +628,22 @@ function showRoleIntro(role) {
   }
 
   // Cinematic sequence
-  setTimeout(() => {
+  const introTimer = setTimeout(() => {
     introOverlay.classList.add('fade-out');
     setTimeout(() => {
       introOverlay.classList.add('hidden');
       introActive = false;
     }, 1000); // match CSS fadeOut timing
   }, 3500); // 3.5s of reading time + 1s fade = 4.5s total
+
+  // FINAL SAFETY: Unfreeze after 6s no matter what (e.g. if browser throttles timer or image fails)
+  setTimeout(() => {
+    if (introActive) {
+      console.warn("Intro safety triggered: forcing unfreeze.");
+      introOverlay.classList.add('hidden');
+      introActive = false;
+    }
+  }, 6000);
 }
 
 function updateLobbyUI() {
@@ -999,14 +1009,14 @@ function drawGame(time) {
   // PLAYERS & BODIES
   // =============================================
   for (let id in players) {
-    const p = players[id];
-    const isMe = id === myId;
+    const playerObj = players[id];
+    const isLocal = id === myId;
     const amIDead = players[myId] && players[myId].isDead;
-    if (p.isDead && !amIDead && !isMe) continue;
-    if (!p.isDead) {
-      drawPlayer(p, isMe, time);
+    if (playerObj.isDead && !amIDead && !isLocal) continue;
+    if (!playerObj.isDead) {
+      drawPlayer(playerObj, isLocal, time);
     } else {
-      drawGhost(p, isMe, time);
+      drawGhost(playerObj, isLocal, time);
     }
   }
 
