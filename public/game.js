@@ -1513,12 +1513,13 @@ function drawGhost(p, isMe, time) {
   ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
   ctx.fill();
 
-  // --- Wisp tail ---
+  // --- Wavy triangle tail ---
   ctx.fillStyle = '#dfe6e9';
+  const tipX = Math.sin(Date.now() * 0.005) * 12;
   ctx.beginPath();
   ctx.moveTo(-14, 10);
-  ctx.bezierCurveTo(-14, 25, 0, 35, 10, 25);
-  ctx.bezierCurveTo(20, 15, 0, 15, 0, 10);
+  ctx.lineTo(14, 10);
+  ctx.lineTo(tipX, 35);
   ctx.closePath();
   ctx.fill();
 
