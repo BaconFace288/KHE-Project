@@ -55,18 +55,6 @@ const MAP_THEMES = {
     pitCol: '#0a0a0a', pitOuter: '#1a1a1a', pitEffect: 'Abyss',
     bldgLabels: ['THE COMPOUND', 'L-BLOCK', 'THE MAZE', 'LONGHOUSE', 'SOUTH-WAKE'],
     roofCols: ['rgb(40,55,70)', 'rgb(55,55,60)', 'rgb(50,20,65)', 'rgb(70,35,10)', 'rgb(30,40,50)']
-  },
-  'Britney': {
-    floor1: '#002d44', floor2: '#003f5c', floorBorder: 'rgba(0,188,212,0.1)',
-    pitCol: '#00d2ff', pitOuter: '#3a7bd5', pitEffect: 'Water',
-    bldgLabels: ['NEO-DISTRICT', 'PULSE-WING', 'CENTRAL-HUB', 'SPARK-HALL', 'COBALT-WING'],
-    roofCols: ['#2f3640', '#353b48', '#2d3436', '#1a1a1a', '#34495e']
-  },
-  'Charlie': {
-    floor1: '#1b2613', floor2: '#2d3436', floorBorder: 'rgba(76,175,80,0.1)',
-    pitCol: '#86f06d', pitOuter: '#44bd32', pitEffect: 'Acid',
-    bldgLabels: ['ANCIENT-VAULT', 'TEMPLE-BASE', 'RUINED-LAB', 'MOSS-GROVE', 'STONE-CRYPT'],
-    roofCols: ['rgb(45,50,45)', 'rgb(60,65,60)', 'rgb(40,45,40)', 'rgb(55,60,55)', 'rgb(50,55,50)']
   }
 };
 
@@ -78,117 +66,6 @@ const MAP_DATA = {
     furniture: [{x:950,y:950,w:40,h:25},{x:2100,y:680,w:55,h:25},{x:1650,y:2700,w:120,h:60},{x:1955,y:2700,w:120,h:60}],
     roofs: [{id:'B1',x:800,y:800,w:300,h:600},{id:'B2',x:2000,y:600,w:400,h:300},{id:'B3',x:2000,y:920,w:200,h:380},{id:'B4',x:500,y:2000,w:500,h:500},{id:'B5',x:1200,y:2600,w:900,h:200}],
     doors: [{x:1095,y:1200,w:30,h:60},{x:1600,y:1180,w:20,h:80},{x:1180,y:2575,w:80,h:30},{x:1180,y:2795,w:80,h:30}]
-  },
-  'Britney': {
-    tasks: [
-        { id: 'bt1', x: 500,  y: 600,  label: '💎 Prism Lab' },
-        { id: 'bt2', x: 800,  y: 500,  label: '💧 Water Ops' },
-        { id: 'bt3', x: 2200, y: 500,  label: '🔬 Pulse Scan' },
-        { id: 'bt4', x: 2500, y: 600,  label: '📡 Wing Sync' },
-        { id: 'bt5', x: 1500, y: 1500, label: '🔘 Sync Hub' },
-        { id: 'bt6', x: 1500, y: 650,  label: '🔋 N-Oasis' },
-        { id: 'bt7', x: 500,  y: 2200, label: '🌿 Flora Room' },
-        { id: 'bt8', x: 500,  y: 2600, label: '⚡ Core Power' },
-        { id: 'bt9', x: 2200, y: 2200, label: '📦 Cargo Pod' },
-        { id: 'bt10',x: 2200, y: 2500, label: '🛠️ Repair Bay' },
-        { id: 'bt11',x: 2500, y: 2200, label: '💾 Data Bank' },
-        { id: 'bt12',x: 2500, y: 2500, label: '🧪 Bio Lab' }
-    ],
-    walls: [
-      // B1: NEO-DISTRICT (NW) — 500x400
-      { x: 380, y: 380, w: 20, h: 440 }, { x: 400, y: 380, w: 500, h: 20 },
-      { x: 900, y: 380, w: 20, h: 440 }, { x: 400, y: 800, w: 190, h: 20 }, { x: 690, y: 800, w: 210, h: 20 },
-      // B2: PULSE-WING (NE) — 600x300
-      { x: 2080, y: 380, w: 20, h: 340 }, { x: 2100, y: 380, w: 600, h: 20 },
-      { x: 2700, y: 380, w: 20, h: 340 }, { x: 2100, y: 700, w: 240, h: 20 }, { x: 2440, y: 700, w: 260, h: 20 },
-      // B3: CENTRAL-HUB (Center) — 600x600
-      { x: 1180, y: 1180, w: 20, h: 640 }, { x: 1800, y: 1180, w: 20, h: 640 },
-      { x: 1200, y: 1180, w: 250, h: 20 }, { x: 1550, y: 1180, w: 250, h: 20 }, // Gap top
-      { x: 1200, y: 1800, w: 250, h: 20 }, { x: 1550, y: 1800, w: 250, h: 20 }, // Gap bot
-      // B4: SPARK-HALL (SW) — 400x600
-      { x: 380, y: 2080, w: 20, h: 640 }, { x: 900, y: 2080, w: 20, h: 640 },
-      { x: 400, y: 2080, w: 190, h: 20 }, { x: 690, y: 2080, w: 210, h: 20 }, { x: 400, y: 2700, w: 500, h: 20 },
-      // B5: COBALT-WING (SE) — 500x600
-      { x: 2080, y: 2080, w: 20, h: 240 }, { x: 2080, y: 2420, w: 20, h: 300 }, // Door gap 2320-2420
-      { x: 2100, y: 2080, w: 500, h: 20 }, { x: 2600, y: 2080, w: 20, h: 640 }, { x: 2100, y: 2700, w: 500, h: 20 }
-    ],
-    pits: [
-        { x: 1500, y: 650,  r: 110 }, { x: 1500, y: 2350, r: 110 },
-        { x: 800,  y: 1500, r: 90 },  { x: 2200, y: 1500, r: 90 }
-    ],
-    furniture: [
-        { x: 1500, y: 1450, w: 120, h: 40 }, { x: 1500, y: 1550, w: 120, h: 40 }
-    ],
-    roofs: [
-        { id: 'B1', x: 400,  y: 400,  w: 500, h: 400 },
-        { id: 'B2', x: 2100, y: 400,  w: 600, h: 300 },
-        { id: 'B3', x: 1200, y: 1200, w: 600, h: 600 },
-        { id: 'B4', x: 400,  y: 2100, w: 500, h: 600 },
-        { id: 'B5', x: 2100, y: 2100, w: 500, h: 600 }
-    ],
-    doors: [
-        { x: 590,  y: 795,  w: 100, h: 30, target: 'NEO-DISTRICT' },
-        { x: 2340, y: 695,  w: 100, h: 30, target: 'PULSE-WING' },
-        { x: 1450, y: 1175, w: 100, h: 30, target: 'CENTRAL-HUB' },
-        { x: 1450, y: 1795, w: 100, h: 30, target: 'CENTRAL-HUB' },
-        { x: 590,  y: 2075, w: 100, h: 30, target: 'SPARK-HALL' },
-        { x: 2075, y: 2320, w: 30,  h: 100,target: 'COBALT-WING' }
-    ]
-  },
-  'Charlie': {
-    tasks: [
-        { id: 'ct1', x: 400,  y: 400,  label: '🏺 Ancient Jar' },
-        { id: 'ct2', x: 600,  y: 500,  label: '🕯️ Light Altar' },
-        { id: 'ct3', x: 2200, y: 500,  label: '📜 Read Runes' },
-        { id: 'ct4', x: 2600, y: 600,  label: '💎 Temple Gem' },
-        { id: 'ct5', x: 1500, y: 1500, label: '🔘 Center Hub' },
-        { id: 'ct6', x: 1400, y: 1300, label: '🧬 DNA Sample' },
-        { id: 'ct7', x: 500,  y: 2200, label: '🌿 Moss Pick' },
-        { id: 'ct8', x: 700,  y: 2400, label: '💧 Vine Water' },
-        { id: 'ct9', x: 2500, y: 2200, label: '💀 Skull Sort' },
-        { id: 'ct10',x: 2600, y: 2500, label: '⚰️ Seal Crypt' },
-        { id: 'ct11',x: 1000, y: 1000, label: '🗺️ Map Ruins' },
-        { id: 'ct12',x: 2000, y: 2000, label: '📦 Loot Box' }
-    ],
-    walls: [
-      // C1: ANCIENT-VAULT (NW) — 400x600
-      { x: 280, y: 280, w: 20, h: 640 }, { x: 300, y: 280, w: 400, h: 20 },
-      { x: 700, y: 280, w: 20, h: 640 }, { x: 300, y: 900, w: 140, h: 20 }, { x: 540, y: 900, w: 160, h: 20 },
-      // C2: TEMPLE-BASE (NE) — 600x400
-      { x: 2080, y: 380, w: 20, h: 440 }, { x: 2100, y: 380, w: 600, h: 20 },
-      { x: 2700, y: 380, w: 20, h: 440 }, { x: 2100, y: 800, w: 240, h: 20 }, { x: 2440, y: 800, w: 260, h: 20 },
-      // C3: RUINED-LAB (Center) — 500x500
-      { x: 1230, y: 1230, w: 20, h: 540 }, { x: 1750, y: 1230, w: 20, h: 540 },
-      { x: 1250, y: 1230, w: 200, h: 20 }, { x: 1550, y: 1230, w: 200, h: 20 },
-      { x: 1250, y: 1750, w: 200, h: 20 }, { x: 1550, y: 1750, w: 200, h: 20 },
-      // C4: MOSS-GROVE (SW) — 400x400
-      { x: 480, y: 2080, w: 20, h: 440 }, { x: 500, y: 2080, w: 400, h: 20 },
-      { x: 900, y: 2080, w: 20, h: 440 }, { x: 500, y: 2500, w: 140, h: 20 }, { x: 740, y: 2500, w: 160, h: 20 },
-      // C5: STONE-CRYPT (SE) — 300x600
-      { x: 2380, y: 2080, w: 20, h: 640 }, { x: 2400, y: 2080, w: 300, h: 20 },
-      { x: 2700, y: 2080, w: 20, h: 640 }, { x: 2400, y: 2700, w: 300, h: 20 },
-      { x: 2380, y: 2350, w: 20, h: 100 } // Door on left wall gap
-    ],
-    pits: [
-        { x: 800,  y: 800,  r: 120 }, { x: 2200, y: 2200, r: 120 },
-        { x: 1500, y: 600,  r: 100 }, { x: 1500, y: 2400, r: 100 }
-    ],
-    furniture: [{x:1500,y:1500,w:80,h:80}],
-    roofs: [
-        { id: 'C1', x: 300,  y: 300,  w: 400, h: 600 },
-        { id: 'C2', x: 2100, y: 400,  w: 600, h: 400 },
-        { id: 'C3', x: 1250, y: 1250, w: 500, h: 500 },
-        { id: 'C4', x: 500,  y: 2100, w: 400, h: 400 },
-        { id: 'C5', x: 2400, y: 2100, w: 300, h: 600 }
-    ],
-    doors: [
-        { x: 440,  y: 895,  w: 100, h: 30, target: 'ANCIENT-VAULT' },
-        { x: 2340, y: 795,  w: 100, h: 30, target: 'TEMPLE-BASE' },
-        { x: 1450, y: 1225, w: 100, h: 30, target: 'RUINED-LAB' },
-        { x: 1450, y: 1745, w: 100, h: 30, target: 'RUINED-LAB' },
-        { x: 640,  y: 2495, w: 100, h: 30, target: 'MOSS-GROVE' },
-        { x: 2375, y: 2350, w: 30,  h: 100,target: 'STONE-CRYPT' }
-    ],
   }
 };
 
