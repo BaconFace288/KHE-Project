@@ -263,13 +263,16 @@ canvas {
 
 /* Credits Modal Specifics (Handbook Style) */
 .credits-card {
-    max-width: 800px !important; /* Larger to fit the bigger text */
+    width: 90%;
+    max-width: 700px !important; /* Slightly narrower to fit smaller screens */
+    max-height: 85vh; /* Prevent vertical overflow */
+    overflow-y: auto; /* Allow scrolling if list gets too long */
     border: 5px solid #f39c12; 
     text-align: center !important;
     background: #1e1e2e;
     border-radius: 20px;
     box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 30px rgba(243, 156, 18, 0.25);
-    padding: 35px;
+    padding: 30px;
 }
 
 .credits-section {
