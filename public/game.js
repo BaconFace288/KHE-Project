@@ -81,41 +81,45 @@ const MAP_DATA = {
   },
   'Britney': {
     tasks: [
-        { x: 650, y: 550, label: '💎 Prism Lab' },
-        { x: 2350, y: 550, label: '💧 Water Ops' },
-        { x: 1500, y: 1500, label: '📡 Hub Sync' },
-        { x: 650, y: 2350, label: '🌿 Flora Room' },
-        { x: 2400, y: 2350, label: '⚡ Core Power' },
-        { x: 2720, y: 2420, label: '📦 Cargo Pod' },
-        { x: 1500, y: 650, label: '🔋 N-Oasis' }
+        { id: 't4', x: 650, y: 550, label: '💎 Prism Lab' },
+        { id: 't2', x: 2350, y: 550, label: '💧 Water Ops' },
+        { id: 't6', x: 1500, y: 1500, label: '📡 Hub Sync' },
+        { id: 't9', x: 650, y: 2350, label: '🌿 Flora Room' },
+        { id: 't5', x: 2400, y: 2350, label: '⚡ Core Power' },
+        { id: 't12', x: 2720, y: 2420, label: '📦 Cargo Pod' },
+        { id: 't2', x: 1500, y: 650, label: '🔋 N-Oasis' }
     ],
     walls: [
       // NEO-DISTRICT (NW) — Roof: 400, 400, 500, 500
       { x: 380, y: 380, w: 20, h: 540 }, { x: 400, y: 380, w: 500, h: 20 },
-      { x: 900, y: 380, w: 20, h: 540 }, { x: 400, y: 900, w: 210, h: 20 }, { x: 690, y: 900, w: 210, h: 20 }, // Bottom wall with 80px door gap
-      { x: 400, y: 650, w: 500, h: 20 }, // Internal room divider
+      { x: 900, y: 380, w: 20, h: 540 }, 
+      { x: 400, y: 900, w: 190, h: 20 }, { x: 690, y: 900, w: 210, h: 20 }, // Gap 590-690 (100px)
+      { x: 400, y: 650, w: 200, h: 20 }, { x: 700, y: 650, w: 200, h: 20 }, // Internal Gap 600-700 (100px)
       
       // PULSE-WING (NE) — Roof: 2100, 400, 500, 500
       { x: 2080, y: 380, w: 20, h: 540 }, { x: 2100, y: 380, w: 500, h: 20 },
-      { x: 2600, y: 380, w: 20, h: 540 }, { x: 2100, y: 900, w: 210, h: 20 }, { x: 2690, y: 900, w: 210, h: 20 }, // Bottom door gap (fixed coords)
-      { x: 2100, y: 650, w: 500, h: 20 }, // Internal room divider
+      { x: 2600, y: 380, w: 20, h: 540 }, 
+      { x: 2100, y: 900, w: 210, h: 20 }, { x: 2410, y: 900, w: 190, h: 20 }, // Gap 2310-2410 (100px)
+      { x: 2100, y: 650, w: 210, h: 20 }, { x: 2410, y: 650, w: 190, h: 20 }, // Internal Gap 2310-2410 (100px)
       
       // CENTRAL-HUB (Center) — Roof: 1200, 1200, 600, 600
       { x: 1180, y: 1180, w: 20, h: 640 }, { x: 1800, y: 1180, w: 20, h: 640 },
-      { x: 1200, y: 1180, w: 260, h: 20 }, { x: 1540, y: 1180, w: 260, h: 20 }, // Top Door
-      { x: 1200, y: 1800, w: 260, h: 20 }, { x: 1540, y: 1800, w: 260, h: 20 }, // Bottom Door
-      { x: 1360, y: 1360, w: 40, h: 40 }, { x: 1600, y: 1360, w: 40, h: 40 }, // Interior Pillars
+      { x: 1200, y: 1180, w: 250, h: 20 }, { x: 1550, y: 1180, w: 250, h: 20 }, // Gap 1450-1550 (100px)
+      { x: 1200, y: 1800, w: 250, h: 20 }, { x: 1550, y: 1800, w: 250, h: 20 }, // Gap 1450-1550 (100px)
+      { x: 1360, y: 1360, w: 40, h: 40 }, { x: 1600, y: 1360, w: 40, h: 40 },
       { x: 1360, y: 1600, w: 40, h: 40 }, { x: 1600, y: 1600, w: 40, h: 40 },
       
       // SPARK-HALL (SW) — Roof: 400, 2100, 500, 500
       { x: 380, y: 2080, w: 20, h: 540 }, { x: 900, y: 2080, w: 20, h: 540 },
-      { x: 400, y: 2080, w: 500, h: 20 }, { x: 400, y: 2600, w: 210, h: 20 }, { x: 690, y: 2600, w: 210, h: 20 },
-      { x: 560, y: 2100, w: 20, h: 500 }, { x: 740, y: 2100, w: 20, h: 500 }, // Dorm Dividers
+      { x: 400, y: 2080, w: 500, h: 20 }, 
+      { x: 400, y: 2600, w: 190, h: 20 }, { x: 690, y: 2600, w: 210, h: 20 }, // Gap 590-690 (100px)
+      { x: 560, y: 2100, w: 20, h: 200 }, { x: 560, y: 2400, w: 20, h: 200 }, // Gap 2300-2400 (100px)
+      { x: 740, y: 2100, w: 20, h: 200 }, { x: 740, y: 2400, w: 20, h: 200 }, // Gap 2300-2400 (100px)
       
       // COBALT-WING (SE) — Roof 1: 2200, 2100, 400, 500
       { x: 2180, y: 2080, w: 20, h: 540 }, { x: 2200, y: 2080, w: 400, h: 20 },
-      { x: 2200, y: 2600, w: 400, h: 20 }, { x: 2580, y: 2080, w: 20, h: 240 }, { x: 2580, y: 2540, w: 20, h: 80 },
-      // Annex Roof 2: 2600, 2300, 240, 240
+      { x: 2200, y: 2600, w: 400, h: 20 }, 
+      { x: 2580, y: 2080, w: 20, h: 240 }, { x: 2580, y: 2540, w: 20, h: 80 }, // Side door gap 2320-2540
       { x: 2600, y: 2280, w: 260, h: 20 }, { x: 2600, y: 2540, w: 260, h: 20 }, { x: 2840, y: 2300, w: 20, h: 240 }
     ],
     pits: [
@@ -126,19 +130,23 @@ const MAP_DATA = {
        { x: 1500, y: 1450, w: 120, h: 40 }, { x: 1500, y: 1550, w: 120, h: 40 }
     ],
     roofs: [
-      {id:'B1',x:400,y:400,w:500,h:500},
-      {id:'B2',x:2100,y:400,w:500,h:500},
+      {id:'B1a',x:400,y:400,w:500,h:250}, {id:'B1b',x:400,y:650,w:500,h:250},
+      {id:'B2a',x:2100,y:400,w:500,h:250}, {id:'B2b',x:2100,y:650,w:500,h:250},
       {id:'B3',x:1200,y:1200,w:600,h:600},
-      {id:'B4',x:400,y:2100,w:500,h:500},
-      {id:'B5',x:2200,y:2100,w:640,h:500}
+      {id:'B4a',x:400,y:2100,w:160,h:500}, {id:'B4b',x:560,y:2100,w:180,h:500}, {id:'B4c',x:740,y:2100,w:160,h:500},
+      {id:'B5a',x:2200,y:2100,w:400,h:500}, {id:'B5b',x:2600,y:2300,w:240,h:240}
     ],
     doors: [
       {x:590,y:895,w:100,h:30,target:'NEO-DISTRICT'}, // Northwest Main
+      {x:600,y:645,w:100,h:30}, // Northwest Internal
       {x:2310,y:895,w:100,h:30,target:'PULSE-WING'}, // Northeast Main
-      {x:1460,y:1175,w:80,h:30,target:'CENTRAL-HUB'}, // Hub Top
-      {x:1460,y:1795,w:80,h:30,target:'CENTRAL-HUB'}, // Hub Bottom
+      {x:2310,y:645,w:100,h:30}, // Northeast Internal
+      {x:1450,y:1175,w:100,h:30,target:'CENTRAL-HUB'}, // Hub Top
+      {x:1450,y:1795,w:100,h:30,target:'CENTRAL-HUB'}, // Hub Bottom
       {x:590,y:2595,w:100,h:30,target:'SPARK-HALL'}, // Southwest Main
-      {x:2175,y:2300,w:30,h:100,target:'COBALT-WING'} // Southeast Left
+      {x:555,y:2300,w:30,h:100}, // SW Internal 1
+      {x:735,y:2300,w:30,h:100}, // SW Internal 2
+      {x:2175,y:2320,w:30,h:100,target:'COBALT-WING'} // Southeast Left
     ]
   },
   'Charlie': {
@@ -266,7 +274,7 @@ let myTaskIds = new Set(); // IDs of tasks assigned to this player
 let nearbyBody = null; // body object player is standing near
 let shownTaskId = null; // ID of the task current showing a prompt
 
-const EMERGENCY_BTN = { x: 1500, y: 1500, r: 18, collisionR: 35 };
+const EMERGENCY_BTN = { x: 1500, y: 1500, r: 40, collisionR: 50 };
 const DECOR_FURNITURE = []; // Deprecated: now in MAP_DATA
 const DECOR_FLORA = [];     // Deprecated: now in MAP_DATA
 const TASKS = [];           // Deprecated: now in MAP_DATA
@@ -342,7 +350,7 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyQ' && currentState === 'PLAYING' && !window.taskModalActive) {
     const me = players[myId];
     if (!me || me.isDead) return;
-    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.r + 60) {
+    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.collisionR + 85) {
       socket.emit('callMeeting', { type: 'emergency' });
     }
   }
@@ -353,13 +361,13 @@ canvas.addEventListener('click', (e) => {
   if (currentState !== 'PLAYING' || window.taskModalActive) return;
   const me = players[myId];
   if (!me || me.isDead) return;
-  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > EMERGENCY_BTN.r + 60) return;
+  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > EMERGENCY_BTN.collisionR + 85) return;
   const rect = canvas.getBoundingClientRect();
   const camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, me.x - canvas.width / 2));
   const camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, me.y - canvas.height / 2));
   const wx = (e.clientX - rect.left) + camX;
   const wy = (e.clientY - rect.top) + camY;
-  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < EMERGENCY_BTN.r) {
+  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < EMERGENCY_BTN.r + 10) {
     socket.emit('callMeeting', { type: 'emergency' });
   }
 });
