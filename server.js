@@ -18,6 +18,7 @@ const GAME_STATE = {
 };
 
 const rooms = {};
+const EMERGENCY_BTN = { x: 1500, y: 1500, r: 36 };
 
 // MAP CONFIGURATIONS
 const MAP_DATA = {
@@ -65,13 +66,13 @@ const MAP_DATA = {
   },
   'Britney': {
     tasks: [
-        { id: 't4', x: 650, y: 550, label: '💎 Prism Lab' },
-        { id: 't2', x: 2350, y: 550, label: '💧 Water Ops' },
-        { id: 't6', x: 1500, y: 1500, label: '📡 Hub Sync' },
-        { id: 't9', x: 650, y: 2350, label: '🌿 Flora Room' },
-        { id: 't5', x: 2400, y: 2350, label: '⚡ Core Power' },
-        { id: 't12', x: 2720, y: 2420, label: '📦 Cargo Pod' },
-        { id: 't2', x: 1500, y: 650, label: '🔋 N-Oasis' }
+        { id: 'bt1', x: 650, y: 550, label: '💎 Prism Lab' },
+        { id: 'bt2', x: 2350, y: 550, label: '💧 Water Ops' },
+        { id: 'bt3', x: 1500, y: 1500, label: '📡 Hub Sync' },
+        { id: 'bt4', x: 650, y: 2350, label: '🌿 Flora Room' },
+        { id: 'bt5', x: 2400, y: 2350, label: '⚡ Core Power' },
+        { id: 'bt6', x: 2720, y: 2420, label: '📦 Cargo Pod' },
+        { id: 'bt7', x: 1500, y: 650, label: '🔋 N-Oasis' }
     ],
     walls: [
       // NEO-DISTRICT (NW) — Roof: 400, 400, 500, 500
@@ -184,7 +185,7 @@ function collides(px, py, pr, mapId = 'Alpha') {
         if (Math.hypot(px - testX, py - testY) <= pr) return true;
     }
     // 4. Emergency Button
-    if (Math.hypot(px - 1500, py - 1490) <= 36 + pr) return true;
+    if (Math.hypot(px - EMERGENCY_BTN.x, py - EMERGENCY_BTN.y) <= EMERGENCY_BTN.r + pr) return true;
 
     return false;
 }

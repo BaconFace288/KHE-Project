@@ -81,13 +81,13 @@ const MAP_DATA = {
   },
   'Britney': {
     tasks: [
-        { id: 't4', x: 650, y: 550, label: '💎 Prism Lab' },
-        { id: 't2', x: 2350, y: 550, label: '💧 Water Ops' },
-        { id: 't6', x: 1500, y: 1500, label: '📡 Hub Sync' },
-        { id: 't9', x: 650, y: 2350, label: '🌿 Flora Room' },
-        { id: 't5', x: 2400, y: 2350, label: '⚡ Core Power' },
-        { id: 't12', x: 2720, y: 2420, label: '📦 Cargo Pod' },
-        { id: 't2', x: 1500, y: 650, label: '🔋 N-Oasis' }
+        { id: 'bt1', x: 650, y: 550, label: '💎 Prism Lab' },
+        { id: 'bt2', x: 2350, y: 550, label: '💧 Water Ops' },
+        { id: 'bt3', x: 1500, y: 1500, label: '📡 Hub Sync' },
+        { id: 'bt4', x: 650, y: 2350, label: '🌿 Flora Room' },
+        { id: 'bt5', x: 2400, y: 2350, label: '⚡ Core Power' },
+        { id: 'bt6', x: 2720, y: 2420, label: '📦 Cargo Pod' },
+        { id: 'bt7', x: 1500, y: 650, label: '🔋 N-Oasis' }
     ],
     walls: [
       // NEO-DISTRICT (NW) — Roof: 400, 400, 500, 500
@@ -274,7 +274,7 @@ let myTaskIds = new Set(); // IDs of tasks assigned to this player
 let nearbyBody = null; // body object player is standing near
 let shownTaskId = null; // ID of the task current showing a prompt
 
-const EMERGENCY_BTN = { x: 1500, y: 1500, r: 40, collisionR: 50 };
+const EMERGENCY_BTN = { x: 1500, y: 1500, r: 36, collisionR: 36 };
 const DECOR_FURNITURE = []; // Deprecated: now in MAP_DATA
 const DECOR_FLORA = [];     // Deprecated: now in MAP_DATA
 const TASKS = [];           // Deprecated: now in MAP_DATA
@@ -488,7 +488,11 @@ function handleGameStart() {
     bodies = [];
     
     if (players[myId]) {
+        // Force sync position once on start to ensure host/players snap to hub
         myRole = players[myId].role;
+        players[myId].x = players[myId].x; 
+        players[myId].y = players[myId].y;
+        
         if (myRole === 'crewmate') assignMyTasks();
         updateScreenState();
         if (!introActive) showRoleIntro(myRole);
