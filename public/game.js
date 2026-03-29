@@ -179,7 +179,7 @@ const TASKS = [
   { id: 't6', x: 860,  y: 2100, label: '💾 Upload Data',     done: false }, // B3_B
   { id: 't7', x: 1340, y: 2690, label: '🌡️ Cool Reactor',    done: false }, // B4_A
   // Near a pit
-  { id: 't8', x: 1050, y: 490,  label: '⚠️ Seal Pit Crack',  done: false }, // near pit[1]
+  { id: 't8', x: 1180, y: 500,  label: '⚠️ Seal Pit Crack',  done: false }, // near pit[1]
   // Outside buildings
   { id: 't9',  x: 400,  y: 600,  label: '🌿 Collect Samples', done: false },
   { id: 't10', x: 2200, y: 1700, label: '🗺️ Survey Zone',     done: false },
