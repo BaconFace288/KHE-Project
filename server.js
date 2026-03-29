@@ -44,11 +44,16 @@ function collides(px, py, pr) {
     }
     return false;
 }
-
 function tickBots() {
     for (let roomId in rooms) {
         const room = rooms[roomId];
         if (room.state !== GAME_STATE.PLAYING) continue;
+        
+        // Sync with human intro (4.5s)
+        if (room.roundStartTime && Date.now() < room.roundStartTime + 4500) {
+            continue;
+        }
+
         if (room.meeting) {
             // During meeting, bots vote if they haven't (heuristic: vote at 40s mark)
             handleBotMeeting(room);
@@ -65,7 +70,7 @@ function tickBots() {
                 handleCavemanBot(bot, room, botId);
             }
             
-            // Sync bot movement (throttled logic exists in actual engine but for bots we'll emit on change)
+            // Sync bot movement
             io.to(roomId).emit('playerMoved', { id: botId, player: { x: bot.x, y: bot.y, flipX: bot.flipX, isMoving: bot.isMoving } });
         }
     }
@@ -127,7 +132,16 @@ function handleCrewmateBot(bot, room) {
 }
 
 function handleCavemanBot(bot, room, botId) {
-    // Find nearest crewmate
+    // 1. Cool-off / Faking Logic
+    if (bot.fakeUntil && Date.now() < bot.fakeUntil) {
+        handleCrewmateBot(bot, room); // Act like a crewmate
+        return;
+    }
+
+    // 2. Kill Cooldown check (20s)
+    const canKill = !bot.lastKillTime || (Date.now() - bot.lastKillTime > 20000);
+
+    // 3. Find nearest crewmate
     let nearest = null; let minDist = Infinity;
     Object.entries(room.players).forEach(([id, p]) => {
         if (id === botId || p.isDead || p.role !== 'crewmate') return;
@@ -135,36 +149,53 @@ function handleCavemanBot(bot, room, botId) {
         if (d < minDist) { minDist = d; nearest = p; }
     });
 
-    if (nearest) {
+    if (nearest && canKill) {
         bot.isMoving = true;
         moveTowards(bot, nearest.x, nearest.y);
         if (minDist < 60) {
-            // Kill logic (reusing existing club detection logic roughly)
+            // Kill logic
             nearest.isDead = true;
             nearest.deathX = nearest.x; nearest.deathY = nearest.y;
+            bot.lastKillTime = Date.now();
+            // Trigger faking for 15-60s after a kill
+            bot.fakeUntil = Date.now() + (15000 + Math.random() * 45000);
+            
             io.to(room.code).emit('playerClubbed', { id: Object.keys(room.players).find(k => room.players[k] === nearest), deathX: nearest.deathX, deathY: nearest.deathY });
             checkWinCondition(room.code);
         }
     } else {
-        bot.isMoving = false;
+        // If can't kill or no targets, fake being a crewmate (prevents standing still suspiciously)
+        handleCrewmateBot(bot, room);
     }
 }
 
 function moveTowards(bot, tx, ty) {
-    const angle = Math.atan2(ty - bot.y, tx - bot.x);
-    let nextX = bot.x + Math.cos(angle) * BOT_WALK_SPEED;
-    let nextY = bot.y + Math.sin(angle) * BOT_WALK_SPEED;
+    const directAngle = Math.atan2(ty - bot.y, tx - bot.x);
     
-    // Simple obstacle avoidance: try to step around
-    if (collides(nextX, nextY, BOT_RADIUS)) {
-        // Try sliding X or Y
-        if (!collides(nextX, bot.y, BOT_RADIUS)) nextY = bot.y;
-        else if (!collides(bot.x, nextY, BOT_RADIUS)) nextX = bot.x;
-        else { nextX = bot.x; nextY = bot.y; } // stuck
+    // Try multiple angles to find path: Direct, +/- 30, +/- 60, +/- 90
+    const probes = [0, 0.52, -0.52, 1.04, -1.04, 1.57, -1.57];
+    let selectedAngle = null;
+
+    for (let offset of probes) {
+        const testAngle = directAngle + offset;
+        const nextX = bot.x + Math.cos(testAngle) * BOT_WALK_SPEED;
+        const nextY = bot.y + Math.sin(testAngle) * BOT_WALK_SPEED;
+        
+        if (!collides(nextX, nextY, BOT_RADIUS)) {
+            selectedAngle = testAngle;
+            break;
+        }
     }
-    
-    bot.flipX = (nextX < bot.x);
-    bot.x = nextX; bot.y = nextY;
+
+    if (selectedAngle !== null) {
+        const nextX = bot.x + Math.cos(selectedAngle) * BOT_WALK_SPEED;
+        const nextY = bot.y + Math.sin(selectedAngle) * BOT_WALK_SPEED;
+        bot.flipX = (nextX < bot.x);
+        bot.x = nextX; bot.y = nextY;
+        bot.isMoving = true;
+    } else {
+        bot.isMoving = false; // Completely stuck
+    }
 }
 
 setInterval(tickBots, 100);
@@ -194,6 +225,7 @@ function endMeeting(roomId) {
   }
   const snap = room.meeting;
   room.meeting = null;
+  room.roundStartTime = Date.now();
 
   // Teleport all alive players to spawn circle around the button
   const aliveIds = Object.keys(room.players).filter(id => !room.players[id].isDead);
@@ -432,7 +464,14 @@ io.on('connection', (socket) => {
         // set random spawn
         room.players[id].x = 1500 + Math.random() * 200;
         room.players[id].y = 1500 + Math.random() * 200;
+        
+        if (room.players[id].isBot) {
+            room.players[id].fakeUntil = Date.now() + (15000 + Math.random() * 30000);
+            room.players[id].lastKillTime = 0;
+        }
       });
+
+      room.roundStartTime = Date.now();
 
       // Pick randomly 1-2 impostors (Cavemen) depending on size
       let impostorCount = 1;
