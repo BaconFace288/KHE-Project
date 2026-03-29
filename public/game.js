@@ -836,7 +836,7 @@ function updateLocalPlayer(dt) {
 
   // Task proximity detection (only alive crewmates with assigned tasks)
   let foundTask = null;
-  if (!isGhost && myRole === 'crewmate' && myTaskIds) {
+  if (myRole === 'crewmate' && myTaskIds) {
     for (let task of TASKS) {
       if (myTaskIds.has(task.id) && !completedTasks.has(task.id)) {
         if (Math.hypot(me.x - task.x, me.y - task.y) < 55) {

@@ -742,7 +742,7 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyF' && !window.taskModalActive) {
     const me = players && myId && players[myId];
-    if (!me || me.isDead) return;
+    if (!me || me.role !== 'crewmate') return;
     const assignedTasks = window.myTaskIds; // set by game.js
     for (let task of TASKS) {
       if (assignedTasks && !assignedTasks.has(task.id)) continue; // skip unassigned

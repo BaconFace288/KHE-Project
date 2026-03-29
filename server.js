@@ -369,12 +369,12 @@ io.on('connection', (socket) => {
     if (!room.tasksDone) room.tasksDone = new Set();
     room.tasksDone.add(socket.id);
 
-    // Check if ALL alive crewmates have finished
-    const aliveCrew = Object.entries(room.players)
-      .filter(([id, p]) => p.role === 'crewmate' && !p.isDead);
-    const allDone = aliveCrew.every(([id]) => room.tasksDone.has(id));
+    // Check if ALL crewmates have finished (alive or dead)
+    const allCrew = Object.entries(room.players)
+      .filter(([id, p]) => p.role === 'crewmate');
+    const allDone = allCrew.every(([id]) => room.tasksDone.has(id));
 
-    if (allDone && aliveCrew.length > 0) {
+    if (allDone && allCrew.length > 0) {
       room.state = GAME_STATE.GAMEOVER;
       io.to(roomId).emit('crewmatesWinTasks');
     }
