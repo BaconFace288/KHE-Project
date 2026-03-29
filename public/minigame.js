@@ -971,21 +971,23 @@ function startDropGame() {
 
   function loop() {
     if (!active || mgWrap.innerHTML === '') return;
-    pos += 5.5 * dir;
+    pos += 3.5 * dir;
     if (pos > 290 || pos < 0) dir *= -1;
     target.style.left = pos + 'px';
     requestAnimationFrame(loop);
   }
 
   zone.onclick = () => {
-    // Crosshair is fixed at 160px (left edge of 20px span centers at 170)
-    const diff = Math.abs(pos - 145); // target is 50px, cross centers at 170
-    if (diff < 30) {
+    if (!active) return;
+    const diff = Math.abs(pos - 145);
+    if (diff < 45) {
       active = false;
       target.style.background = '#2ecc71';
       onMinigameComplete();
     } else {
-      mgFeedback.textContent = 'Adjusting trajectory...';
+      mgFeedback.style.color = '#e74c3c';
+      mgFeedback.textContent = 'Missed! Retry timing.';
+      setTimeout(() => { if(mgFeedback) mgFeedback.textContent = ''; }, 1000);
     }
   };
   loop();
