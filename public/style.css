@@ -601,3 +601,22 @@ canvas {
 #github-link-container:hover svg {
   opacity: 1;
 }
+
+/* --- Kicked Notification --- */
+.kicked-notification {
+  color: #e74c3c;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  margin: 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

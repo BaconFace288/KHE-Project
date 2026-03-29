@@ -29,6 +29,7 @@ const joinBtn = document.getElementById('join-btn');
 const startBtn = document.getElementById('start-btn');
 const restartBtn = document.getElementById('restart-btn');
 const errorMsg = document.getElementById('error-msg');
+const kickMsg = document.getElementById('kick-msg');
 
 const currentRoomCodeText = document.getElementById('current-room-code');
 const playerListDiv = document.getElementById('player-list');
@@ -429,7 +430,16 @@ socket.on('connect', () => {
 });
 
 socket.on('joinError', (msg) => {
-    errorMsg.innerText = msg;
+    if (currentState === 'LOBBY' || currentState === 'PLAYING') {
+        // We've been kicked/removed
+        kickMsg.innerText = msg;
+        kickMsg.classList.remove('hidden');
+        currentState = 'LANDING';
+        updateScreenState();
+    } else {
+        // Normal join error (lobby full, etc)
+        errorMsg.innerText = msg;
+    }
 });
 
 socket.on('roomCreated', (data) => {
@@ -581,6 +591,9 @@ restartBtn.addEventListener('click', () => {
 });
 
 playBtn.addEventListener('click', () => {
+    kickMsg.classList.add('hidden');
+    kickMsg.innerText = '';
+    errorMsg.innerText = '';
     currentState = 'MENU';
     updateScreenState();
 });
