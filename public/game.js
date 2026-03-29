@@ -338,6 +338,7 @@ window.bodies = bodies;
 var nearbyBody = null;
 var shownTaskId = null;
 window.meetingActive = false;
+window.meetingStartTime = 0; // for canvas strobe timing
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
 let introActive = false; // blocks movement/actions during cinematic intro
@@ -1361,6 +1362,31 @@ function drawGame(time) {
   ctx.restore();
 
   drawTaskHUD();
+  
+  // =============================================
+  // FALLBACK: CANVAS MEETING STROBE
+  // If the DOM flash fails, the canvas itself flashes R/B strobe
+  // =============================================
+  if (window.meetingActive && Date.now() - window.meetingStartTime < 2500) {
+      const timeElapsed = Date.now() - window.meetingStartTime;
+      const strobe = Math.floor(timeElapsed / 250) % 2 === 0;
+      
+      ctx.save();
+      ctx.fillStyle = strobe ? 'rgba(231, 76, 60, 0.45)' : 'rgba(0, 0, 0, 0.55)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height); // Full screen overlay on canvas
+      
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 15;
+      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 50px Orbitron, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 15;
+      ctx.fillText('WARNING: EMERGENCY MEETING', canvas.width/2, canvas.height/2);
+      ctx.restore();
+  }
 }
 
 // =============================================
