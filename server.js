@@ -20,7 +20,7 @@ const GAME_STATE = {
 const rooms = {};
 
 // BOT RELEVANT DATA (Simplified for server-side logic)
-const BOT_WALK_SPEED = 4;
+const BOT_WALK_SPEED = 20;
 const SERVER_TASKS = [
     { x: 900,  y: 1100 }, { x: 1350, y: 1250 }, { x: 2100, y: 720 },
     { x: 2080, y: 1100 }, { x: 600,  y: 2100 }, { x: 860,  y: 2100 },
@@ -103,7 +103,7 @@ function handleCrewmateBot(bot, room) {
 
     if (bot.botState === 'MOVING') {
         const dist = Math.hypot(bot.target.x - bot.x, bot.target.y - bot.y);
-        if (dist < 10) {
+        if (dist < 25) {
             bot.botState = 'TASKING';
             bot.targetTime = Date.now() + (5000 + Math.random() * 5000);
             bot.isMoving = false;
