@@ -76,21 +76,24 @@ const MAP_DATA = {
     walls: [{x:780,y:780,w:20,h:640},{x:800,y:780,w:320,h:20},{x:1100,y:800,w:20,h:300},{x:1120,y:1080,w:500,h:20},{x:1600,y:1080,w:20,h:120},{x:1600,y:1300,w:20,h:120},{x:1120,y:1400,w:500,h:20},{x:1100,y:1100,w:20,h:100},{x:1100,y:1300,w:20,h:100},{x:800,y:1400,w:100,h:20},{x:1000,y:1400,w:100,h:20},{x:1980,y:580,w:440,h:20},{x:1980,y:600,w:20,h:300},{x:2400,y:600,w:20,h:100},{x:2400,y:800,w:20,h:120},{x:2200,y:900,w:200,h:20},{x:1980,y:900,w:20,h:420},{x:2200,y:920,w:20,h:380},{x:2000,y:900,w:50,h:20},{x:2150,y:900,w:50,h:20},{x:2000,y:1300,w:50,h:20},{x:2150,y:1300,w:70,h:20},{x:480,y:1980,w:540,h:20},{x:480,y:2500,w:540,h:20},{x:480,y:2000,w:20,h:100},{x:480,y:2200,w:20,h:300},{x:1000,y:1980,w:20,h:320},{x:1000,y:2400,w:20,h:100},{x:500,y:2240,w:50,h:20},{x:650,y:2240,w:200,h:20},{x:950,y:2240,w:50,h:20},{x:740,y:2000,w:20,h:50},{x:740,y:2150,w:20,h:200},{x:740,y:2450,w:20,h:50},{x:1180,y:2580,w:940,h:20},{x:1180,y:2800,w:940,h:20},{x:1180,y:2600,w:20,h:50},{x:1180,y:2750,w:20,h:50},{x:2100,y:2600,w:20,h:50},{x:2100,y:2750,w:20,h:50},{x:1490,y:2600,w:20,h:50},{x:1490,y:2750,w:20,h:50},{x:1790,y:2600,w:20,h:50},{x:1790,y:2750,w:20,h:50}],
     pits: [{x:300,y:300,r:80},{x:1000,y:500,r:120},{x:2500,y:400,r:96},{x:2700,y:2400,r:112},{x:500,y:1200,r:72},{x:1600,y:1800,r:64}],
     furniture: [{x:950,y:950,w:40,h:25},{x:2100,y:680,w:55,h:25},{x:1650,y:2700,w:120,h:60},{x:1955,y:2700,w:120,h:60}],
-    roofs: [{id:'B1',x:800,y:800,w:300,h:600},{id:'B2',x:2000,y:600,w:400,h:300},{id:'B3',x:2000,y:920,w:200,h:380},{id:'B4',x:500,y:2000,w:500,h:500},{id:'B5',x:1200,y:2600,w:900,h:200}]
+    roofs: [{id:'B1',x:800,y:800,w:300,h:600},{id:'B2',x:2000,y:600,w:400,h:300},{id:'B3',x:2000,y:920,w:200,h:380},{id:'B4',x:500,y:2000,w:500,h:500},{id:'B5',x:1200,y:2600,w:900,h:200}],
+    doors: [{x:1095,y:1200,w:30,h:60},{x:1600,y:1180,w:20,h:80},{x:1180,y:2575,w:80,h:30},{x:1180,y:2795,w:80,h:30}]
   },
   'Britney': {
     tasks: [{x:500,y:500,label:'💎 Calibrate Prism'},{x:2500,y:500,label:'💧 Filter Water'},{x:1500,y:1500,label:'📡 Sync Uplink'},{x:500,y:2500,label:'🌿 Harvest Flora'},{x:2500,y:2500,label:'⚡ Power Grid'},{x:1500,y:400,label:'🔋 Cell Swap'},{x:2600,y:1500,label:'📦 Load Cargo'}],
     walls: [{x:400,y:400,w:20,h:400},{x:400,y:400,w:400,h:20},{x:2200,y:400,w:400,h:20},{x:2600,y:400,w:20,h:400},{x:1200,y:1200,w:600,h:20},{x:1200,y:1800,w:600,h:20},{x:1200,y:1200,w:20,h:600},{x:1800,y:1200,w:20,h:600},{x:400,y:2200,w:20,h:400},{x:400,y:2600,w:400,h:20},{x:2200,y:2600,w:400,h:20},{x:2600,y:2200,w:20,h:400}],
     pits: [{x:1500,y:800,r:150},{x:1500,y:2200,r:150},{x:800,y:1500,r:100},{x:2200,y:1500,r:100}],
     furniture: [{x:1500,y:1400,w:100,h:40},{x:1500,y:1600,w:100,h:40}],
-    roofs: [{id:'B1',x:400,y:400,w:400,h:400},{id:'B2',x:2200,y:400,w:400,h:400},{id:'B3',x:1200,y:1200,w:600,h:600},{id:'B4',x:400,y:2200,w:400,h:400},{id:'B5',x:2200,y:2200,w:400,h:400}]
+    roofs: [{id:'B1',x:400,y:400,w:400,h:400},{id:'B2',x:2200,y:400,w:400,h:400},{id:'B3',x:1200,y:1200,w:600,h:600},{id:'B4',x:400,y:2200,w:400,h:400},{id:'B5',x:2200,y:2200,w:400,h:400}],
+    doors: []
   },
   'Charlie': {
     tasks: [{x:1000,y:500,label:'📜 Read Glyphs'},{x:2000,y:500,label:'🕯️ Lite Torch'},{x:1500,y:1000,label:'⚙️ Repair Vault'},{x:500,y:1500,label:'🧪 Extract Venom'},{x:2500,y:1500,label:'🪨 Clean Altar'},{x:1500,y:2000,label:'🔐 Lock Catacomb'},{x:1000,y:2500,label:'🌿 Trim Vines'},{x:2000,y:2500,label:'🌡️ Monitor Heat'}],
     walls: [{x:200,y:200,w:2600,h:20},{x:200,y:2800,w:2600,h:20},{x:200,y:200,w:20,h:2600},{x:2800,y:200,w:20,h:2600},{x:1000,y:1000,w:20,h:1000},{x:2000,y:1000,w:20,h:1000},{x:1000,y:1000,w:1000,h:20},{x:1000,y:2000,w:1000,h:20}],
     pits: [{x:600,y:600,r:100},{x:2400,y:600,r:100},{x:600,y:2400,r:100},{x:2400,y:2400,r:100},{x:1500,y:1500,r:120}],
     furniture: [{x:1500,y:1500,w:80,h:80}],
-    roofs: [{id:'B1',x:200,y:200,w:2600,h:200},{id:'B2',x:200,y:2600,w:2600,h:200},{id:'B3',x:1000,y:1000,w:1000,h:1000}]
+    roofs: [{id:'B1',x:200,y:200,w:2600,h:200},{id:'B2',x:200,y:2600,w:2600,h:200},{id:'B3',x:1000,y:1000,w:1000,h:1000}],
+    doors: []
   }
 };
 
@@ -204,16 +207,19 @@ let introActive = false; // blocks movement/actions during cinematic intro
 if (!window.hasOwnProperty('taskModalActive')) window.taskModalActive = false;
 
 function assignMyTasks() {
-    const all = TASKS.map(t => t.id);
-    // Fisher-Yates shuffle then take first 7
-    for (let i = all.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [all[i], all[j]] = [all[j], all[i]];
-    }
-    myTaskIds = new Set(all.slice(0, 7));
-    // Reset completion state for new game
-    completedTasks = new Set();
-    TASKS.forEach(t => { t.done = false; });
+  myTaskIds.clear();
+  completedTasks.clear();
+  const tasks = MAP_DATA[currentMap]?.tasks || MAP_DATA['Alpha'].tasks;
+  const pool = [...tasks];
+  
+  // Pick 7 unique tasks
+  for (let i = 0; i < 7 && pool.length > 0; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    const task = pool.splice(idx, 1)[0];
+    const tid = task.id || (task.label + task.x + task.y);
+    task.id = tid; 
+    myTaskIds.add(tid);
+  }
 }
 
 // Input Handling
@@ -923,6 +929,7 @@ function drawGame(time) {
   // =============================================
   // DOORS — stone archways with glow
   // =============================================
+  const doors = MAP_DATA[currentMap]?.doors || [];
   for (let d of doors) {
     // Stone mat base
     ctx.fillStyle = '#5d4037';
