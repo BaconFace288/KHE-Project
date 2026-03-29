@@ -453,6 +453,20 @@ socket.on('cavemanLeftWin', () => {
     updateScreenState();
 });
 
+socket.on('cavemenWin', () => {
+    currentState = 'GAMEOVER';
+    endText.innerText = '💀 CAVEMEN WIN! The Time Travelers have been eliminated.';
+    endText.style.color = '#e74c3c';
+    updateScreenState();
+});
+
+socket.on('crewmateWinVote', () => {
+    currentState = 'GAMEOVER';
+    endText.innerText = '✅ TIME TRAVELERS WIN! The Caveman has been voted out!';
+    endText.style.color = '#2ecc71';
+    updateScreenState();
+});
+
 // ==== Event Listeners ====
 
 createBtn.addEventListener('click', () => {

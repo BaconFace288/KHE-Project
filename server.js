@@ -68,6 +68,25 @@ function endMeeting(roomId) {
     type: snap.type,
     spawnPositions
   });
+
+  checkWinCondition(roomId);
+}
+
+function checkWinCondition(roomId) {
+    const room = rooms[roomId];
+    if (!room || room.state !== GAME_STATE.PLAYING) return;
+
+    const alivePlayers = Object.values(room.players).filter(p => !p.isDead);
+    const aliveImpostors = alivePlayers.filter(p => p.role === 'impostor').length;
+    const aliveCrewmates = alivePlayers.filter(p => p.role === 'crewmate').length;
+
+    if (aliveImpostors === 0) {
+        room.state = GAME_STATE.GAMEOVER;
+        io.to(roomId).emit('crewmateWinVote');
+    } else if (aliveImpostors >= aliveCrewmates) {
+        room.state = GAME_STATE.GAMEOVER;
+        io.to(roomId).emit('cavemenWin');
+    }
 }
 
 // Helper: generate 4 letter code
@@ -285,10 +304,12 @@ io.on('connection', (socket) => {
             victim.deathX = victim.x;
             victim.deathY = victim.y;
             io.to(roomId).emit('playerClubbed', { id: targetId, deathX: victim.deathX, deathY: victim.deathY });
+            
+            checkWinCondition(roomId);
           }
         }
     }
-  });
+});
 
   socket.on('callMeeting', ({ type, bodyName }) => {
     const roomId = socket.roomId;
