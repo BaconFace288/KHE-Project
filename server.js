@@ -470,6 +470,9 @@ io.on('connection', (socket) => {
     if (!roomId || !rooms[roomId]) return;
     const room = rooms[roomId];
     if (room.hostId !== socket.id || room.state !== GAME_STATE.LOBBY) return;
+    
+    // Hard cap at 10 players (human + AI)
+    if (Object.keys(room.players).length >= 10) return;
 
     const botId = `bot_${Math.floor(Math.random() * 10000)}`;
     room.players[botId] = buildPlayer(`AI_${Math.floor(Math.random() * 1000)}`, room);
