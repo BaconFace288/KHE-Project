@@ -19,6 +19,147 @@ const GAME_STATE = {
 
 const rooms = {};
 
+// BOT RELEVANT DATA (Simplified for server-side logic)
+const BOT_WALK_SPEED = 4;
+const SERVER_TASKS = [
+    { x: 900,  y: 1100 }, { x: 1350, y: 1250 }, { x: 2100, y: 720 },
+    { x: 2080, y: 1100 }, { x: 600,  y: 2100 }, { x: 860,  y: 2100 },
+    { x: 1340, y: 2690 }, { x: 1180, y: 500 },  { x: 400,  y: 600 },
+    { x: 2200, y: 1700 }, { x: 700,  y: 2800 }, { x: 2600, y: 1200 }
+];
+const SERVER_WALLS = [
+    { x: 780, y: 780, w: 20, h: 640 }, { x: 800, y: 780, w: 320, h: 20 },
+    { x: 1980, y: 580, w: 440, h: 20 }, { x: 1980, y: 600, w: 20, h: 300 },
+    { x: 480, y: 1980, w: 540, h: 20 }, { x: 480, y: 2500, w: 540, h: 20 },
+    { x: 1180, y: 2580, w: 940, h: 20 }, { x: 1180, y: 2800, w: 940, h: 20 }
+];
+
+function collides(px, py, pr) {
+    for (let w of SERVER_WALLS) {
+        let testX = px; let testY = py;
+        if (px < w.x) testX = w.x; else if (px > w.x + w.w) testX = w.x + w.w;
+        if (py < w.y) testY = w.y; else if (py > w.y + w.h) testY = w.y + w.h;
+        let dist = Math.hypot(px - testX, py - testY);
+        if (dist <= pr) return true;
+    }
+    return false;
+}
+
+function tickBots() {
+    for (let roomId in rooms) {
+        const room = rooms[roomId];
+        if (room.state !== GAME_STATE.PLAYING) continue;
+        if (room.meeting) {
+            // During meeting, bots vote if they haven't (heuristic: vote at 40s mark)
+            handleBotMeeting(room);
+            continue;
+        }
+
+        for (let botId in room.players) {
+            const bot = room.players[botId];
+            if (!bot.isBot || bot.isDead) continue;
+
+            if (bot.role === 'crewmate') {
+                handleCrewmateBot(bot, room);
+            } else {
+                handleCavemanBot(bot, room, botId);
+            }
+            
+            // Sync bot movement (throttled logic exists in actual engine but for bots we'll emit on change)
+            io.to(roomId).emit('playerMoved', { id: botId, player: { x: bot.x, y: bot.y, flipX: bot.flipX, isMoving: bot.isMoving } });
+        }
+    }
+}
+
+function handleBotMeeting(room) {
+    // Basic auto-vote logic for bots
+    for (let id in room.players) {
+        const p = room.players[id];
+        if (p.isBot && !p.isDead && room.meeting.votes[id] === undefined) {
+             // Find consensus target from suspicion log
+             let target = 'skip';
+             let maxS = 0;
+             Object.entries(p.suspicion).forEach(([tid, count]) => {
+                 if (room.players[tid] && !room.players[tid].isDead && count > maxS) {
+                     maxS = count; target = tid;
+                 }
+             });
+             // Vote for top target or skip
+             room.meeting.votes[id] = target;
+             io.to(room.code).emit('voteCast', { voterId: id });
+             const alive = Object.keys(room.players).filter(pid => !room.players[pid].isDead);
+             if (Object.keys(room.meeting.votes).length >= alive.length) endMeeting(room.code);
+        }
+    }
+}
+
+const BOT_RADIUS = 16;
+function handleCrewmateBot(bot, room) {
+    if (bot.botState === 'IDLE' || !bot.target) {
+        bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
+        bot.botState = 'MOVING';
+        bot.isMoving = true;
+    }
+
+    if (bot.botState === 'MOVING') {
+        const dist = Math.hypot(bot.target.x - bot.x, bot.target.y - bot.y);
+        if (dist < 10) {
+            bot.botState = 'TASKING';
+            bot.targetTime = Date.now() + (5000 + Math.random() * 5000);
+            bot.isMoving = false;
+        } else {
+            moveTowards(bot, bot.target.x, bot.target.y);
+        }
+    }
+
+    if (bot.botState === 'TASKING' && Date.now() > bot.targetTime) {
+        bot.botState = 'IDLE';
+    }
+}
+
+function handleCavemanBot(bot, room, botId) {
+    // Find nearest crewmate
+    let nearest = null; let minDist = Infinity;
+    Object.entries(room.players).forEach(([id, p]) => {
+        if (id === botId || p.isDead || p.role !== 'crewmate') return;
+        const d = Math.hypot(bot.x - p.x, bot.y - p.y);
+        if (d < minDist) { minDist = d; nearest = p; }
+    });
+
+    if (nearest) {
+        bot.isMoving = true;
+        moveTowards(bot, nearest.x, nearest.y);
+        if (minDist < 60) {
+            // Kill logic (reusing existing club detection logic roughly)
+            nearest.isDead = true;
+            nearest.deathX = nearest.x; nearest.deathY = nearest.y;
+            io.to(room.code).emit('playerClubbed', { id: Object.keys(room.players).find(k => room.players[k] === nearest), deathX: nearest.deathX, deathY: nearest.deathY });
+            checkWinCondition(room.code);
+        }
+    } else {
+        bot.isMoving = false;
+    }
+}
+
+function moveTowards(bot, tx, ty) {
+    const angle = Math.atan2(ty - bot.y, tx - bot.x);
+    let nextX = bot.x + Math.cos(angle) * BOT_WALK_SPEED;
+    let nextY = bot.y + Math.sin(angle) * BOT_WALK_SPEED;
+    
+    // Simple obstacle avoidance: try to step around
+    if (collides(nextX, nextY, BOT_RADIUS)) {
+        // Try sliding X or Y
+        if (!collides(nextX, bot.y, BOT_RADIUS)) nextY = bot.y;
+        else if (!collides(bot.x, nextY, BOT_RADIUS)) nextX = bot.x;
+        else { nextX = bot.x; nextY = bot.y; } // stuck
+    }
+    
+    bot.flipX = (nextX < bot.x);
+    bot.x = nextX; bot.y = nextY;
+}
+
+setInterval(tickBots, 100);
+
 function endMeeting(roomId) {
   const room = rooms[roomId];
   if (!room || !room.meeting) return;
@@ -144,6 +285,27 @@ io.on('connection', (socket) => {
       });
   });
 
+  socket.on('addBot', () => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (room.hostId !== socket.id || room.state !== GAME_STATE.LOBBY) return;
+
+    const botId = `bot_${Math.floor(Math.random() * 10000)}`;
+    room.players[botId] = buildPlayer(`AI_${Math.floor(Math.random() * 1000)}`, room);
+    room.players[botId].isBot = true;
+    room.players[botId].botState = 'IDLE';
+    room.players[botId].target = null;
+    room.players[botId].targetTime = 0;
+    room.players[botId].suspicion = {}; 
+
+    io.to(roomId).emit('roomUpdate', {
+        players: room.players,
+        hostId: room.hostId,
+        state: room.state
+    });
+  });
+
   socket.on('joinRoom', ({ code, name }) => {
       const upperCode = code.toUpperCase();
       const room = rooms[upperCode];
@@ -244,8 +406,8 @@ io.on('connection', (socket) => {
       const playerIds = Object.keys(room.players);
       
       if (playerIds.length < 4) {
-          // Additional safety block
-          return;
+          // Allow starting with bots if total players >= 4
+          // No change needed here if we count bot keys, which we do
       }
 
       room.state = GAME_STATE.PLAYING;
@@ -351,6 +513,25 @@ io.on('connection', (socket) => {
     if (!room.meeting) return;
     const player = room.players[socket.id];
     if (!player) return;
+
+    // AI Bots listen to chat
+    const msg = String(text).toLowerCase();
+    for (let id in room.players) {
+        const p = room.players[id];
+        if (p.isBot) {
+            Object.entries(room.players).forEach(([targetId, target]) => {
+                if (targetId === id) return;
+                const nameMatch = msg.includes(target.name.toLowerCase());
+                const colorMap = { '#FF0000': 'red', '#0000FF': 'blue', '#00FF00': 'green', '#FFFF00': 'yellow', '#FFA500': 'orange', '#800080': 'purple' };
+                const colorCode = target.color.toUpperCase();
+                const colorName = colorMap[colorCode];
+                if (nameMatch || (colorName && msg.includes(colorName))) {
+                    p.suspicion[targetId] = (p.suspicion[targetId] || 0) + 1;
+                }
+            });
+        }
+    }
+
     io.to(roomId).emit('meetingChatMsg', {
       name: player.name, color: player.color,
       text: String(text).slice(0, 150),

@@ -37,6 +37,7 @@ const roleText = document.getElementById('role-text');
 const actionBtn = document.getElementById('action-btn');
 const endText = document.getElementById('end-text');
 const audioToggle = document.getElementById('audio-toggle');
+const addBotBtn = document.getElementById('add-bot-btn');
 
 // Canvas setup
 const canvas = document.getElementById('gameCanvas');
@@ -582,6 +583,12 @@ if (audioToggle) {
   });
 }
 
+if (addBotBtn) {
+  addBotBtn.addEventListener('click', () => {
+    socket.emit('addBot');
+  });
+}
+
 // ==== Game Logic ====
 
 function triggerClub() {
@@ -743,6 +750,7 @@ function updateLobbyUI() {
         let tag = '';
         if (id === myId) tag += ' (You)';
         if (id === hostId) tag += ' 👑 HOST';
+        if (p.isBot) tag += ' (AI)';
         
         playerListDiv.innerHTML += `<div style="padding: 5px 0;"><span style="display:inline-block;width:12px;height:12px;background:${p.color};border-radius:50%;margin-right:8px;vertical-align:middle;"></span>${p.name}${tag}</div>`;
     }
@@ -757,7 +765,7 @@ function updateLobbyUI() {
              startBtn.innerText = "Start Game";
         } else {
              startBtn.disabled = true;
-             startBtn.innerText = `Start Game (Need ${4 - playerCount} more player${(4-playerCount) === 1 ? '' : 's'})`;
+             startBtn.innerText = `Need ${4 - playerCount} more player${(4-playerCount) === 1 ? '' : 's'}`;
         }
     } else {
         hostStatus.innerText = "";
