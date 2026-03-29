@@ -388,46 +388,49 @@ document.addEventListener('keyup', (e) => {
 let swingAnim = 0; // 0 to 1 for caveman club swing
 
 // [E] = Report dead body near player
+// [Q] = Emergency meeting
+// Using CAPTURE phase to ensure these trigger even if other scripts try to block them
 document.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyE' && currentState === 'PLAYING' && !window.taskModalActive) {
+  if (currentState !== 'PLAYING' || window.taskModalActive || window.meetingActive) return;
+  
+  if (e.code === 'KeyE') {
     const me = players[myId];
     if (!me || me.isDead) return;
     
-    // Increased detection from 65 to 90 for better "feel"
+    // Generous detection: find body within 100px
     let foundBody = null;
     for (const body of bodies) {
         if (body.ejected || body.reported) continue;
-        if (Math.hypot(me.x - body.x, me.y - body.y) < 90) {
+        if (Math.hypot(me.x - body.x, me.y - body.y) < 100) {
             foundBody = body;
             break;
         }
     }
 
     if (foundBody) {
-        console.log("Report triggered via KeyE on body:", foundBody.name);
+        console.log("CRITICAL: Report triggered via KeyE on body:", foundBody.name);
         socket.emit('callMeeting', { type: 'report', bodyName: foundBody.name });
     }
   }
-  // [Q] = Emergency meeting (must be near button)
-  if (e.code === 'KeyQ' && currentState === 'PLAYING' && !window.taskModalActive) {
+  
+  if (e.code === 'KeyQ') {
     const me = players[myId];
     if (!me || me.isDead) return;
-    // Increased radius from 60+r to 100 for easier activation
-    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 100) {
-      console.log("Emergency Meeting triggered via KeyQ");
+    // Generous radius: 110px
+    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
+      console.log("CRITICAL: Emergency Meeting triggered via KeyQ");
       socket.emit('callMeeting', { type: 'emergency' });
     }
   }
-});
+}, true); // TRUE = CAPTURE PHASE (highest priority)
 
 // Canvas click → emergency button
 canvas.addEventListener('click', (e) => {
-  if (currentState !== 'PLAYING' || window.taskModalActive) return;
+  if (currentState !== 'PLAYING' || window.taskModalActive || window.meetingActive) return;
   const me = players[myId];
   if (!me || me.isDead) return;
   
-  // Logic simplified: if player is within 100px of table, permit the click
-  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > 100) return;
+  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > 120) return;
   
   const rect = canvas.getBoundingClientRect();
   const camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, me.x - canvas.width / 2));
@@ -435,9 +438,8 @@ canvas.addEventListener('click', (e) => {
   const wx = (e.clientX - rect.left) + camX;
   const wy = (e.clientY - rect.top) + camY;
   
-  // Increased clickable radius from 22 to 45
-  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < 45) {
-    console.log("Emergency Meeting triggered via Canvas Click");
+  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < 55) {
+    console.log("CRITICAL: Emergency Meeting triggered via Canvas Click");
     socket.emit('callMeeting', { type: 'emergency' });
   }
 });
@@ -930,50 +932,59 @@ function renderMinimap() {
 
   mctx.clearRect(0, 0, mm.width, mm.height);
 
-  // Background
-  mctx.fillStyle = 'rgba(10, 15, 25, 0.85)';
+  // Background — dark radar feel
+  mctx.fillStyle = '#0a0f19';
   mctx.fillRect(0, 0, mm.width, mm.height);
-
-  // Draw scaled walls
-  mctx.fillStyle = 'rgba(100, 120, 140, 0.6)';
-  for (let w of walls) {
-    mctx.fillRect(w.x * scale, w.y * scale, Math.max(1, w.w * scale), Math.max(1, w.h * scale));
+  
+  // Faint grid lines for better alignment reference
+  mctx.strokeStyle = 'rgba(52, 152, 219, 0.05)';
+  mctx.lineWidth = 1;
+  for (let i=0; i<mm.width; i+=20) {
+    mctx.beginPath(); mctx.moveTo(i,0); mctx.lineTo(i,mm.height); mctx.stroke();
+    mctx.beginPath(); mctx.moveTo(0,i); mctx.lineTo(mm.width,i); mctx.stroke();
   }
 
-  // Draw scaled roofs/buildings (faint)
-  mctx.fillStyle = 'rgba(52, 152, 219, 0.15)';
+  // Draw scaled walls — thicker for visibility
+  mctx.fillStyle = 'rgba(100, 120, 140, 0.8)';
+  for (let w of walls) {
+    // Math.max(2, ...) ensure walls are at least 2px thick on map
+    mctx.fillRect(w.x * scale, w.y * scale, Math.max(2, w.w * scale), Math.max(2, w.h * scale));
+  }
+
+  // Draw scaled roofs/buildings (faint scanline overlay)
+  mctx.fillStyle = 'rgba(52, 152, 219, 0.1)';
   for (let r of roofs) {
      mctx.fillRect(r.x * scale, r.y * scale, r.w * scale, r.h * scale);
   }
 
-  // Emergency Button (White dot)
+  // Emergency Button (Pulsing White dot)
+  const btnPulse = 1 + 0.2 * Math.sin(Date.now() * 0.005);
   mctx.fillStyle = '#fff';
   mctx.beginPath();
-  mctx.arc(EMERGENCY_BTN.x * scale, EMERGENCY_BTN.y * scale, 2.5, 0, Math.PI * 2);
+  mctx.arc(EMERGENCY_BTN.x * scale, EMERGENCY_BTN.y * scale, 3 * btnPulse, 0, Math.PI * 2);
   mctx.fill();
 
-  // Tasks (Yellow dots - only for current player's tasks)
+  // Tasks (Orange dots - only for current player's tasks)
   if (myTaskIds) {
-    mctx.fillStyle = '#f1c40f';
     for (let t of TASKS) {
       if (myTaskIds.has(t.id) && !completedTasks.has(t.id)) {
-        // Subtle pulse for tasks
-        const tPulse = 1 + 0.3 * Math.sin(Date.now() * 0.006);
+        const tPulse = 1 + 0.4 * Math.sin(Date.now() * 0.007);
+        mctx.fillStyle = '#f39c12';
         mctx.beginPath();
-        mctx.arc(t.x * scale, t.y * scale, 3 * tPulse, 0, Math.PI * 2);
+        mctx.arc(t.x * scale, t.y * scale, 4 * tPulse, 0, Math.PI * 2);
         mctx.fill();
         
         // Glow effect
-        mctx.shadowBlur = 8;
-        mctx.shadowColor = '#f1c40f';
+        mctx.shadowBlur = 10;
+        mctx.shadowColor = '#f39c12';
         mctx.stroke();
         mctx.shadowBlur = 0;
       }
     }
   }
 
-  // BALANCE: No player dots are rendered here. 
-  // The map only serves as a guide for walls and task locations.
+  // BALANCE: Still no other player dots. 
+  // Map just serves as a reference for walls and task locations.
 }
 
 const SPEED = 200;
