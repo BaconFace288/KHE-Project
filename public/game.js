@@ -18,6 +18,9 @@ const infoLore = document.getElementById('info-lore');
 const loreModal = document.getElementById('lore-modal');
 const loreModalBody = document.getElementById('lore-modal-body');
 const loreModalClose = document.getElementById('lore-modal-close');
+const infoCredits = document.getElementById('info-credits');
+const creditsModal = document.getElementById('credits-modal');
+const creditsModalClose = document.getElementById('credits-modal-close');
 
 const playerNameInput = document.getElementById('player-name');
 const roomCodeInput = document.getElementById('room-code-input');
@@ -578,6 +581,8 @@ infoAgent.addEventListener('click', () => showRoleHandbook('crewmate'));
 roleModalClose.addEventListener('click', () => { roleModal.classList.add('hidden'); });
 infoLore.addEventListener('click', showLoreModal);
 loreModalClose.addEventListener('click', () => { loreModal.classList.add('hidden'); });
+infoCredits.addEventListener('click', () => { creditsModal.classList.remove('hidden'); });
+creditsModalClose.addEventListener('click', () => { creditsModal.classList.add('hidden'); });
 
 actionBtn.addEventListener('click', triggerClub);
 

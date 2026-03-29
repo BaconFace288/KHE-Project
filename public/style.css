@@ -250,6 +250,48 @@ canvas {
   box-shadow: 0 0 20px currentColor; /* Glow with icon color */
 }
 
+/* Credits placement bottom-right */
+.info-icon.credits {
+    right: 20px;
+    bottom: -60px; /* Offset from top positioning flow */
+    position: fixed;
+    border-color: #bdc3c7;
+    color: #bdc3c7;
+}
+
+/* Credits Modal Specifics */
+.credits-card {
+    max-width: 650px;
+    border: 3px solid #7f8c8d;
+}
+
+.credits-section {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.credits-title {
+    color: #f1c40f;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+}
+
+.credits-name {
+    font-size: 16px;
+    color: #ecf0f1;
+    margin: 5px 0;
+    font-weight: 300;
+}
+
+.credits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+}
+
 
 /* HANDBOOK MODAL OVERLAY */
 #role-modal {
