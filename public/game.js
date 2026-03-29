@@ -81,56 +81,94 @@ const MAP_DATA = {
   },
   'Britney': {
     tasks: [
-        { x: 500, y: 550, label: '💎 Prism Lab' }, { x: 2450, y: 500, label: '💧 Water Ops' }, 
-        { x: 1500, y: 1500, label: '📡 Hub Sync' }, { x: 550, y: 2450, label: '🌿 Flora Dorm' }, 
-        { x: 2350, y: 2400, label: '⚡ Core Power' }, { x: 1500, y: 450, label: '🔋 N-Oasis' }, 
-        { x: 2750, y: 2400, label: '📦 Cargo Pod' }
+        { x: 650, y: 530, label: '💎 Prism Lab' },
+        { x: 2470, y: 650, label: '💧 Water Ops' },
+        { x: 1500, y: 1500, label: '📡 Hub Sync' },
+        { x: 480, y: 2380, label: '🌿 Flora Dorm A' },
+        { x: 640, y: 2380, label: '🌿 Flora Dorm B' },
+        { x: 2400, y: 2380, label: '⚡ Core Power' },
+        { x: 2720, y: 2420, label: '📦 Cargo Pod' }
     ],
     walls: [
-      { x: 400, y: 400, w: 20, h: 500 }, { x: 400, y: 400, w: 500, h: 20 }, 
-      { x: 900, y: 400, w: 20, h: 250 }, { x: 650, y: 650, w: 250, h: 20 },
-      { x: 650, y: 650, w: 20, h: 250 }, { x: 400, y: 900, w: 250, h: 20 },
-      { x: 400, y: 650, w: 180, h: 20 }, 
-      { x: 2100, y: 400, w: 500, h: 20 }, { x: 2100, y: 900, w: 500, h: 20 },
-      { x: 2100, y: 400, w: 20, h: 500 }, { x: 2600, y: 400, w: 20, h: 500 },
-      { x: 2350, y: 400, w: 20, h: 500 }, 
-      { x: 2100, y: 650, w: 180, h: 20 }, 
-      { x: 1200, y: 1200, w: 600, h: 20 }, { x: 1200, y: 1800, w: 600, h: 20 },
-      { x: 1200, y: 1200, w: 20, h: 600 }, { x: 1800, y: 1200, w: 20, h: 600 },
-      { x: 1350, y: 1350, w: 40, h: 40 }, { x: 1610, y: 1350, w: 40, h: 40 }, 
-      { x: 1350, y: 1610, w: 40, h: 40 }, { x: 1610, y: 1610, w: 40, h: 40 },
-      { x: 400, y: 2100, w: 500, h: 20 }, { x: 400, y: 2600, w: 500, h: 20 },
-      { x: 400, y: 2100, w: 20, h: 500 }, { x: 900, y: 2100, w: 20, h: 500 },
-      { x: 560, y: 2100, w: 20, h: 500 }, { x: 740, y: 2100, w: 20, h: 500 }, 
-      { x: 2200, y: 2100, w: 400, h: 20 }, { x: 2200, y: 2600, w: 400, h: 20 },
-      { x: 2200, y: 2100, w: 20, h: 500 }, { x: 2600, y: 2100, w: 20, h: 200 },
-      { x: 2600, y: 2500, w: 20, h: 100 }, 
+      // NEO-DISTRICT (NW) — outer shell
+      { x: 400, y: 400, w: 20, h: 250 },  // Left wall top segment
+      { x: 400, y: 700, w: 20, h: 200 },  // Left wall bottom segment (gap = door at y:650-700)
+      { x: 400, y: 400, w: 500, h: 20 },  // Top wall
+      { x: 900, y: 400, w: 20, h: 250 },  // Right wall top
+      { x: 900, y: 700, w: 20, h: 200 },  // Right wall bottom
+      { x: 400, y: 900, w: 500, h: 20 },  // Bottom wall
+      // NW internal divider (creates two rooms)
+      { x: 400, y: 650, w: 180, h: 20 }, { x: 720, y: 650, w: 200, h: 20 },
+      
+      // PULSE-WING (NE) — outer shell
+      { x: 2100, y: 400, w: 500, h: 20 }, // Top
+      { x: 2100, y: 900, w: 500, h: 20 }, // Bottom
+      { x: 2100, y: 400, w: 20, h: 200 }, { x: 2100, y: 660, w: 20, h: 240 }, // Left wall with door gap
+      { x: 2600, y: 400, w: 20, h: 500 }, // Right wall
+      // NE internal corridor wall
+      { x: 2350, y: 400, w: 20, h: 200 }, { x: 2350, y: 660, w: 20, h: 240 }, // Corridor wall with gap
+      { x: 2100, y: 650, w: 180, h: 20 }, // Office divider
+      
+      // CENTRAL-HUB (Center)
+      { x: 1200, y: 1200, w: 250, h: 20 }, { x: 1500, y: 1200, w: 300, h: 20 }, // Top with gap
+      { x: 1200, y: 1800, w: 300, h: 20 }, { x: 1550, y: 1800, w: 250, h: 20 }, // Bottom with gap
+      { x: 1200, y: 1200, w: 20, h: 250 }, { x: 1200, y: 1500, w: 20, h: 300 }, // Left with gap
+      { x: 1800, y: 1200, w: 20, h: 250 }, { x: 1800, y: 1500, w: 20, h: 300 }, // Right with gap
+      { x: 1360, y: 1360, w: 40, h: 40 }, { x: 1600, y: 1360, w: 40, h: 40 }, // Pillars
+      { x: 1360, y: 1600, w: 40, h: 40 }, { x: 1600, y: 1600, w: 40, h: 40 },
+      
+      // SPARK-HALL (SW) — 3 dorms
+      { x: 400, y: 2100, w: 500, h: 20 }, // Top
+      { x: 400, y: 2600, w: 500, h: 20 }, // Bottom
+      { x: 400, y: 2100, w: 20, h: 500 }, // Left wall
+      { x: 900, y: 2100, w: 20, h: 500 }, // Right wall
+      { x: 560, y: 2100, w: 20, h: 420 }, { x: 740, y: 2180, w: 20, h: 420 }, // Room dividers (gap at bottom = door)
+      
+      // COBALT-WING (SE) — core room
+      { x: 2200, y: 2100, w: 400, h: 20 }, // Top
+      { x: 2200, y: 2600, w: 400, h: 20 }, // Bottom
+      { x: 2200, y: 2100, w: 20, h: 200 }, { x: 2200, y: 2360, w: 20, h: 240 }, // Left with gap
+      { x: 2600, y: 2100, w: 20, h: 200 }, { x: 2600, y: 2360, w: 20, h: 240 }, // Right wall with gap
+      // Cobalt annex (control booth)
       { x: 2600, y: 2300, w: 240, h: 20 }, { x: 2840, y: 2300, w: 20, h: 240 }, { x: 2600, y: 2540, w: 240, h: 20 }
     ],
     pits: [
-      { points: [{x:1300,y:600},{x:1500,y:550},{x:1750,y:650},{x:1800,y:850},{x:1650,y:1000},{x:1400,y:1050},{x:1200,y:900},{x:1250,y:700}] },
-      { points: [{x:1250,y:2150},{x:1450,y:2100},{x:1700,y:2200},{x:1800,y:2450},{x:1600,y:2650},{x:1350,y:2600},{x:1200,y:2450}] },
-      { points: [{x:700,y:1300},{x:950,y:1350},{x:1000,y:1550},{x:850,y:1750},{x:600,y:1700},{x:550,y:1500}] },
-      { points: [{x:2100,y:1400},{x:2400,y:1350},{x:2650,y:1450},{x:2600,y:1650},{x:2350,y:1750},{x:2100,y:1600}] }
+      { points: [{x:1300,y:600},{x:1500,y:540},{x:1750,y:640},{x:1820,y:840},{x:1660,y:1010},{x:1400,y:1060},{x:1190,y:900},{x:1240,y:700}] },
+      { points: [{x:1240,y:2150},{x:1460,y:2090},{x:1710,y:2190},{x:1810,y:2460},{x:1590,y:2660},{x:1340,y:2610},{x:1180,y:2450}] },
+      { points: [{x:690,y:1290},{x:960,y:1340},{x:1010,y:1540},{x:860,y:1760},{x:590,y:1710},{x:540,y:1490}] },
+      { points: [{x:2090,y:1390},{x:2410,y:1340},{x:2660,y:1440},{x:2610,y:1660},{x:2340,y:1760},{x:2090,y:1610}] }
     ],
     furniture: [
-       { x: 1500, y: 1450, w: 120, h: 40, type: 'dining_table' }, { x: 1500, y: 1550, w: 120, h: 40, type: 'dining_table' },
-       { x: 500, y: 500, w: 60, h: 30, type: 'desk' }
+       { x: 1500, y: 1450, w: 120, h: 40 }, { x: 1500, y: 1550, w: 120, h: 40 }
     ],
     roofs: [
-      // Neo district separate rooms
-      {id:'B1a',x:400,y:400,w:500,h:250}, {id:'B1b',x:400,y:650,w:250,h:250}, 
-      // Pulse wing separate rooms
-      {id:'B2h',x:2350,y:400,w:250,h:500}, {id:'B2o1',x:2100,y:400,w:250,h:250}, {id:'B2o2',x:2100,y:650,w:250,h:250},
-      {id:'B3',x:1200,y:1200,w:600,h:600}, 
-      // Spark hall separate rooms
-      {id:'B4d1',x:400,y:2100,w:160,h:500}, {id:'B4d2',x:560,y:2100,w:180,h:500}, {id:'B4d3',x:740,y:2100,w:160,h:500},
-      // Cobalt wing separate rooms
-      {id:'B5r',x:2200,y:2100,w:400,h:500}, {id:'B5c',x:2600,y:2300,260:200,w:240,h:240}
+      // Neo-District: 2 rooms
+      {id:'B1a',x:400,y:400,w:500,h:250},
+      {id:'B1b',x:400,y:650,w:500,h:250},
+      // Pulse-Wing: corridor + 2 offices
+      {id:'B2h',x:2350,y:400,w:250,h:500},
+      {id:'B2o1',x:2100,y:400,w:250,h:250},
+      {id:'B2o2',x:2100,y:650,w:250,h:250},
+      // Central Hub: 1 big room
+      {id:'B3',x:1200,y:1200,w:600,h:600},
+      // Spark-Hall: 3 dorms
+      {id:'B4d1',x:400,y:2100,w:160,h:500},
+      {id:'B4d2',x:560,y:2100,w:180,h:500},
+      {id:'B4d3',x:740,y:2100,w:160,h:500},
+      // Cobalt-Wing: core + annex
+      {id:'B5r',x:2200,y:2100,w:400,h:500},
+      {id:'B5c',x:2600,y:2300,w:240,h:240}
     ],
     doors: [
-      {x:450,y:895,w:100,h:20}, {x:2400,y:895,w:100,h:20},
-      {x:1450,y:1795,w:100,h:20}, {x:500,y:2595,w:80,h:20}, {x:680,y:2595,w:80,h:20}, {x:810,y:2595,w:80,h:20},
+      {x:620,y:645,w:100,h:20},
+      {x:2120,y:645,w:100,h:20},
+      {x:2370,y:645,w:100,h:20},
+      {x:1450,y:1195,w:100,h:20},
+      {x:1215,y:1450,w:20,h:100},
+      {x:470,y:2595,w:80,h:20},
+      {x:650,y:2595,w:80,h:20},
+      {x:810,y:2595,w:80,h:20},
+      {x:2215,y:2310,w:20,h:80},
       {x:2300,y:2595,w:100,h:20}
     ]
   },
@@ -1017,30 +1055,50 @@ function drawGame(time) {
     }
     ctx.shadowBlur = 0;
 
-    // Thematic detail
+    // Thematic detail: Water waves clipped to lake shape
     if (theme.pitEffect === 'Water') {
-       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-       ctx.lineWidth = 2.5;
-       // Advanced organic waves using bezier curves
+       // Build bounding box
        const bounds = p.points ? p.points.reduce((acc, pt) => ({
            minX: Math.min(acc.minX, pt.x), maxX: Math.max(acc.maxX, pt.x),
            minY: Math.min(acc.minY, pt.y), maxY: Math.max(acc.maxY, pt.y)
        }), {minX:9999,maxX:-9999,minY:9999,maxY:-9999}) : {minX:p.x-p.r, maxX:p.x+p.r, minY:p.y-p.r, maxY:p.y+p.r};
 
-       for(let i=0; i<4; i++) {
-         const move = Math.sin(time*0.0018 + i*1.4) * 20;
+       // Clip waves strictly inside the lake shape
+       ctx.save();
+       if (p.points) {
+           // Build clip path using smooth polygon
+           ctx.beginPath();
+           let firstMid = { x: (p.points[0].x + p.points[p.points.length-1].x)/2, y: (p.points[0].y + p.points[p.points.length-1].y)/2 };
+           ctx.moveTo(firstMid.x, firstMid.y);
+           for (let i = 0; i < p.points.length; i++) {
+               let pt = p.points[i];
+               let next = p.points[(i + 1) % p.points.length];
+               let mid = { x: (pt.x + next.x)/2, y: (pt.y + next.y)/2 };
+               ctx.quadraticCurveTo(pt.x, pt.y, mid.x, mid.y);
+           }
+           ctx.closePath();
+           ctx.clip();
+       } else {
+           ctx.beginPath();
+           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+           ctx.clip();
+       }
+
+       ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+       ctx.lineWidth = 2.5;
+       for(let i = 0; i < 4; i++) {
+         const move = Math.sin(time * 0.0018 + i * 1.4) * 18;
          const yPos = bounds.minY + (bounds.maxY - bounds.minY) * (0.2 + i * 0.2) + move;
-         
          ctx.beginPath();
-         let startX = bounds.minX + 30, endX = bounds.maxX - 30;
-         ctx.moveTo(startX, yPos);
-         for (let x = startX + 20; x < endX; x += 50) {
-             const cp1x = x - 25;
-             const cp1y = yPos + Math.cos(time * 0.002 + x * 0.012) * 12;
-             ctx.quadraticCurveTo(cp1x, cp1y, x, yPos);
+         ctx.moveTo(bounds.minX + 10, yPos);
+         for (let x = bounds.minX + 10; x < bounds.maxX - 10; x += 50) {
+             const cpx = x + 25;
+             const cpy = yPos + Math.cos(time * 0.002 + x * 0.013) * 14;
+             ctx.quadraticCurveTo(cpx, cpy, x + 50, yPos);
          }
          ctx.stroke();
        }
+       ctx.restore();
     } else if (theme.pitEffect === 'Acid') {
        ctx.fillStyle = 'rgba(255,255,255,0.2)';
        const cx = p.x || 1500, cy = p.y || 1500, cr = p.r || 100;
