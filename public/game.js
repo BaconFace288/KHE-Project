@@ -275,16 +275,28 @@ function assignMyTasks() {
 
 // Input Handling
 const keys = { w: false, a: false, s: false, d: false, space: false };
-document.addEventListener('keydown', (e) => {
-  const key = e.key.toLowerCase();
-  if (keys.hasOwnProperty(key)) keys[key] = true;
-  if (e.code === 'Space' && !actionBtn.classList.contains('hidden')) {
-     triggerClub();
+
+function handleKey(e, isDown) {
+  const code = e.code;
+  if (code === 'KeyW' || code === 'ArrowUp') keys.w = isDown;
+  if (code === 'KeyS' || code === 'ArrowDown') keys.s = isDown;
+  if (code === 'KeyA' || code === 'ArrowLeft') keys.a = isDown;
+  if (code === 'KeyD' || code === 'ArrowRight') keys.d = isDown;
+  if (code === 'Space') {
+      keys.space = isDown;
+      if (isDown && !actionBtn.classList.contains('hidden')) {
+          triggerClub();
+      }
   }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  handleKey(e, true);
 });
+
 document.addEventListener('keyup', (e) => {
-  const key = e.key.toLowerCase();
-  if (keys.hasOwnProperty(key)) keys[key] = false;
+  handleKey(e, false);
 });
 
 let swingAnim = 0; // 0 to 1 for caveman club swing
