@@ -70,34 +70,41 @@ const MAP_DATA = {
         { x: 2350, y: 2400, label: '⚡ Core Power' }, { x: 1500, y: 450, label: '🔋 N-Oasis' }, 
         { x: 2750, y: 2400, label: '📦 Cargo Pod' }
     ],
+    tasks: [
+        { x: 500, y: 550, label: '💎 Prism Lab' }, { x: 2450, y: 500, label: '💧 Water Ops' }, 
+        { x: 1500, y: 1500, label: '📡 Hub Sync' }, { x: 550, y: 2450, label: '🌿 Flora Dorm' }, 
+        { x: 2350, y: 2400, label: '⚡ Core Power' }, { x: 1500, y: 450, label: '🔋 N-Oasis' }, 
+        { x: 2750, y: 2400, label: '📦 Cargo Pod' }
+    ],
     walls: [
-      // NEO-DISTRICT (NW) - L-Shaped Lab
+      // NEO-DISTRICT (NW) - Partitioned Rooms
       { x: 400, y: 400, w: 20, h: 500 }, { x: 400, y: 400, w: 500, h: 20 }, 
       { x: 900, y: 400, w: 20, h: 250 }, { x: 650, y: 650, w: 250, h: 20 },
       { x: 650, y: 650, w: 20, h: 250 }, { x: 400, y: 900, w: 250, h: 20 },
-      { x: 550, y: 400, w: 20, h: 150 }, // Internal divider
+      { x: 400, y: 650, w: 180, h: 20 }, // Divider for Room B
       
-      // PULSE-WING (NE) - T-Shaped Ops
+      // PULSE-WING (NE) - Corridor + Offices
       { x: 2100, y: 400, w: 500, h: 20 }, { x: 2100, y: 900, w: 500, h: 20 },
       { x: 2100, y: 400, w: 20, h: 500 }, { x: 2600, y: 400, w: 20, h: 500 },
-      { x: 2350, y: 400, w: 20, h: 350 }, { x: 2350, y: 550, w: 250, h: 20 }, // Corridor & side office
+      { x: 2350, y: 400, w: 20, h: 500 }, // Full corridor wall
+      { x: 2100, y: 650, w: 180, h: 20 }, // Divider between Office N and S
       
       // CENTRAL-HUB (Center)
       { x: 1200, y: 1200, w: 600, h: 20 }, { x: 1200, y: 1800, w: 600, h: 20 },
       { x: 1200, y: 1200, w: 20, h: 600 }, { x: 1800, y: 1200, w: 20, h: 600 },
-      { x: 1350, y: 1350, w: 40, h: 40 }, { x: 1610, y: 1350, w: 40, h: 40 }, // Pillars
+      { x: 1350, y: 1350, w: 40, h: 40 }, { x: 1610, y: 1350, w: 40, h: 40 }, 
       { x: 1350, y: 1610, w: 40, h: 40 }, { x: 1610, y: 1610, w: 40, h: 40 },
       
-      // SPARK-HALL (SW) - Triple Partition Dorm
+      // SPARK-HALL (SW) - 3 Individual Dorms
       { x: 400, y: 2100, w: 500, h: 20 }, { x: 400, y: 2600, w: 500, h: 20 },
       { x: 400, y: 2100, w: 20, h: 500 }, { x: 900, y: 2100, w: 20, h: 500 },
-      { x: 560, y: 2100, w: 20, h: 400 }, { x: 740, y: 2200, w: 20, h: 400 }, // Staggered rooms
+      { x: 560, y: 2100, w: 20, h: 500 }, { x: 740, y: 2100, w: 20, h: 500 }, 
       
-      // COBALT-WING (SE) - Core + Control Booth
+      // COBALT-WING (SE) - Core + Booth
       { x: 2200, y: 2100, w: 400, h: 20 }, { x: 2200, y: 2600, w: 400, h: 20 },
       { x: 2200, y: 2100, w: 20, h: 500 }, { x: 2600, y: 2100, w: 20, h: 200 },
-      { x: 2600, y: 2450, w: 20, h: 150 }, { x: 2600, y: 2300, w: 200, h: 20 }, // Booth arm
-      { x: 2800, y: 2300, w: 20, h: 200 }, { x: 2600, y: 2500, w: 200, h: 20 }
+      { x: 2600, y: 2500, w: 20, h: 100 }, 
+      { x: 2600, y: 2300, w: 240, h: 20 }, { x: 2840, y: 2300, w: 20, h: 240 }, { x: 2600, y: 2540, w: 240, h: 20 }
     ],
     pits: [
       // North Organic Lake
@@ -137,6 +144,25 @@ const MAP_DATA = {
   }
 };
 
+function isPointInPolygon(px, py, poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    let xi = poly[i].x, yi = poly[i].y;
+    let xj = poly[j].x, yj = poly[j].y;
+    let intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function distToSegmentSquared(px, py, vx, vy, wx, wy) {
+  let l2 = (wx - vx) * (wx - vx) + (wy - vy) * (wy - vy);
+  if (l2 === 0) return (px - vx) ** 2 + (py - vy) ** 2;
+  let t = ((px - vx) * (wx - vx) + (py - vy) * (wy - vy)) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return (px - (vx + t * (wx - vx))) ** 2 + (py - (vy + t * (wy - vy))) ** 2;
+}
+
 function collides(px, py, pr, mapId = 'Alpha') {
     const map = MAP_DATA[mapId] || MAP_DATA['Alpha'];
     // 1. Walls
@@ -148,10 +174,17 @@ function collides(px, py, pr, mapId = 'Alpha') {
     }
     // 2. Pits
     for (let pit of map.pits) {
-        if (Math.hypot(px - pit.x, py - pit.y) <= pit.r + pr) return true;
+        if (pit.points) {
+            if (isPointInPolygon(px, py, pit.points)) return true;
+            for (let i = 0, j = pit.points.length - 1; i < pit.points.length; j = i++) {
+                if (distToSegmentSquared(px, py, pit.points[j].x, pit.points[j].y, pit.points[i].x, pit.points[i].y) <= pr * pr) return true;
+            }
+        } else if (pit.r) {
+            if (Math.hypot(px - pit.x, py - pit.y) <= pit.r + pr) return true;
+        }
     }
     // 3. Furniture
-    for (let f of map.furniture) {
+    for (let f of map.furniture || []) {
         let testX = px; let testY = py;
         if (px < f.x - f.w/2) testX = f.x - f.w/2; else if (px > f.x + f.w/2) testX = f.x + f.w/2;
         if (py < f.y - f.h/2) testY = f.y - f.h/2; else if (py > f.y + f.h/2) testY = f.y + f.h/2;

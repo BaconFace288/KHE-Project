@@ -90,21 +90,22 @@ const MAP_DATA = {
       { x: 400, y: 400, w: 20, h: 500 }, { x: 400, y: 400, w: 500, h: 20 }, 
       { x: 900, y: 400, w: 20, h: 250 }, { x: 650, y: 650, w: 250, h: 20 },
       { x: 650, y: 650, w: 20, h: 250 }, { x: 400, y: 900, w: 250, h: 20 },
-      { x: 550, y: 400, w: 20, h: 150 }, 
+      { x: 400, y: 650, w: 180, h: 20 }, 
       { x: 2100, y: 400, w: 500, h: 20 }, { x: 2100, y: 900, w: 500, h: 20 },
       { x: 2100, y: 400, w: 20, h: 500 }, { x: 2600, y: 400, w: 20, h: 500 },
-      { x: 2350, y: 400, w: 20, h: 350 }, { x: 2350, y: 550, w: 250, h: 20 }, 
+      { x: 2350, y: 400, w: 20, h: 500 }, 
+      { x: 2100, y: 650, w: 180, h: 20 }, 
       { x: 1200, y: 1200, w: 600, h: 20 }, { x: 1200, y: 1800, w: 600, h: 20 },
       { x: 1200, y: 1200, w: 20, h: 600 }, { x: 1800, y: 1200, w: 20, h: 600 },
       { x: 1350, y: 1350, w: 40, h: 40 }, { x: 1610, y: 1350, w: 40, h: 40 }, 
       { x: 1350, y: 1610, w: 40, h: 40 }, { x: 1610, y: 1610, w: 40, h: 40 },
       { x: 400, y: 2100, w: 500, h: 20 }, { x: 400, y: 2600, w: 500, h: 20 },
       { x: 400, y: 2100, w: 20, h: 500 }, { x: 900, y: 2100, w: 20, h: 500 },
-      { x: 560, y: 2100, w: 20, h: 400 }, { x: 740, y: 2200, w: 20, h: 400 }, 
+      { x: 560, y: 2100, w: 20, h: 500 }, { x: 740, y: 2100, w: 20, h: 500 }, 
       { x: 2200, y: 2100, w: 400, h: 20 }, { x: 2200, y: 2600, w: 400, h: 20 },
       { x: 2200, y: 2100, w: 20, h: 500 }, { x: 2600, y: 2100, w: 20, h: 200 },
-      { x: 2600, y: 2450, w: 20, h: 150 }, { x: 2600, y: 2300, w: 200, h: 20 }, 
-      { x: 2800, y: 2300, w: 20, h: 200 }, { x: 2600, y: 2500, w: 200, h: 20 }
+      { x: 2600, y: 2500, w: 20, h: 100 }, 
+      { x: 2600, y: 2300, w: 240, h: 20 }, { x: 2840, y: 2300, w: 20, h: 240 }, { x: 2600, y: 2540, w: 240, h: 20 }
     ],
     pits: [
       { points: [{x:1300,y:600},{x:1500,y:550},{x:1750,y:650},{x:1800,y:850},{x:1650,y:1000},{x:1400,y:1050},{x:1200,y:900},{x:1250,y:700}] },
@@ -117,13 +118,19 @@ const MAP_DATA = {
        { x: 500, y: 500, w: 60, h: 30, type: 'desk' }
     ],
     roofs: [
-      {id:'B1',x:400,y:400,w:500,h:500}, {id:'B2',x:2100,y:400,w:500,h:500},
-      {id:'B3',x:1200,y:1200,w:600,h:600}, {id:'B4',x:400,y:2100,w:500,h:500},
-      {id:'B5',x:2200,y:2100,w:600,h:500}
+      // Neo district separate rooms
+      {id:'B1a',x:400,y:400,w:500,h:250}, {id:'B1b',x:400,y:650,w:250,h:250}, 
+      // Pulse wing separate rooms
+      {id:'B2h',x:2350,y:400,w:250,h:500}, {id:'B2o1',x:2100,y:400,w:250,h:250}, {id:'B2o2',x:2100,y:650,w:250,h:250},
+      {id:'B3',x:1200,y:1200,w:600,h:600}, 
+      // Spark hall separate rooms
+      {id:'B4d1',x:400,y:2100,w:160,h:500}, {id:'B4d2',x:560,y:2100,w:180,h:500}, {id:'B4d3',x:740,y:2100,w:160,h:500},
+      // Cobalt wing separate rooms
+      {id:'B5r',x:2200,y:2100,w:400,h:500}, {id:'B5c',x:2600,y:2300,260:200,w:240,h:240}
     ],
     doors: [
       {x:450,y:895,w:100,h:20}, {x:2400,y:895,w:100,h:20},
-      {x:1450,y:1795,w:100,h:20}, {x:500,y:2595,w:100,h:20},
+      {x:1450,y:1795,w:100,h:20}, {x:500,y:2595,w:80,h:20}, {x:680,y:2595,w:80,h:20}, {x:810,y:2595,w:80,h:20},
       {x:2300,y:2595,w:100,h:20}
     ]
   },
@@ -136,6 +143,22 @@ const MAP_DATA = {
     doors: []
   }
 };
+
+function drawSmoothPolygon(ctx, points) {
+    if (!points || points.length < 3) return;
+    ctx.beginPath();
+    // Use midpoints for quadratic bezier smoothing
+    let pc = { x: (points[0].x + points[points.length - 1].x) / 2, y: (points[0].y + points[points.length - 1].y) / 2 };
+    ctx.moveTo(pc.x, pc.y);
+    for (let i = 0; i < points.length; i++) {
+        let p = points[i];
+        let next = points[(i + 1) % points.length];
+        let mid = { x: (p.x + next.x) / 2, y: (next.y + p.y) / 2 };
+        ctx.quadraticCurveTo(p.x, p.y, mid.x, mid.y);
+    }
+    ctx.closePath();
+    ctx.fill();
+}
 
 function collidesWithWall(px, py, pr) {
     const walls = MAP_DATA[currentMap]?.walls || MAP_DATA['Alpha'].walls;
@@ -985,21 +1008,19 @@ function drawGame(time) {
 
     // Pit core drawing (Polygon or Circle)
     ctx.fillStyle = theme.pitCol;
-    ctx.beginPath();
     if (p.points) {
-        ctx.moveTo(p.points[0].x, p.points[0].y);
-        for (let i = 1; i < p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
-        ctx.closePath();
+        drawSmoothPolygon(ctx, p.points);
     } else {
+        ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
     }
-    ctx.fill();
     ctx.shadowBlur = 0;
 
     // Thematic detail
     if (theme.pitEffect === 'Water') {
-       ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-       ctx.lineWidth = 2;
+       ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+       ctx.lineWidth = 2.5;
        // Advanced organic waves using bezier curves
        const bounds = p.points ? p.points.reduce((acc, pt) => ({
            minX: Math.min(acc.minX, pt.x), maxX: Math.max(acc.maxX, pt.x),
@@ -1007,16 +1028,15 @@ function drawGame(time) {
        }), {minX:9999,maxX:-9999,minY:9999,maxY:-9999}) : {minX:p.x-p.r, maxX:p.x+p.r, minY:p.y-p.r, maxY:p.y+p.r};
 
        for(let i=0; i<4; i++) {
-         const move = Math.sin(time*0.002 + i*1.2) * 15;
+         const move = Math.sin(time*0.0018 + i*1.4) * 20;
          const yPos = bounds.minY + (bounds.maxY - bounds.minY) * (0.2 + i * 0.2) + move;
          
          ctx.beginPath();
-         // Check if wave is inside polygon
-         let startX = bounds.minX + 20, endX = bounds.maxX - 20;
+         let startX = bounds.minX + 30, endX = bounds.maxX - 30;
          ctx.moveTo(startX, yPos);
-         for (let x = startX + 20; x < endX; x += 40) {
-             const cp1x = x - 20;
-             const cp1y = yPos + Math.sin(time * 0.003 + x * 0.01) * 8;
+         for (let x = startX + 20; x < endX; x += 50) {
+             const cp1x = x - 25;
+             const cp1y = yPos + Math.cos(time * 0.002 + x * 0.012) * 12;
              ctx.quadraticCurveTo(cp1x, cp1y, x, yPos);
          }
          ctx.stroke();
