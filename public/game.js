@@ -187,6 +187,38 @@ const TASKS = [
   { id: 't12', x: 2600, y: 1200, label: '📦 Drop Supply',     done: false },
 ];
 
+// === Static World Decorations ===
+const DECOR_FURNITURE = [
+  { x: 950,  y: 950,  type: 'table' }, // B1_A
+  { x: 925,  y: 950,  type: 'chair', dir: 'right' },
+  { x: 975,  y: 950,  type: 'chair', dir: 'left' },
+  { x: 2100, y: 680,  type: 'desk' },  // B2_A
+  { x: 2100, y: 710,  type: 'chair', dir: 'up' },
+  { x: 1500, y: 2700, type: 'dining_table' }, // B4
+  { x: 1800, y: 2700, type: 'dining_table' }, // B4
+  { x: 1480, y: 2735, type: 'stool' },
+  { x: 1520, y: 2735, type: 'stool' },
+  { x: 1780, y: 2735, type: 'stool' },
+  { x: 1820, y: 2735, type: 'stool' }
+];
+
+const DECOR_FLORA = [
+  { x: 400,  y: 400,  type: 'grass' },
+  { x: 1200, y: 550,  type: 'grass' },
+  { x: 2800, y: 300,  type: 'bush' },
+  { x: 2200, y: 2200, type: 'bush' },
+  { x: 200,  y: 2800, type: 'grass' },
+  { x: 1500, y: 1650, type: 'grass' },
+  { x: 1000, y: 400,  type: 'bush' },
+  { x: 2600, y: 500,  type: 'bush' },
+  { x: 1650, y: 1850, type: 'bush' },
+  { x: 500,  y: 400,  type: 'grass' },
+  { x: 1400, y: 200,  type: 'grass' },
+  { x: 300,  y: 1500, type: 'grass' },
+  { x: 2600, y: 1500, type: 'grass' },
+  { x: 1300, y: 1800, type: 'bush' }
+];
+
 function collidesWithWall(px, py, pr) {
     for (let w of walls) {
         let testX = px; let testY = py;
@@ -1034,6 +1066,13 @@ function drawGame(time) {
     ctx.strokeRect(w.x, w.y, w.w, w.h);
   }
 
+  // =============================================
+  // WORLD DECORATIONS & TASK OBJECTS
+  // =============================================
+  for (let f of DECOR_FLORA) drawFlora(f);
+  for (let it of DECOR_FURNITURE) drawFurniture(it);
+  for (let t of TASKS) drawTaskWorldObject(t, time);
+
   // Draw Emergency Button
   drawEmergencyButton(time);
 
@@ -1509,13 +1548,13 @@ function drawTasks() {
       ctx.globalAlpha = 0.35;
       ctx.fillStyle = '#2ecc71';
       ctx.beginPath();
-      ctx.arc(task.x, task.y, 10, 0, Math.PI * 2);
+      ctx.arc(task.x, task.y - 30, 10, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#fff';
       ctx.font = 'bold 12px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('✓', task.x, task.y + 1);
+      ctx.fillText('✓', task.x, task.y - 29);
       ctx.restore();
       continue;
     }
@@ -1523,7 +1562,7 @@ function drawTasks() {
     const nearby = me && Math.hypot(me.x - task.x, me.y - task.y) < 50;
     
     ctx.save();
-    ctx.translate(task.x, task.y);
+    ctx.translate(task.x, task.y - 30);
     if (nearby) {
       const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.008);
       ctx.shadowColor = '#f1c40f';
@@ -1548,7 +1587,7 @@ function drawTasks() {
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText(task.label, task.x, task.y - 18);
+    ctx.fillText(task.label, task.x, task.y - 48);
     ctx.restore();
   }
 }
@@ -1650,6 +1689,141 @@ function drawTaskHUD() {
     ctx.fillText('[Q] or Click — Emergency Meeting', cx, cy);
     ctx.restore();
   }
+}
+
+function drawFlora(f) {
+  ctx.save();
+  ctx.translate(f.x, f.y);
+  if (f.type === 'grass') {
+    ctx.fillStyle = '#27ae60';
+    // Draw 3-4 tufts
+    for (let i = 0; i < 3; i++) {
+       ctx.beginPath();
+       ctx.moveTo(-5 + i*4, 0);
+       ctx.quadraticCurveTo(-5 + i*4, -8, -2 + i*4, -12);
+       ctx.lineTo(1 + i*4, 0);
+       ctx.fill();
+    }
+  } else if (f.type === 'bush') {
+    ctx.fillStyle = '#1e8449';
+    ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -6, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-8, -4, 10, 0, Math.PI * 2); ctx.fill();
+    // Highlights
+    ctx.fillStyle = '#2ecc71';
+    ctx.beginPath(); ctx.arc(-2, -5, 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawFurniture(it) {
+  ctx.save();
+  ctx.translate(it.x, it.y);
+  ctx.shadowBlur = 4; ctx.shadowColor = 'rgba(0,0,0,0.3)';
+
+  if (it.type === 'table' || it.type === 'desk') {
+    const w = it.type === 'table' ? 40 : 55;
+    const h = 25;
+    ctx.fillStyle = '#5d4037'; // brown wood
+    ctx.fillRect(-w/2, -h/2, w, h);
+    ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2;
+    ctx.strokeRect(-w/2, -h/2, w, h);
+    // Detail lines
+    ctx.beginPath(); ctx.moveTo(-w/2 + 5, -h/2); ctx.lineTo(-w/2 + 5, h/2); ctx.stroke();
+  } else if (it.type === 'chair') {
+    ctx.fillStyle = '#795548';
+    ctx.fillRect(-8, -8, 16, 16);
+    ctx.strokeRect(-8, -8, 16, 16);
+  } else if (it.type === 'dining_table') {
+    ctx.fillStyle = '#4e342e';
+    ctx.fillRect(-60, -30, 120, 60);
+    ctx.strokeRect(-60, -30, 120, 60);
+  } else if (it.type === 'stool') {
+    ctx.fillStyle = '#3e2723';
+    ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTaskWorldObject(t, time) {
+  ctx.save();
+  ctx.translate(t.x, t.y);
+  const pulse = 0.6 + 0.4 * Math.sin(time * 0.005);
+  
+  switch(t.id) {
+    case 't1': // Fix Relay
+      ctx.fillStyle = '#2c3e50'; ctx.fillRect(-12, -15, 24, 30);
+      ctx.fillStyle = '#34495e'; ctx.fillRect(-10, -13, 20, 26);
+      ctx.fillStyle = pulse > 0.7 ? '#2ecc71' : '#27ae60';
+      ctx.beginPath(); ctx.arc(5, -8, 2, 0, Math.PI*2); ctx.fill(); // status led
+      break;
+    case 't2': // Charge Battery
+      ctx.fillStyle = '#2980b9'; ctx.fillRect(-15, -20, 30, 40);
+      ctx.fillStyle = '#3498db'; ctx.fillRect(-12, -17, 24, 34);
+      ctx.fillStyle = '#f1c40f'; ctx.fillRect(-8, 5 - (15 * pulse), 16, 5); // liquid level
+      break;
+    case 't3': // Align Dish
+      ctx.fillStyle = '#bdc3c7'; ctx.beginPath(); ctx.ellipse(0, 5, 20, 10, 0, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = '#7f8c8d'; ctx.stroke();
+      ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-25); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, -25, 4, 0, Math.PI*2); ctx.fill();
+      break;
+    case 't4': // Mix Solution
+      ctx.fillStyle = '#95a5a6'; ctx.fillRect(-25, -15, 50, 30);
+      ctx.fillStyle = 'rgba(155, 89, 182, 0.8)'; // purple flask
+      ctx.beginPath(); ctx.arc(-10, -5, 6, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(52, 152, 219, 0.8)'; // blue flask
+      ctx.beginPath(); ctx.arc(10, -2, 5, 0, Math.PI*2); ctx.fill();
+      break;
+    case 't5': // Restore Power
+      ctx.fillStyle = '#d35400'; ctx.fillRect(-18, -25, 36, 50);
+      ctx.strokeStyle = '#000'; ctx.strokeRect(-18, -25, 36, 50);
+      ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.moveTo(-5, -5); ctx.lineTo(5, 5); ctx.lineTo(-5, 5); ctx.lineTo(5, 15); ctx.stroke(); // lightning bolt
+      break;
+    case 't6': // Upload Data
+      ctx.fillStyle = '#2c3e50'; ctx.fillRect(-20, -30, 40, 60);
+      for(let i=0; i<5; i++) { // server slots
+        ctx.fillStyle = (Math.random() > 0.7) ? '#3498db' : '#1a1a1a';
+        ctx.fillRect(-15, -25 + (i * 10), 30, 4);
+      }
+      break;
+    case 't7': // Cool Reactor
+      ctx.fillStyle = '#7f8c8d'; ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#2c3e50'; ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI*2); ctx.fill();
+      // Glowing core
+      ctx.shadowBlur = 15; ctx.shadowColor = '#3498db';
+      ctx.fillStyle = '#3498db'; ctx.globalAlpha = 0.5 * pulse;
+      ctx.beginPath(); ctx.arc(0,0, 18, 0, Math.PI*2); ctx.fill();
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
+      break;
+    case 't8': // Seal Crack
+      ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-20, -10); ctx.lineTo(20, 10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-15, 15); ctx.lineTo(15, -15); ctx.stroke();
+      break;
+    case 't9': // Collect Samples
+      ctx.fillStyle = '#bdc3c7'; ctx.fillRect(-20, -10, 40, 20);
+      ctx.fillStyle = 'rgba(46, 204, 113, 0.4)'; // glass dome
+      ctx.beginPath(); ctx.arc(0, -15, 15, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#27ae60'; ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-5, -15); ctx.lineTo(5, -15); ctx.fill(); // plant stub
+      break;
+    case 't10': // Survey Zone
+      ctx.strokeStyle = '#34495e'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-10, 20); ctx.moveTo(0,0); ctx.lineTo(10, 20); ctx.stroke();
+      ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill();
+      break;
+    case 't11': // Mark Boundary
+      ctx.fillStyle = '#7f8c8d'; ctx.fillRect(-4, -30, 8, 40);
+      ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.moveTo(4,-30); ctx.lineTo(20, -22); ctx.lineTo(4, -14); ctx.fill(); // flag
+      break;
+    case 't12': // Drop Supply
+      ctx.fillStyle = '#8B4513'; ctx.fillRect(-22, -22, 44, 44);
+      ctx.strokeStyle = '#5d4037'; ctx.lineWidth = 3; ctx.strokeRect(-22, -22, 44, 44);
+      ctx.beginPath(); ctx.moveTo(-22, -22); ctx.lineTo(22, 22); ctx.moveTo(-22, 22); ctx.lineTo(22, -22); ctx.stroke();
+      break;
+  }
+  ctx.restore();
 }
 
 function drawEmergencyButton(time) {
