@@ -252,9 +252,10 @@ canvas {
 
 /* Credits placement bottom-right */
 .info-icon.credits {
-    right: 20px;
-    bottom: -60px; /* Offset from top positioning flow */
+    right: 25px;
+    bottom: 25px;
     position: fixed;
+    z-index: 100;
     border-color: #bdc3c7;
     color: #bdc3c7;
 }
