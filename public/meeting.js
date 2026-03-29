@@ -244,10 +244,3 @@ function appendChat(name, color, text, isDead) {
   chatMessages.appendChild(d);
   chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
-// ===== Expose for game.js =====
-window.meetingActive = false;
-Object.defineProperty(window, 'meetingActive', {
-  get: () => meetingActive,
-  set: v => { meetingActive = v; }
-});

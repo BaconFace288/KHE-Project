@@ -1608,7 +1608,7 @@ function drawTaskHUD() {
   }
 
   // [F] prompt when near a task
-  if (shownTaskId) {
+  if (shownTaskId && !window.meetingActive) {
     const task = TASKS.find(t => t.id === shownTaskId);
     if (task && !completedTasks.has(task.id)) {
       const cx = canvas.width / 2;
