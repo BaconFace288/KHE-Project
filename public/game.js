@@ -45,185 +45,54 @@ const ctx = canvas.getContext('2d');
 
 const MAP_WIDTH = 3000;
 const MAP_HEIGHT = 3000;
+let currentMap = 'Alpha';
+const mapSelect = document.getElementById('map-select');
+const mapStatus = document.getElementById('map-status');
 
-// Emergency meeting button (center of map)
-// r = visual button radius, collisionR = physical block radius (includes pedestal)
-const EMERGENCY_BTN = { x: 1500, y: 1490, r: 22, collisionR: 36 };
+const MAP_THEMES = {
+  'Alpha': {
+    floor1: '#1e272e', floor2: '#2c3e50', floorBorder: 'rgba(255,255,255,0.05)',
+    pitCol: '#0a0a0a', pitOuter: '#1a1a1a', pitEffect: 'Abyss',
+    bldgLabels: ['THE COMPOUND', 'L-BLOCK', 'THE MAZE', 'LONGHOUSE', 'SOUTH-WAKE'],
+    roofCols: ['rgb(40,55,70)', 'rgb(55,55,60)', 'rgb(50,20,65)', 'rgb(70,35,10)', 'rgb(30,40,50)']
+  },
+  'Britney': {
+    floor1: '#002d44', floor2: '#003f5c', floorBorder: 'rgba(0,188,212,0.1)',
+    pitCol: '#00d2ff', pitOuter: '#3a7bd5', pitEffect: 'Water',
+    bldgLabels: ['NEO-DISTRICT', 'PULSE-WING', 'CENTRAL-HUB', 'SPARK-HALL', 'COBALT-WING'],
+    roofCols: ['#2f3640', '#353b48', '#2d3436', '#1a1a1a', '#34495e']
+  },
+  'Charlie': {
+    floor1: '#1b2613', floor2: '#2d3436', floorBorder: 'rgba(76,175,80,0.1)',
+    pitCol: '#86f06d', pitOuter: '#44bd32', pitEffect: 'Acid',
+    bldgLabels: ['ANCIENT-VAULT', 'TEMPLE-BASE', 'RUINED-LAB', 'MOSS-GROVE', 'STONE-CRYPT'],
+    roofCols: ['rgb(45,50,45)', 'rgb(60,65,60)', 'rgb(40,45,40)', 'rgb(55,60,55)', 'rgb(50,55,50)']
+  }
+};
 
-// === Map Obstacles ===
-const WT = 20; // Wall thickness
-const DW = 100; // Door width
-
-const roofs = [
-  // B1 (The Compound) - Shift B inward to reveal 1100x1120 inner wall
-  { id: 'B1_A', x: 800, y: 800, w: 300, h: 600, color: '#34495e' },
-  { id: 'B1_B', x: 1120, y: 1100, w: 480, h: 300, color: '#2c3e50' },
-  // B2 (L-Block) - Shift B down to reveal 900x920 inner wall
-  { id: 'B2_A', x: 2000, y: 600, w: 400, h: 300, color: '#7f8c8d' },
-  { id: 'B2_B', x: 2000, y: 920, w: 200, h: 380, color: '#95a5a6' },
-  // B3 (Maze Block) - Shrink all to reveal 740x760 and 2240x2260 inner crosses
-  { id: 'B3_A', x: 500, y: 2000, w: 240, h: 240, color: '#8e44ad' },
-  { id: 'B3_B', x: 760, y: 2000, w: 240, h: 240, color: '#9b59b6' },
-  { id: 'B3_C', x: 500, y: 2260, w: 240, h: 240, color: '#8e44ad' },
-  { id: 'B3_D', x: 760, y: 2260, w: 240, h: 240, color: '#9b59b6' },
-  // B4 (Longhouse) - Slicing at 1490x1510 and 1790x1810 inner walls
-  { id: 'B4_A', x: 1200, y: 2600, w: 290, h: 200, color: '#e67e22' },
-  { id: 'B4_B', x: 1510, y: 2600, w: 280, h: 200, color: '#d35400' },
-  { id: 'B4_C', x: 1810, y: 2600, w: 290, h: 200, color: '#e67e22' }
-];
-
-const walls = [
-  // B1 Walls (Compound)
-  { x: 780, y: 780, w: 20, h: 640 }, // Left A
-  { x: 800, y: 780, w: 320, h: 20 }, // Top A
-  { x: 1100, y: 800, w: 20, h: 300 }, // Right A (top part)
-  { x: 1120, y: 1080, w: 500, h: 20 }, // Top B
-  { x: 1600, y: 1080, w: 20, h: 120 }, // Right B top
-  { x: 1600, y: 1300, w: 20, h: 120 }, // Right B bot (Door at Y:1200-1300)
-  { x: 1120, y: 1400, w: 500, h: 20 }, // Bottom B
-  { x: 1100, y: 1100, w: 20, h: 100 }, // Inner A-B top
-  { x: 1100, y: 1300, w: 20, h: 100 }, // Inner A-B bot (Door at Y:1200-1300)
-  { x: 800, y: 1400, w: 100, h: 20 }, // Bottom A left
-  { x: 1000, y: 1400, w: 100, h: 20 }, // Bottom A right (Door at X:900-1000)
-
-  // B2 Walls (L-Block)
-  { x: 1980, y: 580, w: 440, h: 20 }, // Top A
-  { x: 1980, y: 600, w: 20, h: 300 }, // Left A
-  { x: 2400, y: 600, w: 20, h: 100 }, // Right A top
-  { x: 2400, y: 800, w: 20, h: 120 }, // Right A bot (Door at Y:700-800)
-  { x: 2200, y: 900, w: 200, h: 20 }, // Bottom A right part
-  { x: 1980, y: 900, w: 20, h: 420 }, // Left B
-  { x: 2200, y: 920, w: 20, h: 380 }, // Right B
-  { x: 2000, y: 900, w: 50, h: 20 }, // Inner left
-  { x: 2150, y: 900, w: 50, h: 20 }, // Inner right (Door at X:2050-2150)
-  { x: 2000, y: 1300, w: 50, h: 20 }, // Bottom left
-  { x: 2150, y: 1300, w: 70, h: 20 }, // Bottom right (Door at X:2050-2150)
-  
-  // B3 Walls (Maze)
-  { x: 480, y: 1980, w: 540, h: 20 }, // Top outer
-  { x: 480, y: 2500, w: 540, h: 20 }, // Bottom outer
-  { x: 480, y: 2000, w: 20, h: 100 }, // Left top
-  { x: 480, y: 2200, w: 20, h: 300 }, // Left bot (Door at Y:2100-2200)
-  { x: 1000, y: 1980, w: 20, h: 320 }, // Right top
-  { x: 1000, y: 2400, w: 20, h: 100 }, // Right bot (Door at Y:2300-2400)
-  { x: 500, y: 2240, w: 50, h: 20 }, // H-Inner left
-  { x: 650, y: 2240, w: 200, h: 20 }, // H-Inner mid (Doors at 550-650, 850-950)
-  { x: 950, y: 2240, w: 50, h: 20 }, // H-Inner right
-  { x: 740, y: 2000, w: 20, h: 50 }, // V-Inner top
-  { x: 740, y: 2150, w: 20, h: 200 }, // V-Inner mid (Doors at 2050-2150, 2350-2450)
-  { x: 740, y: 2450, w: 20, h: 50 }, // V-Inner bot
-
-  // B4 Walls (Longhouse)
-  { x: 1180, y: 2580, w: 940, h: 20 }, // Top
-  { x: 1180, y: 2800, w: 940, h: 20 }, // Bottom
-  { x: 1180, y: 2600, w: 20, h: 50 }, // Left top
-  { x: 1180, y: 2750, w: 20, h: 50 }, // Left bot (Door at Y:2650-2750)
-  { x: 2100, y: 2600, w: 20, h: 50 }, // Right top
-  { x: 2100, y: 2750, w: 20, h: 50 }, // Right bot (Door at Y:2650-2750)
-  { x: 1490, y: 2600, w: 20, h: 50 }, // Inner AB top
-  { x: 1490, y: 2750, w: 20, h: 50 }, // Inner AB bot
-  { x: 1790, y: 2600, w: 20, h: 50 }, // Inner BC top
-  { x: 1790, y: 2750, w: 20, h: 50 }  // Inner BC bot
-];
-
-const doors = [
-  // B1
-  { x: 900, y: 1380, w: 100, h: 60 },
-  { x: 1080, y: 1200, w: 60, h: 100 },
-  { x: 1580, y: 1200, w: 60, h: 100 },
-  // B2
-  { x: 2380, y: 700, w: 60, h: 100 },
-  { x: 2050, y: 880, w: 100, h: 60 },
-  { x: 2050, y: 1280, w: 100, h: 60 },
-  // B3
-  { x: 440, y: 2100, w: 60, h: 100 }, // sticking out left so you see it well outside
-  { x: 980, y: 2300, w: 60, h: 100 },
-  { x: 550, y: 2230, w: 100, h: 40 },
-  { x: 850, y: 2230, w: 100, h: 40 },
-  { x: 730, y: 2050, w: 40, h: 100 },
-  { x: 730, y: 2350, w: 40, h: 100 },
-  // B4
-  { x: 1140, y: 2650, w: 60, h: 100 }, // stick out further left
-  { x: 2080, y: 2650, w: 60, h: 100 },
-  { x: 1470, y: 2650, w: 60, h: 100 },
-  { x: 1770, y: 2650, w: 60, h: 100 }
-];
-
-function createLumpyPit(cx, cy, r) {
-   const pts = [];
-   const numPoints = 16;
-   for(let i=0; i<numPoints; i++) {
-       const ang = (i / numPoints) * Math.PI * 2;
-       const noise = (Math.random() - 0.5) * (r * 0.4);
-       const dist = r + noise;
-       pts.push({ x: cx + Math.cos(ang) * dist, y: cy + Math.sin(ang) * dist });
-   }
-   return { x: cx, y: cy, r: r * 0.8, points: pts }; 
-}
-
-const pits = [
-  createLumpyPit(300, 300, 100),
-  createLumpyPit(1000, 500, 150),
-  createLumpyPit(2500, 400, 120),
-  createLumpyPit(2700, 2400, 140),
-  createLumpyPit(500, 1200, 90),
-  createLumpyPit(1600, 1800, 80)
-];
-
-// === Tasks for Time Travelers ===
-const TASKS = [
-  // Inside buildings
-  { id: 't1', x: 900,  y: 1100, label: '⚙️ Fix Relay',       done: false }, // B1_A
-  { id: 't2', x: 1350, y: 1250, label: '🔋 Charge Battery',  done: false }, // B1_B
-  { id: 't3', x: 2100, y: 720,  label: '📡 Align Dish',      done: false }, // B2_A
-  { id: 't4', x: 2080, y: 1100, label: '🧪 Mix Solution',    done: false }, // B2_B
-  { id: 't5', x: 600,  y: 2100, label: '🔌 Restore Power',   done: false }, // B3_A
-  { id: 't6', x: 860,  y: 2100, label: '💾 Upload Data',     done: false }, // B3_B
-  { id: 't7', x: 1340, y: 2690, label: '🌡️ Cool Reactor',    done: false }, // B4_A
-  // Near a pit
-  { id: 't8', x: 1180, y: 500,  label: '⚠️ Seal Pit Crack',  done: false }, // near pit[1]
-  // Outside buildings
-  { id: 't9',  x: 400,  y: 600,  label: '🌿 Collect Samples', done: false },
-  { id: 't10', x: 2200, y: 1700, label: '🗺️ Survey Zone',     done: false },
-  { id: 't11', x: 700,  y: 2800, label: '🪨 Mark Boundary',   done: false },
-  { id: 't12', x: 2600, y: 1200, label: '📦 Drop Supply',     done: false },
-];
-
-// === Static World Decorations ===
-const DECOR_FURNITURE = [
-  { x: 950,  y: 950,  type: 'table' }, // B1_A
-  { x: 925,  y: 950,  type: 'chair', dir: 'right' },
-  { x: 975,  y: 950,  type: 'chair', dir: 'left' },
-  { x: 2100, y: 680,  type: 'desk' },  // B2_A
-  { x: 2100, y: 710,  type: 'chair', dir: 'up' },
-  { x: 1650, y: 2700, type: 'dining_table' }, // B4
-  { x: 1955, y: 2700, type: 'dining_table' }, // B4
-  { x: 1630, y: 2735, type: 'stool' },
-  { x: 1670, y: 2735, type: 'stool' },
-  { x: 1935, y: 2735, type: 'stool' },
-  { x: 1975, y: 2735, type: 'stool' },
-  { x: 1630, y: 2665, type: 'stool' },
-  { x: 1670, y: 2665, type: 'stool' },
-  { x: 1935, y: 2665, type: 'stool' },
-  { x: 1975, y: 2665, type: 'stool' }
-];
-
-const DECOR_FLORA = [
-  { x: 400,  y: 400,  type: 'grass' },
-  { x: 1200, y: 550,  type: 'grass' },
-  { x: 2800, y: 300,  type: 'bush' },
-  { x: 2200, y: 2200, type: 'bush' },
-  { x: 200,  y: 2800, type: 'grass' },
-  { x: 1500, y: 1650, type: 'grass' },
-  { x: 1180, y: 420,  type: 'bush' },
-  { x: 2600, y: 500,  type: 'bush' },
-  { x: 1750, y: 1900, type: 'bush' },
-  { x: 500,  y: 400,  type: 'grass' },
-  { x: 1400, y: 200,  type: 'grass' },
-  { x: 300,  y: 1500, type: 'grass' },
-  { x: 2600, y: 1500, type: 'grass' },
-  { x: 1300, y: 1800, type: 'bush' }
-];
+const MAP_DATA = {
+  'Alpha': {
+    tasks: [{x:900,y:1100,label:'⚙️ Fix Relay'},{x:1350,y:1250,label:'🔋 Charge Battery'},{x:2100,y:720,label:'📡 Align Dish'},{x:2080,y:1100,label:'🧪 Mix Solution'},{x:600,y:2100,label:'🔌 Restore Power'},{x:860,y:2100,label:'💾 Upload Data'},{x:1340,y:2690,label:'🌡️ Cool Reactor'},{x:1180,y:500,label:'⚠️ Seal Pit Crack'},{x:400,y:600,label:'🌿 Collect Samples'},{x:2200,y:1700,label:'🗺️ Survey Zone'},{x:700,y:2800,label:'🪨 Mark Boundary'},{x:2600,y:1200,label:'📦 Drop Supply'}],
+    walls: [{x:780,y:780,w:20,h:640},{x:800,y:780,w:320,h:20},{x:1100,y:800,w:20,h:300},{x:1120,y:1080,w:500,h:20},{x:1600,y:1080,w:20,h:120},{x:1600,y:1300,w:20,h:120},{x:1120,y:1400,w:500,h:20},{x:1100,y:1100,w:20,h:100},{x:1100,y:1300,w:20,h:100},{x:800,y:1400,w:100,h:20},{x:1000,y:1400,w:100,h:20},{x:1980,y:580,w:440,h:20},{x:1980,y:600,w:20,h:300},{x:2400,y:600,w:20,h:100},{x:2400,y:800,w:20,h:120},{x:2200,y:900,w:200,h:20},{x:1980,y:900,w:20,h:420},{x:2200,y:920,w:20,h:380},{x:2000,y:900,w:50,h:20},{x:2150,y:900,w:50,h:20},{x:2000,y:1300,w:50,h:20},{x:2150,y:1300,w:70,h:20},{x:480,y:1980,w:540,h:20},{x:480,y:2500,w:540,h:20},{x:480,y:2000,w:20,h:100},{x:480,y:2200,w:20,h:300},{x:1000,y:1980,w:20,h:320},{x:1000,y:2400,w:20,h:100},{x:500,y:2240,w:50,h:20},{x:650,y:2240,w:200,h:20},{x:950,y:2240,w:50,h:20},{x:740,y:2000,w:20,h:50},{x:740,y:2150,w:20,h:200},{x:740,y:2450,w:20,h:50},{x:1180,y:2580,w:940,h:20},{x:1180,y:2800,w:940,h:20},{x:1180,y:2600,w:20,h:50},{x:1180,y:2750,w:20,h:50},{x:2100,y:2600,w:20,h:50},{x:2100,y:2750,w:20,h:50},{x:1490,y:2600,w:20,h:50},{x:1490,y:2750,w:20,h:50},{x:1790,y:2600,w:20,h:50},{x:1790,y:2750,w:20,h:50}],
+    pits: [{x:300,y:300,r:80},{x:1000,y:500,r:120},{x:2500,y:400,r:96},{x:2700,y:2400,r:112},{x:500,y:1200,r:72},{x:1600,y:1800,r:64}],
+    furniture: [{x:950,y:950,w:40,h:25},{x:2100,y:680,w:55,h:25},{x:1650,y:2700,w:120,h:60},{x:1955,y:2700,w:120,h:60}],
+    roofs: [{id:'B1',x:800,y:800,w:300,h:600},{id:'B2',x:2000,y:600,w:400,h:300},{id:'B3',x:2000,y:920,w:200,h:380},{id:'B4',x:500,y:2000,w:500,h:500},{id:'B5',x:1200,y:2600,w:900,h:200}]
+  },
+  'Britney': {
+    tasks: [{x:500,y:500,label:'💎 Calibrate Prism'},{x:2500,y:500,label:'💧 Filter Water'},{x:1500,y:1500,label:'📡 Sync Uplink'},{x:500,y:2500,label:'🌿 Harvest Flora'},{x:2500,y:2500,label:'⚡ Power Grid'},{x:1500,y:400,label:'🔋 Cell Swap'},{x:2600,y:1500,label:'📦 Load Cargo'}],
+    walls: [{x:400,y:400,w:20,h:400},{x:400,y:400,w:400,h:20},{x:2200,y:400,w:400,h:20},{x:2600,y:400,w:20,h:400},{x:1200,y:1200,w:600,h:20},{x:1200,y:1800,w:600,h:20},{x:1200,y:1200,w:20,h:600},{x:1800,y:1200,w:20,h:600},{x:400,y:2200,w:20,h:400},{x:400,y:2600,w:400,h:20},{x:2200,y:2600,w:400,h:20},{x:2600,y:2200,w:20,h:400}],
+    pits: [{x:1500,y:800,r:150},{x:1500,y:2200,r:150},{x:800,y:1500,r:100},{x:2200,y:1500,r:100}],
+    furniture: [{x:1500,y:1400,w:100,h:40},{x:1500,y:1600,w:100,h:40}],
+    roofs: [{id:'B1',x:400,y:400,w:400,h:400},{id:'B2',x:2200,y:400,w:400,h:400},{id:'B3',x:1200,y:1200,w:600,h:600},{id:'B4',x:400,y:2200,w:400,h:400},{id:'B5',x:2200,y:2200,w:400,h:400}]
+  },
+  'Charlie': {
+    tasks: [{x:1000,y:500,label:'📜 Read Glyphs'},{x:2000,y:500,label:'🕯️ Lite Torch'},{x:1500,y:1000,label:'⚙️ Repair Vault'},{x:500,y:1500,label:'🧪 Extract Venom'},{x:2500,y:1500,label:'🪨 Clean Altar'},{x:1500,y:2000,label:'🔐 Lock Catacomb'},{x:1000,y:2500,label:'🌿 Trim Vines'},{x:2000,y:2500,label:'🌡️ Monitor Heat'}],
+    walls: [{x:200,y:200,w:2600,h:20},{x:200,y:2800,w:2600,h:20},{x:200,y:200,w:20,h:2600},{x:2800,y:200,w:20,h:2600},{x:1000,y:1000,w:20,h:1000},{x:2000,y:1000,w:20,h:1000},{x:1000,y:1000,w:1000,h:20},{x:1000,y:2000,w:1000,h:20}],
+    pits: [{x:600,y:600,r:100},{x:2400,y:600,r:100},{x:600,y:2400,r:100},{x:2400,y:2400,r:100},{x:1500,y:1500,r:120}],
+    furniture: [{x:1500,y:1500,w:80,h:80}],
+    roofs: [{id:'B1',x:200,y:200,w:2600,h:200},{id:'B2',x:200,y:2600,w:2600,h:200},{id:'B3',x:1000,y:1000,w:1000,h:1000}]
+  }
+};
 
 function collidesWithWall(px, py, pr) {
     for (let w of walls) {
@@ -472,9 +341,16 @@ socket.on('playerMoved', (data) => {
     }
 });
 
+socket.on('mapSelected', (mapId) => {
+    currentMap = mapId;
+    if (mapStatus) mapStatus.innerText = `Location: Base ${mapId}`;
+    if (mapSelect) mapSelect.value = mapId;
+});
+
 socket.on('gameStarted', (payload) => {
-    if (currentState === 'PLAYING') return; // already handled by roomUpdate
-    players = payload.players || payload; // fallback for old schema
+    if (currentState === 'PLAYING') return;
+    players = payload.players || payload;
+    currentMap = payload.mapId || currentMap; // Sync map
     handleGameStart();
 });
 
@@ -592,6 +468,12 @@ if (audioToggle) {
 if (addBotBtn) {
   addBotBtn.addEventListener('click', () => {
     socket.emit('addBot');
+  });
+}
+
+if (mapSelect) {
+  mapSelect.addEventListener('change', (e) => {
+    socket.emit('selectMap', e.target.value);
   });
 }
 
@@ -926,7 +808,8 @@ function updateLocalPlayer(dt) {
   // Task proximity detection (only alive crewmates with assigned tasks)
   let foundTask = null;
   if (myRole === 'crewmate' && myTaskIds) {
-    for (let task of TASKS) {
+    const tasks = MAP_DATA[currentMap]?.tasks || [];
+    for (let task of tasks) {
       if (myTaskIds.has(task.id) && !completedTasks.has(task.id)) {
         if (Math.hypot(me.x - task.x, me.y - task.y) < 55) {
           foundTask = task;
@@ -968,94 +851,69 @@ function drawGame(time) {
   // =============================================
   // GROUND — drawn every frame in PLAYING state
   // =============================================
-  ctx.fillStyle = '#1a1a12';
+  const theme = MAP_THEMES[currentMap] || MAP_THEMES['Alpha'];
+  ctx.fillStyle = theme.floor1;
   ctx.fillRect(0, 0, MAP_WIDTH, MAP_HEIGHT);
 
-  // Subtle dirt tile grid (50px cells with slight shade variation)
+  // Subtle tile grid
   for (let gx = 0; gx < MAP_WIDTH; gx += 50) {
     for (let gy = 0; gy < MAP_HEIGHT; gy += 50) {
-      const shade = ((gx/50 + gy/50) % 2 === 0) ? 'rgba(255,255,255,0.018)' : 'rgba(0,0,0,0.06)';
+      const shade = ((gx/50 + gy/50) % 2 === 0) ? theme.floor2 : theme.floor1;
       ctx.fillStyle = shade;
       ctx.fillRect(gx, gy, 50, 50);
+      
+      ctx.strokeStyle = theme.floorBorder;
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(gx, gy, 50, 50);
     }
   }
-  // Dirt cracklines
-  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-  ctx.lineWidth = 1;
-  for (let gx = 0; gx <= MAP_WIDTH; gx += 50) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, MAP_HEIGHT); ctx.stroke();
-  }
-  for (let gy = 0; gy <= MAP_HEIGHT; gy += 50) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(MAP_WIDTH, gy); ctx.stroke();
-  }
 
   // =============================================
-  // DECORATIONS — rocks, grass clumps, path
+  // DECORATIONS — rocks, grass clumps, etc.
   // =============================================
-  drawMapDecorations(time);
+  drawMapDecorations(time, theme);
 
   // =============================================
-  // PITS — glowing abyss
+  // PITS — Themed Hazards
   // =============================================
+  const pits = MAP_DATA[currentMap]?.pits || [];
   for (let p of pits) {
-    if (!p.points) continue;
+    ctx.save();
+    ctx.translate(p.x, p.y);
 
     // Outer glow
-    ctx.save();
-    ctx.shadowColor = '#ff4500';
-    ctx.shadowBlur = 28;
+    ctx.shadowColor = theme.pitOuter;
+    ctx.shadowBlur = theme.pitEffect === 'Abyss' ? 10 : 25;
 
-    // Pit fill — deep dark with lava glow at edges
+    // Pit Core
+    ctx.fillStyle = theme.pitCol;
     ctx.beginPath();
-    ctx.moveTo(p.points[0].x, p.points[0].y);
-    for (let i = 1; i < p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
-    ctx.closePath();
-
-    const pitGrad = ctx.createRadialGradient(p.x, p.y, p.r * 0.1, p.x, p.y, p.r * 1.3);
-    pitGrad.addColorStop(0,   '#0a0508');
-    pitGrad.addColorStop(0.55,'#1a0800');
-    pitGrad.addColorStop(0.8, '#5c1800');
-    pitGrad.addColorStop(1,   '#ff4500');
-    ctx.fillStyle = pitGrad;
+    ctx.arc(0, 0, p.r, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
 
-    // Animated lava rim pulse
-    const pulse = 0.5 + 0.5 * Math.sin(time * 0.003);
-    ctx.strokeStyle = `rgba(255,${Math.floor(80 + 60*pulse)},0,${0.6 + 0.4*pulse})`;
-    ctx.lineWidth = 5;
-    ctx.stroke();
-
-    // Inner "depth" ring
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * 0.45, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0,0,0,0.7)';
-    ctx.fill();
-
-    // Lava bubble sparks
-    for (let s = 0; s < 3; s++) {
-      const ang = (time * 0.002 + s * 2.1) % (Math.PI * 2);
-      const sr = p.r * (0.2 + 0.15 * s);
-      const sx = p.x + Math.cos(ang) * sr;
-      const sy = p.y + Math.sin(ang) * sr * 0.6;
-      ctx.beginPath();
-      ctx.arc(sx, sy, 3 + s, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,${140+s*30},0,${0.6 + 0.3*Math.sin(time*0.004+s)})`;
-      ctx.fill();
+    // Thematic detail
+    if (theme.pitEffect === 'Water') {
+       ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+       ctx.lineWidth = 2;
+       for(let i=0; i<3; i++) {
+         const wy = Math.sin(time*0.003 + i)*10;
+         ctx.beginPath(); ctx.moveTo(-p.r*0.7, wy + i*15 - 15); ctx.lineTo(p.r*0.7, wy + i*15 - 15); ctx.stroke();
+       }
+    } else if (theme.pitEffect === 'Acid') {
+       ctx.fillStyle = 'rgba(255,255,255,0.2)';
+       for(let i=0; i<5; i++) {
+         const bubY = (time * 0.05 + i * 20) % p.r;
+         ctx.beginPath(); ctx.arc(Math.sin(i)*p.r*0.5, -bubY, 4, 0, Math.PI*2); ctx.fill();
+       }
+    } else {
+       // Abyss
+       ctx.strokeStyle = '#2d3436';
+       ctx.lineWidth = 4;
+       ctx.stroke();
     }
+    
     ctx.restore();
-
-    // Crumbling stone edge
-    ctx.beginPath();
-    ctx.moveTo(p.points[0].x, p.points[0].y);
-    for (let i = 1; i < p.points.length; i++) ctx.lineTo(p.points[i].x, p.points[i].y);
-    ctx.closePath();
-    ctx.strokeStyle = '#5c4033';
-    ctx.lineWidth = 8;
-    ctx.stroke();
-    ctx.strokeStyle = '#3a2416';
-    ctx.lineWidth = 3;
-    ctx.stroke();
   }
 
   // =============================================
@@ -1096,39 +954,32 @@ function drawGame(time) {
   // =============================================
   // WALLS — stone masonry with highlight
   // =============================================
+  const walls = MAP_DATA[currentMap]?.walls || [];
   for (let w of walls) {
-    const isThick = w.w >= w.h ? w.h >= 18 : w.w >= 18;
-    // Wall base — dark stone
-    ctx.fillStyle = '#37474f';
+    ctx.fillStyle = '#2c3e50';
     ctx.fillRect(w.x, w.y, w.w, w.h);
 
-    // Stone block lines
-    ctx.strokeStyle = '#263238';
-    ctx.lineWidth = 1;
-    const bw = 30, bh = 20;
-    if (w.w > w.h) {
-      // Horizontal wall — draw horizontal block lines
-      for (let bx = w.x; bx < w.x + w.w; bx += bw) {
-        ctx.beginPath(); ctx.moveTo(bx, w.y); ctx.lineTo(bx, w.y + w.h); ctx.stroke();
-      }
-    } else {
-      // Vertical wall
-      for (let by = w.y; by < w.y + w.h; by += bh) {
-        ctx.beginPath(); ctx.moveTo(w.x, by); ctx.lineTo(w.x + w.w, by); ctx.stroke();
-      }
-    }
-    // Top highlight edge
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.strokeStyle = '#34495e';
     ctx.lineWidth = 2;
     ctx.strokeRect(w.x, w.y, w.w, w.h);
+
+    // Top highlight edge
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    if (w.w > w.h) {
+       ctx.beginPath(); ctx.moveTo(w.x, w.y+2); ctx.lineTo(w.x+w.w, w.y+2); ctx.stroke();
+    } else {
+       ctx.beginPath(); ctx.moveTo(w.x+2, w.y); ctx.lineTo(w.x+2, w.y+w.h); ctx.stroke();
+    }
   }
 
   // =============================================
   // WORLD DECORATIONS & TASK OBJECTS
   // =============================================
-  for (let f of DECOR_FLORA) drawFlora(f);
-  for (let it of DECOR_FURNITURE) drawFurniture(it);
-  for (let t of TASKS) drawTaskWorldObject(t, time);
+  const mapTasks = MAP_DATA[currentMap]?.tasks || [];
+  const furniture = MAP_DATA[currentMap]?.furniture_visuals || []; // Wait, I'll use generic furniture
+  
+  for (let t of mapTasks) drawTaskWorldObject(t, time);
 
   // Draw Emergency Button
   drawEmergencyButton(time);
@@ -1153,26 +1004,28 @@ function drawGame(time) {
   }
   
   if (myRole === 'crewmate' || (players[myId] && players[myId].isDead)) {
-    drawTasks();
+    const tasks = MAP_DATA[currentMap]?.tasks || [];
+    drawTasks(tasks);
   }
   
   // =============================================
   // ROOFS — fog of war with improved look
   // =============================================
-  const amIDead = me && me.isDead;
-  let myRoomId = (!amIDead && me) ? getRoomId(me.x, me.y) : null;
+  const isMe = players[myId];
+  const amIDead = isMe && isMe.isDead;
+  let myRoomId = (!amIDead && isMe) ? getRoomId(isMe.x, isMe.y) : null;
 
-  // Building config for roof styling
-  const BLDG_STYLES = {
-    'B1': { label: 'The Compound',  roofCol: 'rgb(40,55,70)',   windowCol: '#ffd54f', windowGlow: '#ff9800' },
-    'B2': { label: 'L-Block',       roofCol: 'rgb(55,55,60)',   windowCol: '#80deea', windowGlow: '#00bcd4' },
-    'B3': { label: 'The Maze',      roofCol: 'rgb(50,20,65)',   windowCol: '#ce93d8', windowGlow: '#9c27b0' },
-    'B4': { label: 'Longhouse',     roofCol: 'rgb(70,35,10)',   windowCol: '#ffcc80', windowGlow: '#ff6f00' },
-  };
+  // Re-use 'theme' from line 854
+  const roofs = MAP_DATA[currentMap]?.roofs || [];
 
   for (let r of roofs) {
-    const bKey = r.id.slice(0, 2); // 'B1', 'B2', etc.
-    const style = BLDG_STYLES[bKey] || { roofCol: 'rgb(30,30,30)', windowCol: '#fff', windowGlow: '#fff' };
+    const bKey = r.id.slice(0, 2); 
+    const bIndex = parseInt(r.id.slice(1)) - 1;
+    const style = {
+       label: theme.bldgLabels[bIndex] || 'The Outpost',
+       roofCol: theme.roofCols[bIndex] || 'rgb(30,30,30)',
+       windowCol: '#ffd54f', windowGlow: '#ff9800'
+    };
 
     if (amIDead) {
       // Ghost: see through roof, slight tint
@@ -1252,23 +1105,16 @@ function drawRoofWindows(r, style, time) {
 // =============================================
 // Helper: wooden signs near doors
 // =============================================
-const WOODEN_SIGNS = [
-  // B1
-  { x: 950,  y: 1500, label: 'THE COMPOUND', color: '#f39c12' },
-  { x: 1720, y: 1250, label: 'THE COMPOUND', color: '#f39c12' },
-  // B2
-  { x: 2510, y: 750,  label: 'L-BLOCK',       color: '#00bcd4' },
-  { x: 2100, y: 1400, label: 'L-BLOCK',       color: '#00bcd4' },
-  // B3
-  { x: 340,  y: 2150, label: 'THE MAZE',      color: '#ce93d8' },
-  { x: 1100, y: 2350, label: 'THE MAZE',      color: '#ce93d8' },
-  // B4
-  { x: 1040, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
-  { x: 2200, y: 2700, label: 'LONGHOUSE',     color: '#ff8f00' },
-];
-
 function drawWoodenSigns() {
-  for (let s of WOODEN_SIGNS) {
+  const theme = MAP_THEMES[currentMap] || MAP_THEMES['Alpha'];
+  const SIGNS = [];
+  // Approximate sign placement for each map's buildings
+  const roofs = MAP_DATA[currentMap]?.roofs || [];
+  roofs.forEach((r, i) => {
+    SIGNS.push({ x: r.x + r.w/2, y: r.y + r.h + 20, label: theme.bldgLabels[i] || 'HQ' });
+  });
+
+  for (let s of SIGNS) {
     ctx.save();
     ctx.translate(s.x, s.y);
 
@@ -1336,31 +1182,44 @@ const DECORATIONS = (function() {
   return items;
 })();
 
-function drawMapDecorations(time) {
+function drawMapDecorations(time, theme) {
   for (let d of DECORATIONS) {
     ctx.save();
     ctx.translate(d.x, d.y);
     ctx.rotate(d.rot);
-    if (d.type === 'rock') {
-      ctx.fillStyle = '#3d3428';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, d.sz, d.sz * 0.65, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.beginPath();
-      ctx.ellipse(-d.sz*0.2, -d.sz*0.15, d.sz*0.4, d.sz*0.25, -0.5, 0, Math.PI * 2);
-      ctx.fill();
+
+    if (theme.pitEffect === 'Water') {
+      // Base Britney: Bio-Luminescent Mushrooms
+      const pulse = 0.5 + 0.5 * Math.sin(time * 0.003 + d.x);
+      ctx.fillStyle = `hsla(${200 + d.sz*5}, 80%, 60%, ${0.6 + 0.4*pulse})`;
+      ctx.shadowColor = `hsla(${200 + d.sz*5}, 80%, 60%, 1)`;
+      ctx.shadowBlur = 10 * pulse;
+      ctx.beginPath(); ctx.arc(0, 0, d.sz * 0.8, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, -d.sz*0.4, d.sz*0.2, 0, Math.PI*2); ctx.fill();
+    } else if (theme.pitEffect === 'Acid') {
+      // Base Charlie: Jungle Vines / Moss
+      ctx.strokeStyle = '#2d3436'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(d.sz, d.sz, d.sz*0.5, d.sz*2); ctx.stroke();
+      ctx.fillStyle = '#44bd32';
+      for(let i=0; i<3; i++) {
+        ctx.beginPath(); ctx.ellipse(i*4, i*8, 4, 6, 0.5, 0, Math.PI*2); ctx.fill();
+      }
     } else {
-      // Grass tuft
-      ctx.strokeStyle = `rgba(${40+Math.floor(d.sz*3)},${80+Math.floor(d.sz*5)},${20+Math.floor(d.sz*2)},0.7)`;
-      ctx.lineWidth = 1.5;
-      for (let b = -1; b <= 1; b++) {
-        ctx.beginPath();
-        ctx.moveTo(b * d.sz * 0.35, 0);
-        ctx.lineTo(b * d.sz * 0.2, -d.sz * 1.2);
-        ctx.stroke();
+      // Base Alpha: Rocks & Grass
+      if (d.type === 'rock') {
+        ctx.fillStyle = '#3d3428';
+        ctx.beginPath(); ctx.ellipse(0, 0, d.sz, d.sz * 0.65, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.beginPath(); ctx.ellipse(-d.sz*0.2, -d.sz*0.15, d.sz*0.4, d.sz*0.25, -0.5, 0, Math.PI * 2); ctx.fill();
+      } else {
+        ctx.strokeStyle = `rgba(${40+Math.floor(d.sz*3)},${80+Math.floor(d.sz*5)},${20+Math.floor(d.sz*2)},0.7)`;
+        ctx.lineWidth = 1.5;
+        for (let b = -1; b <= 1; b++) {
+          ctx.beginPath(); ctx.moveTo(b * d.sz * 0.35, 0); ctx.lineTo(b * d.sz * 0.2, -d.sz * 1.2); ctx.stroke();
+        }
       }
     }
+    ctx.shadowBlur = 0;
     ctx.restore();
   }
 }

@@ -90,12 +90,26 @@
       <div id="player-list">Waiting for players...</div>
       
       <!-- HOST CONTROLS -->
-      <div id="host-controls" class="hidden">
+      <div id="host-controls" class="hidden" style="margin-top: 20px;">
          <p style="font-size: 12px; color: #7f8c8d;">Minimum 4 players required to start. Max 10.</p>
+         
+         <!-- Map Selection -->
+         <div class="setting-row" style="margin-bottom: 15px;">
+           <label for="map-select" style="display: block; font-size: 14px; margin-bottom: 5px; color: #f1c40f;">Select Map Location:</label>
+           <select id="map-select" class="form-input" style="width: 100%; padding: 8px; background: #2c3e50; color: white; border: 1px solid #34495e; border-radius: 4px;">
+             <option value="Alpha">Base Alpha (Industrial)</option>
+             <option value="Britney">Base Britney (The Oasis)</option>
+             <option value="Charlie">Base Charlie (The Ruins)</option>
+           </select>
+         </div>
+
          <button id="start-btn" disabled>Start Game (Waiting for 4+)</button>
          <br>
          <button id="add-bot-btn" class="modal-submit-btn" style="background: #3498db; margin-top: 10px; width: 100%;">👤 Add AI Player</button>
       </div>
+
+      <!-- MAP STATUS (FOR ALL) -->
+      <p id="map-status" style="margin-top: 10px; color: #3498db; font-weight: bold;">Location: Base Alpha</p>
 
       <!-- NON HOST MSG -->
       <p id="wait-msg" class="hidden" style="color: #bdc3c7;">Waiting for Host to start the game...</p>
