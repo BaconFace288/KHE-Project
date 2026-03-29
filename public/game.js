@@ -315,9 +315,36 @@ socket.on('roomJoined', (data) => {
 });
 
 socket.on('roomUpdate', (roomData) => {
-    players = roomData.players || players;
+    const newPlayers = roomData.players || {};
     hostId = roomData.hostId || hostId;
-    currentMap = roomData.mapId || currentMap; // CRITICAL: Fix for re-joiners/late-joiners missing map layout
+    currentMap = roomData.mapId || currentMap; 
+    
+    // Merge player data instead of replacing to prevent position snap-back
+    for (let id in newPlayers) {
+        if (!players[id]) {
+            players[id] = newPlayers[id];
+        } else {
+            // Update metadata but KEEP local position if it's ME
+            const p = newPlayers[id];
+            players[id].role = p.role;
+            players[id].isDead = p.isDead;
+            players[id].color = p.color;
+            players[id].name = p.name;
+            players[id].isBot = p.isBot;
+            
+            if (id !== myId) {
+                players[id].x = p.x;
+                players[id].y = p.y;
+                players[id].flipX = p.flipX;
+                players[id].isMoving = p.isMoving;
+            }
+        }
+    }
+    
+    // Remove disconnected players
+    for (let id in players) {
+        if (!newPlayers[id]) delete players[id];
+    }
     
     // If we transition to playing (e.g. late join or game start)
     if (currentState === 'LOBBY' && roomData.state === 'PLAYING') {
@@ -338,6 +365,7 @@ socket.on('playerDisconnected', (id) => {
 });
 
 socket.on('playerMoved', (data) => {
+    if (data.id === myId) return; // Never snap back local player
     if (players[data.id]) {
       const p = players[data.id];
       // Track vertical direction for sprite facing
