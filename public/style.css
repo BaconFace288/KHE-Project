@@ -263,9 +263,9 @@ canvas {
 
 /* Credits Modal Specifics (Handbook Style) */
 .credits-card {
-    width: 95% !important; /* Force override of the 520px minigame bottleneck */
-    max-width: 1000px !important; /* Wide panoramic view to support more columns */
-    max-height: 85vh;
+    width: 95% !important;
+    max-width: 1200px !important; /* Even wider to support 3-4 columns */
+    max-height: 90vh; /* More height to avoid scrollbar on most screens */
     overflow-y: auto;
     border: 5px solid #f39c12; 
     text-align: center !important;
@@ -273,30 +273,32 @@ canvas {
     border-radius: 20px;
     box-shadow: 0 0 60px rgba(0,0,0,0.9), 0 0 30px rgba(243, 156, 18, 0.25);
     padding: 30px;
+    display: flex;
+    flex-direction: column;
 }
 
 .credits-section {
-    margin-bottom: 45px;
-    padding-bottom: 15px;
+    margin-bottom: 20px; /* Compacted from 45px */
+    padding-bottom: 5px;
     text-align: center !important;
 }
 
 .credits-title {
     color: #f39c12;
     font-family: 'Montserrat', sans-serif;
-    font-size: 22px; 
+    font-size: 20px; 
     text-transform: uppercase;
     letter-spacing: 4px;
-    margin-bottom: 20px;
+    margin-bottom: 12px; /* Compacted from 20px */
     font-weight: 900;
     text-align: center !important;
 }
 
 .credits-name {
-    font-size: 18px; /* Slightly refined to fit more columns */
+    font-size: 16px; /* Refined for multi-column density */
     font-family: 'Orbitron', sans-serif; 
     color: #ecf0f1;
-    margin: 12px 0;
+    margin: 8px 0;
     font-weight: 700;
     letter-spacing: 1.5px;
     text-align: center !important;
@@ -304,13 +306,19 @@ canvas {
 }
 
 .credits-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px 25px; /* Tighter gap for more density */
-    max-width: 98%;
+    display: grid;
+    /* Grid forces 3-4 columns on wide screens */
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px 20px;
+    max-width: 100%;
     margin: 0 auto;
     text-align: center !important;
+}
+
+/* Ensure the Close button is centered in the wide view */
+.credits-card .modal-footer {
+    justify-content: center !important;
+    margin-top: 25px;
 }
 
 #credits-modal {
