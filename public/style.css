@@ -275,9 +275,11 @@ canvas {
     padding: 30px;
     display: flex;
     flex-direction: column;
+    align-items: center !important; /* Force all children to center horizontally */
 }
 
 .credits-section {
+    width: 100%; /* Ensure section fills card width for true centering */
     margin-bottom: 20px; /* Compacted from 45px */
     padding-bottom: 5px;
     text-align: center !important;
