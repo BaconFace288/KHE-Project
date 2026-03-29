@@ -244,6 +244,25 @@ function moveTowards(bot, tx, ty) {
     if (selectedAngle !== null) {
         const nextX = bot.x + Math.cos(selectedAngle) * BOT_WALK_SPEED;
         const nextY = bot.y + Math.sin(selectedAngle) * BOT_WALK_SPEED;
+        
+        // Progress tracking: If we haven't moved much in 20 ticks (2s), we are "ramming"
+        if (!bot.progressCheckTicks) bot.progressCheckTicks = 0;
+        if (bot.progressCheckTicks % 20 === 0) {
+            if (bot.lastPosX !== undefined) {
+                const moved = Math.hypot(nextX - bot.lastPosX, nextY - bot.lastPosY);
+                if (moved < 10) { 
+                    selectedAngle = null; // Force panic
+                }
+            }
+            bot.lastPosX = nextX;
+            bot.lastPosY = nextY;
+        }
+        bot.progressCheckTicks++;
+    }
+
+    if (selectedAngle !== null) {
+        const nextX = bot.x + Math.cos(selectedAngle) * BOT_WALK_SPEED;
+        const nextY = bot.y + Math.sin(selectedAngle) * BOT_WALK_SPEED;
         bot.flipX = (nextX < bot.x);
         bot.x = nextX; bot.y = nextY;
         bot.isMoving = true;
@@ -252,12 +271,13 @@ function moveTowards(bot, tx, ty) {
         bot.isMoving = false;
         bot.stuckTicks = (bot.stuckTicks || 0) + 1;
         
-        // Panic Recovery: If stuck for 1.5s, teleport to a random task location or spawn
+        // Panic Recovery: If stuck for 1.5s or progress is zero, pick a new task
         if (bot.stuckTicks > 15) {
-            const escape = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
-            bot.x = escape.x; bot.y = escape.y;
+            // Pick a different task location
+            bot.target = SERVER_TASKS[Math.floor(Math.random() * SERVER_TASKS.length)];
             bot.botState = 'IDLE';
             bot.stuckTicks = 0;
+            bot.progressCheckTicks = 0; 
         }
     }
 }
