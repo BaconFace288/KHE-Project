@@ -1,4 +1,5 @@
-const socket = io();
+window.socket = io();
+const socket = window.socket;
 
 // UI Elements
 const mainMenu = document.getElementById('main-menu');
@@ -322,13 +323,18 @@ function getRoomId(px, py) {
 // ==========================
 
 // Game State
-let players = {};
-let myId = null;
+window.players = {};
+let players = window.players;
+window.myId = null;
+let myId = window.myId;
 let currentRoomCode = null;
 let currentState = 'LANDING';
 let myRole = 'crewmate';
 let hostId = null;
-let completedTasks = new Set(); // task IDs completed by THIS player
+window.completedTasks = new Set(); // task IDs completed by THIS player
+let completedTasks = window.completedTasks;
+window.bodies = [];
+let bodies = window.bodies;
 let nearbyBody = null; // body object player is standing near
 let shownTaskId = null; // ID of the task current showing a prompt
 window.meetingActive = false;
@@ -397,11 +403,11 @@ document.addEventListener('keydown', (e) => {
     const me = players[myId];
     if (!me || me.isDead) return;
     
-    // Generous detection: find body within 100px
+    // Standard 110px detection radius
     let foundBody = null;
     for (const body of bodies) {
         if (body.ejected || body.reported) continue;
-        if (Math.hypot(me.x - body.x, me.y - body.y) < 100) {
+        if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
             foundBody = body;
             break;
         }
@@ -416,7 +422,7 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'KeyQ') {
     const me = players[myId];
     if (!me || me.isDead) return;
-    // Generous radius: 110px
+    // Standard 110px detection radius
     if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
       console.log("CRITICAL: Emergency Meeting triggered via KeyQ");
       socket.emit('callMeeting', { type: 'emergency' });
@@ -1048,7 +1054,7 @@ function updateLocalPlayer(dt) {
   if (!isGhost) {
     for (let body of bodies) {
       if (body.ejected || body.reported) continue; 
-      if (Math.hypot(me.x - body.x, me.y - body.y) < 65) {
+      if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
         nearbyBody = body;
         break;
       }
@@ -1939,7 +1945,7 @@ function drawTaskHUD() {
 
   // [Q] prompt when near emergency button
   if (me && !me.isDead && !window.meetingActive &&
-      Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < EMERGENCY_BTN.r + 65) {
+      Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
     const cx = canvas.width / 2;
     const cy = canvas.height - 175;
     ctx.save();

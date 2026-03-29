@@ -54,8 +54,13 @@ function openMeeting(data) {
     ? '💀 DEAD BODY<br>REPORTED!'
     : '⚠️ EMERGENCY<br>MEETING!';
 
+  console.log("MEETING SYSTEM: openMeeting called with data:", data);
+  
   flashEl.classList.add('active');
+  console.log("MEETING SYSTEM: Flash active class added");
+
   setTimeout(() => {
+    console.log("MEETING SYSTEM: Timeout finished, showing vote screen");
     flashEl.classList.remove('active');
     showVoteScreen(data);
   }, 2500);

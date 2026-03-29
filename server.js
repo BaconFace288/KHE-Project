@@ -707,6 +707,15 @@ io.on('connection', (socket) => {
     const caller = room.players[socket.id];
     if (!caller || caller.isDead) return;
 
+    // If reporting a body, mark it so it can be cleared after meeting
+    if (type === 'report' && bodyName) {
+        const body = room.bodies.find(b => b.name === bodyName && !b.reported);
+        if (body) {
+            body.reported = true;
+            console.log(`[Meeting] Body of ${bodyName} reported in room ${roomId}`);
+        }
+    }
+
     room.meeting = { type, calledBy: socket.id, votes: {} };
     io.to(roomId).emit('meetingCalled', {
       type, calledBy: socket.id,
