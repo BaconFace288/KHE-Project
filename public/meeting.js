@@ -26,16 +26,20 @@ const chatInput     = document.getElementById('chat-input');
 const chatSendBtn   = document.getElementById('chat-send-btn');
 
 // ===== Socket Events =====
-socket.on('meetingCalled', (data) => openMeeting(data));
-socket.on('meetingResult', (data) => showResult(data));
-socket.on('voteCast', ({ voterId }) => {
-  votedPlayers.add(voterId);
-  const el = document.getElementById(`vck-${voterId}`);
-  if (el) el.textContent = '✓';
-});
-socket.on('meetingChatMsg', ({ name, color, text, isDead }) => {
-  appendChat(name, color, text, isDead);
-});
+if (window.socket) {
+  window.socket.on('meetingCalled', (data) => openMeeting(data));
+  window.socket.on('meetingResult', (data) => showResult(data));
+  window.socket.on('voteCast', ({ voterId }) => {
+    votedPlayers.add(voterId);
+    const el = document.getElementById(`vck-${voterId}`);
+    if (el) el.textContent = '✓';
+  });
+  window.socket.on('meetingChatMsg', ({ name, color, text, isDead }) => {
+    appendChat(name, color, text, isDead);
+  });
+} else {
+  console.error("MEETING SYSTEM: window.socket is not initialized!");
+}
 
 // ===== Open Meeting =====
 function openMeeting(data) {
@@ -48,11 +52,10 @@ function openMeeting(data) {
   meetingTimeLeft = 60;
   window.taskModalActive = true; // freeze movement
 
-  const isReport = data.type === 'report';
-  flashText.style.color = isReport ? '#e74c3c' : '#f39c12';
-  flashText.innerHTML = isReport
-    ? '💀 DEAD BODY<br>REPORTED!'
-    : '⚠️ EMERGENCY<br>MEETING!';
+  if (!flashEl || !flashText) {
+    console.error("MEETING SYSTEM: Flash elements missing from DOM!");
+    return;
+  }
 
   console.log("MEETING SYSTEM: openMeeting called with data:", data);
   

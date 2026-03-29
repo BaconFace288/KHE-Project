@@ -662,15 +662,16 @@ canvas {
 
 /* --- Meeting System --- */
 #meeting-flash {
-  position: fixed;
+  position: fixed !important;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,0.95); /* Slightly darker for better contrast */
   display: none;
   justify-content: center;
   align-items: center;
-  z-index: 9000;
+  z-index: 99999 !important; /* Maximized to sit above everything */
   border: 15px double #c0392b;
   box-sizing: border-box;
+  pointer-events: none; /* Let clicks pass through during the flash */
 }
 #meeting-flash.active { display: flex; animation: strobeRed 0.5s infinite; }
 @keyframes strobeRed {
@@ -691,14 +692,15 @@ canvas {
 }
 
 #vote-screen {
-  position: fixed;
+  position: fixed !important;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(10, 15, 25, 0.95);
+  background: rgba(10, 15, 25, 0.98);
   display: none;
   justify-content: center;
   align-items: center;
-  z-index: 5000;
-  backdrop-filter: blur(10px);
+  z-index: 99998 !important; /* Just below flash, but above canvas */
+  backdrop-filter: blur(15px);
+  pointer-events: auto; /* Buttons must be clickable */
 }
 #vote-screen.active { display: flex; }
 

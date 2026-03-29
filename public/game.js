@@ -1,5 +1,5 @@
-window.socket = io();
-const socket = window.socket;
+var socket = io();
+window.socket = socket;
 
 // UI Elements
 const mainMenu = document.getElementById('main-menu');
@@ -322,21 +322,22 @@ function getRoomId(px, py) {
 }
 // ==========================
 
-// Game State
-window.players = {};
-let players = window.players;
-window.myId = null;
-let myId = window.myId;
-let currentRoomCode = null;
-let currentState = 'LANDING';
-let myRole = 'crewmate';
-let hostId = null;
-window.completedTasks = new Set(); // task IDs completed by THIS player
-let completedTasks = window.completedTasks;
-window.bodies = [];
-let bodies = window.bodies;
-let nearbyBody = null; // body object player is standing near
-let shownTaskId = null; // ID of the task current showing a prompt
+// Game State (Core Globals)
+var players = {};
+window.players = players;
+var myId = null;
+window.myId = myId;
+var myRole = 'crewmate';
+var currentRoomCode = null;
+var currentState = 'LANDING';
+var hostId = null;
+var completedTasks = new Set();
+window.completedTasks = completedTasks;
+var bodies = [];
+window.bodies = bodies;
+var nearbyBody = null;
+var shownTaskId = null;
+window.meetingActive = false;
 window.meetingActive = false;
 const SWING_COOLDOWN = 20000; // 20 second cooldown for caveman swing
 let lastSwingTime = 0; 
@@ -1094,10 +1095,17 @@ function drawGame(time) {
      camY = me.y - (canvas.height / 2);
      camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camX));
      camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camY));
-  } else if (currentState === 'PLAYING') {
-      // Fallback camera position (map center) if player data is loading
-      camX = 1500 - (canvas.width / 2);
-      camY = 1500 - (canvas.height / 2);
+  } else {
+      // Improved fallback: Do not snap to (1500,1500) if me is just briefly missing. 
+      // Only snap if we are explicitly in LOBBY.
+      if (currentState === 'LOBBY') {
+        camX = 1500 - (canvas.width / 2);
+        camY = 1500 - (canvas.height / 2);
+      } else {
+        // Stay where we are if we have some data
+         camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, 1500 - canvas.width / 2));
+         camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, 1500 - canvas.height / 2));
+      }
   }
   
   ctx.save();
