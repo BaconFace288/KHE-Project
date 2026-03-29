@@ -262,12 +262,97 @@ const CODING_QUESTIONS = [
     options: ['boolean', 'bool', 'bit', 'flag'],
     answer: 0
   },
+  {
+    lang: 'Python',
+    prompt: 'How do you output text in Python?',
+    code: '# Display a message',
+    options: ['print("Hi")', 'console.log("Hi")', 'echo "Hi"', 'system.out("Hi")'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'Find the indentation error:',
+    code: 'if True:\nprint("Error Here")',
+    options: ['Missing indentation before print', 'Missing colon after print', 'if True is not valid', 'print should be capitalized'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'How do you get the number of items in a list?',
+    code: 'my_list = [1, 2, 3]\ncount = ___(my_list)',
+    options: ['len', 'count', 'size', 'length'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'Which creates a comment in Python?',
+    code: '___ This is a comment',
+    options: ['#', '//', '/*', '--'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'What is the result of 10 // 3?',
+    code: 'result = 10 // 3',
+    options: ['3 (floor division)', '3.33', '1 (remainder)', 'Error'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'Which is the correct "else if" in Python?',
+    code: 'if x > 0:\n  pass\n___ x < 0:\n  pass',
+    options: ['elif', 'else if', 'elseif', 'otherwise'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'How do you create a function in Python?',
+    code: '___ my_function():',
+    options: ['def', 'func', 'function', 'define'],
+    answer: 0
+  },
+  {
+    lang: 'Python',
+    prompt: 'Which fills the blank for a loop from 0 to 4?',
+    code: 'for i in ___(5):',
+    options: ['range', 'list', 'loop', 'count'],
+    answer: 0
+  },
+  {
+    lang: 'JavaScript',
+    prompt: 'Which fills the blank for decimal-to-whole conversion?',
+    code: 'Math.___(5.9) // returns 5',
+    options: ['floor', 'round', 'ceil', 'abs'],
+    answer: 0
+  },
+  {
+    lang: 'JavaScript',
+    prompt: 'Which keyword defines a constant?',
+    code: '___ MAX = 100;',
+    options: ['const', 'let', 'var', 'final'],
+    answer: 0
+  },
+  {
+    lang: 'HTML',
+    prompt: 'Which tag links a CSS stylesheet?',
+    code: '<link rel="stylesheet" ___="style.css">',
+    options: ['href', 'src', 'link', 'url'],
+    answer: 0
+  },
+  {
+    lang: 'CSS',
+    prompt: 'How do you make text bold in CSS?',
+    code: 'p { ___: bold; }',
+    options: ['font-weight', 'text-style', 'font-thickness', 'style'],
+    answer: 0
+  },
 ];
 
 // ---------- Modal State ----------
 let currentTask = null;
 let currentQuestion = null;
 let codingAttempts = 0;
+let codingQuestionsSolved = 0;
 const MAX_ATTEMPTS = 2;
 
 const modal       = document.getElementById('task-modal');
@@ -318,6 +403,7 @@ window.openTaskModal = function(task) {
   if (!task || task.done || completedTasks.has(task.id)) return;
   currentTask = task;
   codingAttempts = 0;
+  codingQuestionsSolved = 0;
 
   // Configure header
   const icon = task.label.split(' ')[0];
@@ -325,6 +411,7 @@ window.openTaskModal = function(task) {
   modalTitle.textContent = task.label.replace(icon, '').trim();
 
   // Show Stage 1
+  codingQuestionsSolved = 0;
   showMinigameStage();
   modal.classList.add('active');
   window.taskModalActive = true;
@@ -993,12 +1080,10 @@ function startDropGame() {
   loop();
 }
 
-// ===========================
-//  Minigame complete → Stage 2
-// ===========================
 function onMinigameComplete() {
   mgFeedback.textContent = '';
-  progressFill.style.width = '50%';
+  progressFill.style.width = '33%';
+  codingQuestionsSolved = 0;
   // Transition to coding stage after a brief hold
   setTimeout(showCodingStage, 500);
 }
@@ -1007,12 +1092,21 @@ function onMinigameComplete() {
 //  STAGE 2 — CODING QUESTION
 // ===========================
 function showCodingStage() {
+  codingQuestionsSolved++;
+  
+  const isHard = window.hardTaskIds && window.hardTaskIds.has(currentTask.id);
+  const totalStages = isHard ? 3 : 2;
+  const currentStage = 1 + codingQuestionsSolved;
+
   mgStage.style.display = 'none';
   codingStage.style.display = 'block';
-  modalStageLabel.textContent = 'Stage 2 / 2 — Coding Question';
+  modalStageLabel.textContent = `Stage ${currentStage} / ${totalStages} — Coding Question`;
   codingAttempts = 0;
   codingFeedback.textContent = '';
   attemptIndicator.textContent = '';
+
+  // Update progress bar
+  progressFill.style.width = (currentStage / totalStages * 100) + '%';
 
   // Pick a random question
   currentQuestion = CODING_QUESTIONS[Math.floor(Math.random() * CODING_QUESTIONS.length)];
@@ -1050,7 +1144,16 @@ function checkMCAnswer(chosen, q, grid) {
   const btns = grid.querySelectorAll('.mc-opt');
   if (chosen === q.answer) {
     btns[chosen].classList.add('correct');
-    onTaskFullyComplete();
+    
+    // Check if we need more coding questions
+    const isHard = window.hardTaskIds && window.hardTaskIds.has(currentTask.id);
+    const totalNeeded = isHard ? 2 : 1;
+    
+    if (codingQuestionsSolved < totalNeeded) {
+      setTimeout(showCodingStage, 600);
+    } else {
+      onTaskFullyComplete();
+    }
   } else {
     btns[chosen].classList.add('wrong');
     codingAttempts++;

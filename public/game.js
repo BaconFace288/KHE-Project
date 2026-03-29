@@ -333,6 +333,8 @@ let lastSwingTime = 0;
 let introActive = false; // blocks movement/actions during cinematic intro
 if (!window.hasOwnProperty('taskModalActive')) window.taskModalActive = false;
 
+window.hardTaskIds = new Set();
+
 function assignMyTasks() {
     const all = TASKS.map(t => t.id);
     // Fisher-Yates shuffle then take first 7
@@ -340,7 +342,13 @@ function assignMyTasks() {
         const j = Math.floor(Math.random() * (i + 1));
         [all[i], all[j]] = [all[j], all[i]];
     }
-    myTaskIds = new Set(all.slice(0, 7));
+    const myIdsList = all.slice(0, 7);
+    myTaskIds = new Set(myIdsList);
+
+    // Pick 2 random from our 7 to be "hard" tasks (2 coding questions)
+    const shuffled7 = [...myIdsList].sort(() => Math.random() - 0.5);
+    window.hardTaskIds = new Set(shuffled7.slice(0, 2));
+
     // Reset completion state for new game
     completedTasks = new Set();
     TASKS.forEach(t => { t.done = false; });
