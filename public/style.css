@@ -188,15 +188,15 @@ canvas {
 
 /* ROLE INFO ICONS */
 .landing-banner-wrap {
-    position: relative; /* Lock the icons to the banner corners */
-    width: 100%;
-    max-width: 1300px;
-    aspect-ratio: 21 / 9; /* Cinematic widescreen ratio */
-    border-radius: 16px;
+    position: relative;
+    width: 95%;
+    max-width: 1400px;
+    aspect-ratio: 16 / 9; /* Matched to new 16:9 user artwork */
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 30px 80px rgba(0,0,0,0.95);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.95), 0 0 40px rgba(243, 156, 18, 0.15);
     background: #000;
-    border: 4px solid #1a1a1a;
+    border: 5px solid #2d3436;
     animation: cinematicScale 1.2s ease-out;
     display: flex;
     justify-content: center;
@@ -206,9 +206,9 @@ canvas {
 .landing-banner {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Edge-to-edge cinematic fill */
+    object-fit: contain; /* Ensure no part of the artwork is cut off */
     display: block;
-    transform: scale(1.01);
+    background: #000;
 }
 
 .info-icon {
