@@ -6,18 +6,18 @@
 
 // ---------- Task → Minigame mapping ----------
 const TASK_MINIGAME = {
-  t1:  'wire',    // Fix Relay
-  t2:  'simon',   // Charge Battery
-  t3:  'dial',    // Align Dish
-  t4:  'crates',  // Mix Solution
-  t5:  'wire',    // Restore Power
-  t6:  'simon',   // Upload Data
-  t7:  'simon',   // Cool Reactor
-  t8:  'crates',  // Seal Pit Crack
-  t9:  'crates',  // Collect Samples
-  t10: 'dial',    // Survey Zone
-  t11: 'crates',  // Mark Boundary
-  t12: 'crates',  // Drop Supply
+  t1:  't1_relay',      // Fix Relay
+  t2:  't2_battery',    // Charge Battery
+  t3:  't3_dish',       // Align Dish
+  t4:  't4_mix',        // Mix Solution
+  t5:  't5_power',      // Restore Power
+  t6:  't6_upload',     // Upload Data
+  t7:  't7_reactor',    // Cool Reactor
+  t8:  't8_crack',      // Seal Pit Crack
+  t9:  't9_samples',    // Collect Samples
+  t10: 't10_survey',    // Survey Zone
+  t11: 't11_boundary',  // Mark Boundary
+  t12: 't12_drop',      // Drop Supply
 };
 
 // ---------- Coding Question Pool — ALL multiple choice ----------
@@ -295,8 +295,11 @@ function closeModal() {
   codingAttempts = 0;
   // Clean up any minigame timers
   if (simonTimeout) { clearTimeout(simonTimeout); simonTimeout = null; }
+  // clear any global listeners from valve/dish/etc
+  window.onmousemove = null;
+  window.onmouseup = null;
   // re-enable game keys
-  if (typeof taskModalActive !== 'undefined') window.taskModalActive = false;
+  window.taskModalActive = false;
 }
 
 // Called from game.js keydown [F]
@@ -329,281 +332,615 @@ function showMinigameStage() {
   mgFeedback.textContent = '';
   mgWrap.innerHTML = '';
 
-  const type = TASK_MINIGAME[currentTask.id] || 'crates';
+  const type = TASK_MINIGAME[currentTask.id] || 't4_mix'; 
   switch(type) {
-    case 'wire':   startWireGame();   break;
-    case 'simon':  startSimonGame();  break;
-    case 'dial':   startDialGame();   break;
-    case 'crates': startCratesGame(); break;
+    case 't1_relay':    startRelayGame();    break;
+    case 't2_battery':  startBatteryGame();  break;
+    case 't3_dish':     startDishGame();     break;
+    case 't4_mix':      startMixGame();      break;
+    case 't5_power':    startPowerGame();    break;
+    case 't6_upload':   startUploadGame();   break;
+    case 't7_reactor':  startReactorGame();  break;
+    case 't8_crack':    startCrackGame();    break;
+    case 't9_samples':  startSamplesGame();  break;
+    case 't10_survey':  startSurveyGame();   break;
+    case 't11_boundary': startBoundaryGame(); break;
+    case 't12_drop':    startDropGame();     break;
+    default: startMixGame(); break;
   }
 }
 
-// -------- WIRE CONNECT minigame --------
-function startWireGame() {
+// -------- t1: RELAY CONNECT minigame --------
+function startRelayGame() {
   document.getElementById('minigame-instructions').textContent =
-    'Connect each wire on the left to its matching colour on the right.';
+    'Connect the matching colored relay nodes to stabilize the circuit.';
 
-  const C = ['#e74c3c','#3498db','#2ecc71','#f39c12'];
-  const labels = [...C];
+  const C = ['#3498db','#2ecc71','#f39c12','#e74c3c'];
   const rights = shuffle([...C]);
 
   const canvas = document.createElement('canvas');
-  canvas.width = 340; canvas.height = 200;
+  canvas.width = 340; canvas.height = 220;
   canvas.id = 'minigame-canvas';
   mgWrap.appendChild(canvas);
   const ctx = canvas.getContext('2d');
 
-  const leftPegs  = C.map((c,i)   => ({ x: 40,  y: 40 + i*40, c }));
-  const rightPegs = rights.map((c,i) => ({ x: 300, y: 40 + i*40, c }));
-  let connections = {}; // leftIndex → rightIndex
-  let dragging = null;  // { fromLeft: idx, curX, curY }
+  const leftPegs  = C.map((c,i)   => ({ x: 40,  y: 35 + i*50, c }));
+  const rightPegs = rights.map((c,i) => ({ x: 300, y: 35 + i*50, c }));
+  let connections = {}; 
+  let dragging = null;
 
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    // pegs
+    // Draw Nodes
     [...leftPegs, ...rightPegs].forEach(p => {
-      ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI*2);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI*2);
+      ctx.fillStyle = '#1a1a2e'; ctx.fill();
+      ctx.strokeStyle = p.c; ctx.lineWidth = 3; ctx.stroke();
+      // Inner dot
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
       ctx.fillStyle = p.c; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
     });
-    // completed connections
+    // Connections
     for (let li in connections) {
       const ri = connections[li];
       ctx.beginPath();
+      ctx.setLineDash([]);
       ctx.moveTo(leftPegs[li].x, leftPegs[li].y);
       ctx.lineTo(rightPegs[ri].x, rightPegs[ri].y);
       ctx.strokeStyle = leftPegs[li].c;
-      ctx.lineWidth = 4; ctx.stroke();
+      ctx.lineWidth = 5; ctx.stroke();
     }
-    // drag line
     if (dragging !== null) {
       const lp = leftPegs[dragging.idx];
       ctx.beginPath(); ctx.moveTo(lp.x, lp.y);
       ctx.lineTo(dragging.x, dragging.y);
-      ctx.strokeStyle = lp.c; ctx.lineWidth = 3;
-      ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.strokeStyle = lp.c; ctx.lineWidth = 4;
+      ctx.setLineDash([8,4]); ctx.stroke();
     }
   }
   draw();
 
-  canvas.addEventListener('mousedown', e => {
+  canvas.onmousedown = e => {
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
     leftPegs.forEach((p,i) => {
-      if (Math.hypot(mx-p.x, my-p.y) < 16) {
-        delete connections[i]; // allow rewire
+      if (Math.hypot(mx-p.x, my-p.y) < 20) {
+        delete connections[i];
         dragging = { idx: i, x: mx, y: my };
       }
     });
-  });
-  canvas.addEventListener('mousemove', e => {
-    if (dragging === null) return;
+  };
+  canvas.onmousemove = e => {
+    if (!dragging) return;
     const r = canvas.getBoundingClientRect();
-    dragging.x = e.clientX - r.left;
-    dragging.y = e.clientY - r.top;
+    dragging.x = e.clientX - r.left; dragging.y = e.clientY - r.top;
     draw();
-  });
-  canvas.addEventListener('mouseup', e => {
-    if (dragging === null) return;
+  };
+  canvas.onmouseup = e => {
+    if (!dragging) return;
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
     rightPegs.forEach((p,ri) => {
-      if (Math.hypot(mx-p.x, my-p.y) < 16) {
-        connections[dragging.idx] = ri;
-      }
+      if (Math.hypot(mx-p.x, my-p.y) < 20) connections[dragging.idx] = ri;
     });
-    dragging = null;
-    draw();
-    // Check win
+    dragging = null; draw();
     if (Object.keys(connections).length === C.length) {
-      let ok = true;
-      for (let li in connections) {
-        if (leftPegs[li].c !== rightPegs[connections[li]].c) { ok = false; break; }
-      }
-      if (ok) { onMinigameComplete(); }
-      else { mgFeedback.textContent = 'Some wires don\'t match — try again!'; }
+      if (C.every((c,i) => c === rightPegs[connections[i]].c)) onMinigameComplete();
+      else mgFeedback.textContent = 'Circuit mismatch! Rewire correctly.';
     }
-  });
-}
-
-// -------- SIMON SAYS minigame --------
-let simonTimeout = null;
-function startSimonGame() {
-  document.getElementById('minigame-instructions').textContent =
-    'Watch the sequence, then repeat it by clicking the same buttons in order.';
-
-  const COLORS = [
-    { id: 'sg-r', color: '#e74c3c', shadow: '#c0392b' },
-    { id: 'sg-b', color: '#3498db', shadow: '#2980b9' },
-    { id: 'sg-g', color: '#2ecc71', shadow: '#27ae60' },
-    { id: 'sg-y', color: '#f1c40f', shadow: '#f39c12' },
-  ];
-  const SEQ_LEN = 4;
-  const sequence = Array.from({length: SEQ_LEN}, () => Math.floor(Math.random() * 4));
-  let playerSeq = [];
-  let showing = true;
-
-  const grid = document.createElement('div');
-  grid.className = 'mg-grid';
-  grid.style.gridTemplateColumns = '1fr 1fr';
-  COLORS.forEach((c, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'mg-btn'; btn.id = c.id;
-    btn.style.background = c.color;
-    btn.style.boxShadow = `0 0 0px ${c.shadow}`;
-    btn.disabled = true;
-    btn.textContent = '';
-    btn.addEventListener('click', () => {
-      if (showing) return;
-      playerSeq.push(i);
-      flash(i, true);
-      if (playerSeq[playerSeq.length-1] !== sequence[playerSeq.length-1]) {
-        mgFeedback.textContent = 'Wrong order! Watch again...';
-        playerSeq = [];
-        showing = true;
-        setTimeout(() => playSequence(), 1000);
-        return;
-      }
-      if (playerSeq.length === SEQ_LEN) {
-        onMinigameComplete();
-      }
-    });
-    grid.appendChild(btn);
-  });
-  mgWrap.appendChild(grid);
-
-  function flash(idx, isPlayer = false) {
-    const btn = document.getElementById(COLORS[idx].id);
-    btn.classList.add('lit');
-    setTimeout(() => btn.classList.remove('lit'), isPlayer ? 200 : 400);
-  }
-
-  function playSequence() {
-    mgFeedback.textContent = 'Memorize the sequence...';
-    COLORS.forEach(c => document.getElementById(c.id).disabled = true);
-    let i = 0;
-    function step() {
-      if (i >= sequence.length) {
-        showing = false;
-        mgFeedback.textContent = 'Now repeat the sequence!';
-        COLORS.forEach(c => document.getElementById(c.id).disabled = false);
-        return;
-      }
-      flash(sequence[i]);
-      i++;
-      simonTimeout = setTimeout(step, 700);
-    }
-    simonTimeout = setTimeout(step, 500);
-  }
-  playSequence();
-}
-
-// -------- DIAL TUNE minigame --------
-function startDialGame() {
-  document.getElementById('minigame-instructions').textContent =
-    'Drag the handle into the green target zone and release.';
-
-  const TRACK_W = 380;
-  const zoneStart = 0.3 + Math.random() * 0.35; // 30–65%
-  const zoneWidth = 0.13;
-
-  const wrap = document.createElement('div');
-  wrap.className = 'mg-dial-wrap';
-  wrap.style.width = TRACK_W + 'px';
-
-  const track = document.createElement('div');
-  track.className = 'mg-dial-track';
-  track.style.width = TRACK_W + 'px';
-
-  const zone = document.createElement('div');
-  zone.className = 'mg-dial-zone';
-  zone.style.left   = (zoneStart * 100) + '%';
-  zone.style.width  = (zoneWidth * 100) + '%';
-  track.appendChild(zone);
-
-  let handlePos = 0.05;
-  const handle = document.createElement('div');
-  handle.className = 'mg-dial-handle';
-  handle.style.left = (handlePos * 100) + '%';
-  handle.textContent = '⇔';
-  track.appendChild(handle);
-
-  wrap.appendChild(track);
-  const label = document.createElement('p');
-  label.style.cssText = 'color:#95a5a6;font-size:12px;text-align:center;margin-top:8px;';
-  label.textContent = `Target: ${Math.round(zoneStart*100)}%–${Math.round((zoneStart+zoneWidth)*100)}%`;
-  wrap.appendChild(label);
-  mgWrap.appendChild(wrap);
-
-  let dragging = false;
-  handle.addEventListener('mousedown', () => dragging = true);
-  document.addEventListener('mousemove', onMouseMove);
-  document.addEventListener('mouseup', onMouseUp);
-
-  function onMouseMove(e) {
-    if (!dragging) return;
-    const r = track.getBoundingClientRect();
-    let t = (e.clientX - r.left) / r.width;
-    t = Math.max(0, Math.min(1, t));
-    handlePos = t;
-    handle.style.left = (t * 100) + '%';
-  }
-  function onMouseUp() {
-    if (!dragging) return;
-    dragging = false;
-    if (handlePos >= zoneStart && handlePos <= zoneStart + zoneWidth) {
-      handle.style.background = '#2ecc71';
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-      setTimeout(onMinigameComplete, 400);
-    } else {
-      mgFeedback.textContent = 'Not quite — try again!';
-      handle.style.background = '#e74c3c';
-      setTimeout(() => handle.style.background = '#f39c12', 600);
-    }
-  }
-  // Cleanup on modal close
-  const origClose = window._dialCleanup;
-  window._dialCleanup = () => {
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-    if (origClose) origClose();
   };
 }
 
-// -------- SORT CRATES minigame --------
-function startCratesGame() {
+// -------- t2: BATTERY PULSE minigame --------
+function startBatteryGame() {
   document.getElementById('minigame-instructions').textContent =
-    'Click the crates in ascending order (smallest to largest).';
+    'Click the pulse button to keep the charge needle in the GREEN zone.';
 
-  const count = 5;
-  const nums = shuffle(Array.from({length: count}, (_,i) => i+1));
-  let nextExpected = 1;
+  const wrap = document.createElement('div');
+  wrap.className = 'battery-game';
+  
+  const meter = document.createElement('div');
+  meter.className = 'battery-meter';
+  const needle = document.createElement('div');
+  needle.className = 'battery-needle';
+  const zone = document.createElement('div');
+  zone.className = 'battery-safe-zone';
+  
+  meter.appendChild(zone);
+  meter.appendChild(needle);
+  wrap.appendChild(meter);
 
-  const row = document.createElement('div');
-  row.className = 'mg-crates';
+  const btn = document.createElement('button');
+  btn.className = 'mg-btn pulse-btn';
+  btn.textContent = 'PULSE';
+  wrap.appendChild(btn);
+  mgWrap.appendChild(wrap);
 
-  nums.forEach(n => {
-    const crate = document.createElement('div');
-    crate.className = 'mg-crate';
-    crate.textContent = n;
-    crate.dataset.num = n;
-    crate.addEventListener('click', () => {
-      if (parseInt(crate.dataset.num) === nextExpected) {
-        crate.classList.add('done');
-        crate.style.pointerEvents = 'none';
-        nextExpected++;
-        mgFeedback.textContent = '';
-        if (nextExpected > count) onMinigameComplete();
-      } else {
-        crate.classList.add('wrong');
-        mgFeedback.textContent = `Wrong! Click ${nextExpected} next.`;
-        setTimeout(() => crate.classList.remove('wrong'), 400);
-      }
-    });
-    row.appendChild(crate);
+  let charge = 0; // 0 to 100
+  let targetTime = 3000; // hold for 3s
+  let heldTime = 0;
+  let lastTime = Date.now();
+  let active = true;
+
+  btn.onclick = () => { if(active) charge = Math.min(100, charge + 15); };
+
+  function loop() {
+    if (!active) return;
+    const now = Date.now();
+    const dt = now - lastTime;
+    lastTime = now;
+
+    charge = Math.max(0, charge - 0.2 * (dt/10)); 
+    needle.style.left = charge + '%';
+
+    if (charge >= 60 && charge <= 85) {
+      heldTime += dt;
+      zone.style.background = 'rgba(46, 204, 113, 0.6)';
+    } else {
+      heldTime = Math.max(0, heldTime - dt);
+      zone.style.background = 'rgba(231, 76, 60, 0.3)';
+    }
+
+    progressFill.style.width = (heldTime / targetTime * 100) + '%';
+
+    if (heldTime >= targetTime) {
+      active = false;
+      onMinigameComplete();
+    } else {
+      requestAnimationFrame(loop);
+    }
+  }
+  loop();
+}
+
+// -------- t3: SIGNAL MATCH minigame --------
+function startDishGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Adjust the sliders to match the wavelength of the target signal.';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 340; canvas.height = 160;
+  canvas.className = 'signal-canvas';
+  mgWrap.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  const controls = document.createElement('div');
+  controls.className = 'signal-controls';
+  
+  let freq = 0.5, amp = 0.5;
+  const targetFreq = 0.2 + Math.random() * 0.6;
+  const targetAmp = 0.3 + Math.random() * 0.6;
+
+  [ {n:'Freq', v:f=>freq=f}, {n:'Amp', v:a=>amp=a} ].forEach(cfg => {
+    const row = document.createElement('div');
+    row.innerHTML = `<label style="font-size:12px;color:#f39c12">${cfg.n}</label>`;
+    const s = document.createElement('input');
+    s.type='range'; s.min=0; s.max=1; s.step=0.01; s.value=0.5;
+    s.oninput = e => cfg.v(parseFloat(e.target.value));
+    row.appendChild(s);
+    controls.appendChild(row);
   });
-  mgWrap.appendChild(row);
+  mgWrap.appendChild(controls);
+
+  function draw() {
+    if (mgWrap.innerHTML === '') return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // Draw Target
+    ctx.beginPath(); ctx.strokeStyle = 'rgba(243, 156, 18, 0.3)'; ctx.lineWidth = 3;
+    for(let x=0; x<canvas.width; x++) {
+      const y = 80 + Math.sin(x * targetFreq * 0.2) * (targetAmp * 60);
+      x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    // Draw Player
+    ctx.beginPath(); ctx.strokeStyle = '#3498db'; ctx.lineWidth = 3;
+    for(let x=0; x<canvas.width; x++) {
+      const y = 80 + Math.sin(x * freq * 0.2) * (amp * 60);
+      x === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    const diff = Math.abs(freq - targetFreq) + Math.abs(amp - targetAmp);
+    if (diff < 0.08) {
+      ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 5; ctx.stroke();
+      setTimeout(onMinigameComplete, 600);
+      return;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// -------- t4: CHEMISTRY MIX minigame --------
+function startMixGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Follow the recipe! Click the flasks in the correct color order.';
+
+  const COLORS = [
+    { name: 'Red', val: '#e74c3c' },
+    { name: 'Blue', val: '#3498db' },
+    { name: 'Green', val: '#2ecc71' },
+    { name: 'Yellow', val: '#f1c40f' }
+  ];
+  const recipe = shuffle([...COLORS]).slice(0, 3);
+  let step = 0;
+
+  const paper = document.createElement('div');
+  paper.className = 'recipe-paper';
+  paper.innerHTML = '<strong>RECIPE:</strong><br>' + recipe.map(c => `<span style="color:${c.val}">${c.name}</span>`).join(' → ');
+  mgWrap.appendChild(paper);
+
+  const rack = document.createElement('div');
+  rack.className = 'flask-rack';
+  COLORS.forEach(c => {
+    const f = document.createElement('div');
+    f.className = 'flask';
+    f.style.background = c.val;
+    f.onclick = () => {
+      if (c.name === recipe[step].name) {
+        f.style.filter = 'brightness(1.5) drop-shadow(0 0 10px white)';
+        f.style.pointerEvents = 'none';
+        step++;
+        if (step === recipe.length) onMinigameComplete();
+      } else {
+        mgFeedback.textContent = 'Contaminated! Restarting recipe...';
+        setTimeout(startMixGame, 800);
+      }
+    };
+    rack.appendChild(f);
+  });
+  mgWrap.appendChild(rack);
+}
+
+// -------- t5: FUSE FLIP minigame --------
+function startPowerGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Flip the fuses until all four are in the UP (green) position.';
+
+  const grid = document.createElement('div');
+  grid.className = 'fuse-grid';
+  
+  let state = [false, false, false, false];
+  const items = [];
+
+  for(let i=0; i<4; i++) {
+    const fuse = document.createElement('div');
+    fuse.className = 'fuse-item';
+    fuse.innerHTML = '<div class="fuse-knob"></div>';
+    fuse.onclick = () => {
+      state[i] = !state[i];
+      fuse.classList.toggle('on', state[i]);
+      if (state.every(s => s)) setTimeout(onMinigameComplete, 400);
+    };
+    grid.appendChild(fuse);
+    items.push(fuse);
+  }
+  mgWrap.appendChild(grid);
+}
+
+// -------- t6: PACKET GRAB minigame --------
+function startUploadGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Intercept the moving data packets! Click 5 packets to complete the upload.';
+
+  const area = document.createElement('div');
+  area.className = 'packet-area';
+  mgWrap.appendChild(area);
+
+  let caught = 0;
+  const total = 5;
+
+  function spawn() {
+    if (caught >= total || mgWrap.innerHTML === '') return;
+    const p = document.createElement('div');
+    p.className = 'data-packet';
+    p.textContent = '💾';
+    const x = Math.random() * 300;
+    const y = Math.random() * 160;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    
+    p.onclick = () => {
+      caught++;
+      progressFill.style.width = (caught / total * 100) + '%';
+      p.remove();
+      if (caught >= total) onMinigameComplete();
+      else spawn();
+    };
+    area.appendChild(p);
+
+    // Fade and move slightly
+    setTimeout(() => {
+      if (p.parentElement) {
+        p.style.transform = `translate(${(Math.random()-0.5)*40}px, ${(Math.random()-0.5)*40}px)`;
+        p.style.opacity = '0.4';
+      }
+    }, 1000);
+    setTimeout(() => { if (p.parentElement) { p.remove(); spawn(); } }, 2000);
+  }
+  spawn();
+}
+
+// -------- t7: VALVE COOLING minigame --------
+function startReactorGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Click and drag the valve wheel in a full circle to release pressure.';
+
+  const container = document.createElement('div');
+  container.className = 'valve-container';
+  const wheel = document.createElement('div');
+  wheel.className = 'valve-wheel';
+  wheel.innerHTML = '<div class="valve-spoke"></div><div class="valve-spoke" style="transform:rotate(90deg)"></div><div class="valve-handle"></div>';
+  container.appendChild(wheel);
+  mgWrap.appendChild(container);
+
+  let angle = 0;
+  let lastAngle = null;
+  let totalRotation = 0;
+  let dragging = false;
+
+  wheel.onmousedown = () => dragging = true;
+  window.onmousemove = e => {
+    if (!dragging) return;
+    const r = wheel.getBoundingClientRect();
+    const cx = r.left + r.width/2;
+    const cy = r.top + r.height/2;
+    const curAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
+    
+    if (lastAngle !== null) {
+      let delta = curAngle - lastAngle;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      totalRotation += delta;
+      wheel.style.transform = `rotate(${totalRotation}deg)`;
+    }
+    lastAngle = curAngle;
+    progressFill.style.width = Math.min(100, Math.abs(totalRotation)/360 * 100) + '%';
+    if (Math.abs(totalRotation) >= 350) {
+      dragging = false; 
+      window.onmousemove = null;
+      onMinigameComplete();
+    }
+  };
+  window.onmouseup = () => { dragging = false; lastAngle = null; };
+}
+
+// -------- t8: CRACK WELD minigame --------
+function startCrackGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Trace the jagged crack with your welder to seal it shut.';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 340; canvas.height = 200;
+  canvas.style.background = '#1a1a2e';
+  canvas.style.border = '2px solid #444';
+  mgWrap.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  const pts = [];
+  for(let i=0; i<8; i++) pts.push({ x: 20 + i*45, y: 100 + (Math.random()-0.5)*80 });
+  
+  let progress = 0;
+  let active = true;
+
+  function draw() {
+    ctx.clearRect(0,0,340,200);
+    // Draw Crack
+    ctx.beginPath(); ctx.strokeStyle = '#555'; ctx.lineWidth = 10; ctx.lineCap = 'round';
+    pts.forEach((p,i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke();
+    // Draw Welded
+    ctx.beginPath(); ctx.strokeStyle = '#f39c12'; ctx.lineWidth = 8;
+    ctx.setLineDash([progress * 400, 400]); // cheap way to show progress along path
+    pts.forEach((p,i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.stroke(); ctx.setLineDash([]);
+    // Spark
+    if (progress > 0 && progress < 1) {
+      const pIdx = Math.floor(progress * (pts.length-1));
+      const p = pts[pIdx];
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  canvas.onmousemove = e => {
+    if (!active) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const pIdx = Math.floor(progress * (pts.length-1));
+    const target = pts[pIdx];
+    if (Math.hypot(mx - target.x, my - target.y) < 30) {
+      progress += 0.01;
+      progressFill.style.width = (progress * 100) + '%';
+      if (progress >= 1) { active = false; onMinigameComplete(); }
+      draw();
+    }
+  };
+  draw();
+}
+
+// -------- t9: SPECIMEN SORT minigame --------
+function startSamplesGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Drag each specimen into its matching container (Organic vs Mineral).';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'specimen-sort';
+  
+  const specs = [
+    { n: '🌿', t: 'org' }, { n: '🪨', t: 'min' }, { n: '🍄', t: 'org' }, { n: '💎', t: 'min' }
+  ];
+  const items = shuffle([...specs]);
+
+  const binOrg = document.createElement('div');
+  binOrg.className = 'sort-bin'; binOrg.innerHTML = '<span>ORGANIC bin</span>';
+  const binMin = document.createElement('div');
+  binMin.className = 'sort-bin'; binMin.innerHTML = '<span>MINERAL bin</span>';
+  
+  const itemRow = document.createElement('div');
+  itemRow.className = 'item-row';
+
+  let doneCount = 0;
+
+  items.forEach(it => {
+    const el = document.createElement('div');
+    el.className = 'specimen-item';
+    el.textContent = it.n;
+    el.draggable = true;
+    el.dataset.type = it.t; 
+    el.onmousedown = () => el.style.opacity = '0.5';
+    el.onmouseup   = () => el.style.opacity = '1';
+    el.ondragstart = (e) => { e.dataTransfer.setData('type', it.t); };
+    itemRow.appendChild(el);
+  });
+
+  [binOrg, binMin].forEach(bin => {
+    const binType = bin === binOrg ? 'org' : 'min';
+    bin.ondragover = e => e.preventDefault();
+    bin.ondrop = e => {
+      e.preventDefault();
+      const droppedType = e.dataTransfer.getData('type');
+      if (droppedType === binType) {
+        bin.style.borderColor = '#2ecc71';
+        setTimeout(() => bin.style.borderColor = '', 300);
+        // Find one matching item that isn't already hidden
+        const list = itemRow.querySelectorAll('.specimen-item');
+        for(let el of list) {
+          if (el.style.display !== 'none' && el.dataset.type === binType) {
+            el.style.display = 'none';
+            break;
+          }
+        }
+        doneCount++;
+        progressFill.style.width = (doneCount / items.length * 100) + '%';
+        if (doneCount >= items.length) onMinigameComplete();
+      } else {
+        bin.style.borderColor = '#e74c3c';
+        setTimeout(() => bin.style.borderColor = '', 300);
+      }
+    };
+  });
+
+  mgWrap.appendChild(itemRow);
+  mgWrap.appendChild(binOrg);
+  mgWrap.appendChild(binMin);
+}
+
+// -------- t10: SURVEY RADAR minigame --------
+function startSurveyGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Calibrate the survey by clicking the 3 red signal spikes on the radar.';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 340; canvas.height = 200;
+  canvas.style.background = '#0d1117';
+  canvas.style.border = '2px solid #2ecc71';
+  mgWrap.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+
+  const spikes = [];
+  for(let i=0; i<3; i++) spikes.push({ x: 40 + Math.random()*260, y: 30 + Math.random()*130, hit: false });
+
+  function draw() {
+    if (mgWrap.innerHTML === '') return;
+    ctx.clearRect(0,0,340,200);
+    // Grid
+    ctx.strokeStyle = 'rgba(46, 204, 113, 0.2)'; ctx.lineWidth = 1;
+    for(let i=0; i<9; i++) {
+       ctx.beginPath(); ctx.moveTo(i*40, 0); ctx.lineTo(i*40, 200); ctx.stroke();
+       ctx.beginPath(); ctx.moveTo(0, i*40); ctx.lineTo(340, i*40); ctx.stroke();
+    }
+    // Spikes
+    spikes.forEach(s => {
+      ctx.beginPath();
+      ctx.moveTo(s.x, s.y); ctx.lineTo(s.x-10, s.y+20); ctx.lineTo(s.x+10, s.y+20);
+      ctx.fillStyle = s.hit ? '#2ecc71' : '#e74c3c';
+      ctx.fill();
+    });
+    if (!spikes.every(s => s.hit)) requestAnimationFrame(draw);
+  }
+
+  canvas.onclick = e => {
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    spikes.forEach(s => {
+      if (Math.hypot(mx - s.x, my - (s.y+10)) < 25) s.hit = true;
+    });
+    if (spikes.every(s => s.hit)) setTimeout(onMinigameComplete, 400);
+  };
+  draw();
+}
+
+// -------- t11: STAKE HAMMER minigame --------
+function startBoundaryGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Time your strikes! Click when the hammer bar passes over the green marker.';
+
+  const lane = document.createElement('div');
+  lane.className = 'stake-lane'; mgWrap.appendChild(lane);
+  const marker = document.createElement('div');
+  marker.className = 'stake-marker'; lane.appendChild(marker);
+  const hammer = document.createElement('div');
+  hammer.className = 'stake-hammer'; lane.appendChild(hammer);
+
+  let pos = 0, dir = 1, active = true, hits = 0;
+  const targetHits = 3;
+
+  function loop() {
+    if (!active || mgWrap.innerHTML === '') return;
+    pos += 4.5 * dir;
+    if (pos > 320 || pos < 0) dir *= -1;
+    hammer.style.left = pos + 'px';
+    requestAnimationFrame(loop);
+  }
+
+  lane.onclick = () => {
+    if (pos > 135 && pos < 185) { 
+      hits++;
+      marker.style.background = 'rgba(46, 204, 113, 0.6)';
+      setTimeout(() => marker.style.background = '', 200);
+      progressFill.style.width = (hits / targetHits * 100) + '%';
+      if (hits >= targetHits) { active = false; onMinigameComplete(); }
+    } else {
+       mgFeedback.textContent = 'Missed! Keep going.';
+    }
+  };
+  loop();
+}
+
+// -------- t12: CARGO DROP minigame --------
+function startDropGame() {
+  document.getElementById('minigame-instructions').textContent =
+    'Precision Drop! Click the zone to release the supply crate onto the RED target.';
+
+  const zone = document.createElement('div');
+  zone.className = 'drop-zone'; mgWrap.appendChild(zone);
+  const target = document.createElement('div');
+  target.className = 'drop-target'; zone.appendChild(target);
+  const cross = document.createElement('div');
+  cross.className = 'drop-crosshair'; zone.appendChild(cross);
+
+  let pos = 0, dir = 1, active = true;
+
+  function loop() {
+    if (!active || mgWrap.innerHTML === '') return;
+    pos += 5.5 * dir;
+    if (pos > 290 || pos < 0) dir *= -1;
+    target.style.left = pos + 'px';
+    requestAnimationFrame(loop);
+  }
+
+  zone.onclick = () => {
+    // Crosshair is fixed at 160px (left edge of 20px span centers at 170)
+    const diff = Math.abs(pos - 145); // target is 50px, cross centers at 170
+    if (diff < 30) {
+      active = false;
+      target.style.background = '#2ecc71';
+      onMinigameComplete();
+    } else {
+      mgFeedback.textContent = 'Adjusting trajectory...';
+    }
+  };
+  loop();
 }
 
 // ===========================

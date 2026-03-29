@@ -280,10 +280,126 @@
   flex: 1;
   text-align: right;
 }
-.feedback-msg {
-  font-size: 13px;
-  min-height: 18px;
-  margin-bottom: 6px;
-  color: #e74c3c;
-  font-weight: bold;
+/* --- Unique Minigame Components --- */
+
+/* Battery Pulse (t2) */
+.battery-game { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+.battery-meter { 
+    width: 320px; height: 35px; background: #0f0f23; border: 2px solid #2c2c4a; 
+    border-radius: 20px; position: relative; overflow: hidden; 
+}
+.battery-safe-zone { 
+    position: absolute; left: 60%; width: 25%; height: 100%; 
+    background: rgba(46, 204, 113, 0.3); border-left: 2px solid #2ecc71; border-right: 2px solid #2ecc71;
+}
+.battery-needle { 
+    position: absolute; top: 0; bottom: 0; width: 4px; background: #f39c12; 
+    box-shadow: 0 0 10px #f39c12; transition: left 0.05s linear; z-index: 5;
+}
+.pulse-btn { 
+    width: 120px; height: 50px; border-radius: 25px; font-size: 18px; 
+    letter-spacing: 2px; box-shadow: 0 0 15px rgba(243, 156, 18, 0.3); 
+}
+
+/* Signal Match (t3) */
+.signal-canvas { background: #0f0f23; border: 2px solid #2c2c4a; border-radius: 8px; margin-bottom: 12px; }
+.signal-controls { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0 20px; }
+.signal-controls label { width: 50px; font-weight: bold; }
+.signal-controls input[type=range] { flex: 1; cursor: pointer; accent-color: #f39c12; }
+
+/* Chemistry Mix (t4) */
+.recipe-paper { 
+    background: #fdf6e3; color: #1e1e2e; padding: 12px; border-radius: 4px; 
+    font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.5); margin-bottom: 20px; border: 1px solid #d35400;
+}
+.flask-rack { display: flex; gap: 20px; justify-content: center; width: 100%; }
+.flask { 
+    width: 45px; height: 60px; border: 3px solid rgba(255,255,255,0.2); 
+    border-radius: 5px 5px 15px 15px; cursor: pointer; transition: transform 0.2s, filter 0.2s;
+    position: relative; overflow: hidden;
+}
+.flask:hover { transform: scale(1.1); filter: brightness(1.2); }
+.flask::after { content: ''; position: absolute; top: 0; left: 30%; width: 20%; height: 100%; background: rgba(255,255,255,0.1); }
+
+/* Fuse Flip (t5) */
+.fuse-grid { display: grid; grid-template-columns: repeat(2, 80px); gap: 15px; justify-content: center; margin-top: 10px; }
+.fuse-item { 
+    width: 80px; height: 40px; background: #2c2c4a; border: 2px solid #444; 
+    border-radius: 20px; cursor: pointer; position: relative; transition: background 0.2s;
+}
+.fuse-item.on { background: #27ae60; border-color: #2ecc71; }
+.fuse-knob { 
+    position: absolute; top: 4px; left: 4px; width: 28px; height: 28px; 
+    background: #fff; border-radius: 50%; transition: left 0.2s;
+}
+.fuse-item.on .fuse-knob { left: 44px; }
+
+/* Packet Grab (t6) */
+.packet-area { width: 340px; height: 200px; background: #0f0f23; position: relative; overflow: hidden; border-radius: 8px; border: 2px solid #2c2c4a; }
+.data-packet { 
+    position: absolute; width: 32px; height: 32px; background: #3498db; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+    font-size: 18px; color: white; cursor: pointer; transition: transform 0.1s; 
+    animation: pulseGlow 1.5s infinite alternate;
+}
+@keyframes pulseGlow { 0% { box-shadow: 0 0 5px #3498db; } 100% { box-shadow: 0 0 15px #3498db; } }
+
+/* Valve / Trace / etc */
+.valve-container { position: relative; width: 180px; height: 180px; margin: 0 auto; user-select: none; }
+.valve-wheel { 
+    width: 100%; height: 100%; background: #2c3e50; border: 8px solid #34495e; 
+    border-radius: 50%; position: relative; cursor: pointer; transition: transform 0.1s linear; 
+}
+.valve-spoke { 
+    position: absolute; top: 50%; left: 0; width: 100%; height: 8px; 
+    background: #34495e; transform: translateY(-50%); 
+}
+.valve-handle { 
+    position: absolute; top: 50%; left: 80%; width: 24px; height: 24px; 
+    background: #e67e22; border-radius: 50%; transform: translate(-50%, -50%); border: 3px solid #fff;
+}
+
+/* Specimen Sort (t9) */
+.specimen-sort { display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
+.item-row { display: flex; gap: 12px; margin-bottom: 20px; }
+.specimen-item { 
+    width: 50px; height: 50px; background: #2c2c4a; border: 2px solid #555; 
+    border-radius: 8px; font-size: 28px; display: flex; align-items: center; 
+    justify-content: center; cursor: grab;
+}
+.sort-bin { 
+    width: 280px; height: 55px; border: 2px dashed #444; border-radius: 10px; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 14px; font-weight: bold; background: rgba(255,255,255,0.05);
+    transition: background 0.2s, border-color 0.2s;
+}
+.sort-bin span { pointer-events: none; opacity: 0.6; letter-spacing: 2px; }
+
+/* Stake Hammer (t11) */
+.stake-lane { 
+    width: 340px; height: 60px; background: #0f0f23; border: 2px solid #2c2c4a; 
+    border-radius: 30px; position: relative; cursor: pointer; overflow: hidden;
+}
+.stake-marker { 
+    position: absolute; left: 140px; width: 60px; height: 100%; 
+    background: rgba(46, 204, 113, 0.2); border-left: 2px solid #2ecc71; border-right: 2px solid #2ecc71;
+}
+.stake-hammer { 
+    position: absolute; top: 5px; width: 20px; height: 50px; 
+    background: #f39c12; border-radius: 5px; box-shadow: 0 0 10px #f39c12;
+}
+
+/* Cargo Drop (t12) */
+.drop-zone { 
+    width: 340px; height: 100px; background: #0f0f23; border: 2px solid #2c2c4a; 
+    border-radius: 8px; position: relative; cursor: pointer; overflow: hidden;
+}
+.drop-target { 
+    position: absolute; bottom: 0; width: 50px; height: 20px; 
+    background: #e74c3c; border-radius: 10px 10px 0 0; box-shadow: 0 0 15px #e74c3c;
+}
+.drop-crosshair { 
+    position: absolute; top: 0; left: 160px; width: 20px; height: 100%; 
+    border-left: 2px dashed rgba(255,255,255,0.3); border-right: 2px dashed rgba(255,255,255,0.3);
 }
