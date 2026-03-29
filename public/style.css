@@ -659,26 +659,29 @@ canvas {
     font-size: 14px;
     z-index: 100;
 }
-#meeting-ui-layer {
+#meeting-ui-section {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none; /* Let clicks pass to game unless a modal is active */
+  top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; /* Let clicks pass unless a modal is active */
   z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+#meeting-ui-section:not(.hidden) { pointer-events: auto; }
+#meeting-ui-section.hidden { display: none; }
 
 /* --- Meeting System --- */
 #meeting-flash {
-  position: fixed !important;
+  position: absolute !important;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.95); /* Slightly darker for better contrast */
+  background: rgba(0,0,0,0.95);
   display: none;
   justify-content: center;
   align-items: center;
-  z-index: 99999 !important; /* Maximized to sit above everything */
+  z-index: 99999 !important;
   border: 15px double #c0392b;
   box-sizing: border-box;
-  pointer-events: none; /* Let clicks pass through during the flash */
 }
 #meeting-flash.active { display: flex; animation: strobeRed 0.5s infinite; }
 @keyframes strobeRed {
@@ -699,15 +702,14 @@ canvas {
 }
 
 #vote-screen {
-  position: fixed !important;
+  position: absolute !important;
   top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(10, 15, 25, 0.98);
   display: none;
   justify-content: center;
   align-items: center;
-  z-index: 99998 !important; /* Just below flash, but above canvas */
+  z-index: 99998 !important;
   backdrop-filter: blur(15px);
-  pointer-events: auto; /* Buttons must be clickable */
 }
 #vote-screen.active { display: flex; }
 

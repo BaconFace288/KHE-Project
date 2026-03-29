@@ -1364,27 +1364,29 @@ function drawGame(time) {
   drawTaskHUD();
   
   // =============================================
-  // FALLBACK: CANVAS MEETING STROBE
+  // FALLBACK: CANVAS MEETING STROBE (HIGH INTENSITY)
   // If the DOM flash fails, the canvas itself flashes R/B strobe
   // =============================================
   if (window.meetingActive && Date.now() - window.meetingStartTime < 2500) {
       const timeElapsed = Date.now() - window.meetingStartTime;
-      const strobe = Math.floor(timeElapsed / 250) % 2 === 0;
+      const strobe = Math.floor(timeElapsed / 180) % 2 === 0; // faster pulse
       
       ctx.save();
-      ctx.fillStyle = strobe ? 'rgba(231, 76, 60, 0.45)' : 'rgba(0, 0, 0, 0.55)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height); // Full screen overlay on canvas
+      ctx.fillStyle = strobe ? 'rgba(255, 0, 0, 0.65)' : 'rgba(0, 0, 0, 0.75)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height); 
       
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 15;
-      ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 20;
+      ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
       
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 50px Orbitron, sans-serif';
+      ctx.font = 'black 65px Orbitron, sans-serif'; // Larger and heavier
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = '#000';
-      ctx.shadowBlur = 15;
-      ctx.fillText('WARNING: EMERGENCY MEETING', canvas.width/2, canvas.height/2);
+      ctx.shadowBlur = 25;
+      ctx.fillText('EMERGENCY MEETING', canvas.width/2, canvas.height/2);
+      ctx.font = 'bold 30px Orbitron, sans-serif';
+      ctx.fillText('CHECK VOTING PANEL', canvas.width/2, canvas.height/2 + 60);
       ctx.restore();
   }
 }

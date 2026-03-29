@@ -1,142 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Primitive Peer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="minigame.css">
-  <link rel="stylesheet" href="meeting.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Primitive Peer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="ui-layer">
-    <button id="audio-toggle" class="audio-toggle">🔇 Music: Off</button>
-    
-    <!-- ROLE INTRO SCREEN -->
-    <div id="role-intro" class="hidden">
-      <div class="intro-content">
-        <div class="intro-header">YOU ARE...</div>
-        <div id="intro-role" class="intro-role">ROLE NAME</div>
-        <img id="intro-image" src="" alt="Role image" class="intro-image">
-        <div id="intro-objective" class="intro-objective">Objective text here</div>
-      </div>
-    </div>
 
-    <!-- LANDING PAGE -->
-    <div id="landing-page" class="screen">
-      <h1 class="landing-title">The Primitive Peer</h1>
-      <div class="landing-banner-wrap">
-        <div id="info-caveman" class="info-icon left" title="Caveman Strategy">ⓘ</div>
-        <div id="info-agent" class="info-icon right" title="Agent Strategy">ⓘ</div>
-        <img src="landing_banner_wide.png" alt="Caveman vs Secret Agent" class="landing-banner">
-      </div>
-      <p id="kick-msg" class="kicked-notification hidden"></p>
-      <div class="play-btn-row">
-        <button id="play-btn" class="play-btn">PLAY</button>
-        <div id="info-lore" class="info-icon lore" title="Game Lore">ⓘ</div>
-        <div id="info-credits" class="info-icon credits" title="Game Credits">©</div>
-      </div>
+  <!-- LOADING / LANDING SCREEN -->
+  <div id="landing-page" class="screen">
+    <div class="landing-content">
+      <h1 class="game-title">The Primitive Peer</h1>
+      <p class="game-subtitle">Trust No One. Survive the Past.</p>
       
-      <!-- GitHub Link -->
-      <div id="github-link-container">
-        <a href="https://github.com/BaconFace288" target="_blank" title="View Source on GitHub">
-          <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true">
-            <path fill="white" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-          </svg>
-        </a>
+      <div id="auth-box">
+        <input type="text" id="player-name" placeholder="Name Your Caveman..." maxlength="12">
+        <div class="input-row">
+            <input type="text" id="room-code-input" placeholder="Room Code (Optional)" maxlength="6">
+        </div>
+        <div class="button-grid">
+            <button id="play-btn" class="primary-btn">PLAY</button>
+            <button id="create-btn" class="secondary-btn">NEW TRIBE</button>
+        </div>
+        <p id="error-msg" class="error-msg"></p>
       </div>
-    </div>
 
-    <!-- LORE MODAL -->
-    <div id="lore-modal" class="hidden">
-      <div class="modal-card lore-card">
-        <div class="modal-header">
-          <span class="task-icon">📖</span>
-          <h2>The Story So Far</h2>
+      <div class="info-carousels">
+        <div class="info-card" id="info-lore">
+          <h3>The Lore</h3>
+          <p>You are a tribe of primitive cavemen... or are you? An advanced Temporal Agent has infiltrated your ranks.</p>
         </div>
-        <div id="lore-modal-body" class="modal-body">
-          <!-- lore content injected here -->
+        <div class="info-card" id="info-caveman">
+          <h3>Tribe Member</h3>
+          <p>Complete your tasks to survive. Watch for suspicious behavior.</p>
         </div>
-        <div class="modal-footer">
-          <button id="lore-modal-close" class="modal-submit-btn">Understood</button>
-        </div>
-      </div>
-    </div>
-    <!-- CREDITS MODAL -->
-    <div id="credits-modal" class="hidden">
-      <div class="modal-card credits-card">
-        <div class="modal-header">
-          <span class="task-icon">🌟</span>
-          <h2>Game Credits</h2>
-        </div>
-        <div id="credits-modal-body" class="modal-body">
-          <div class="credits-section">
-            <h3 class="credits-title">Developer</h3>
-            <p class="credits-name">John Swanson</p>
-          </div>
-          <div class="credits-section">
-            <h3 class="credits-title">Artists</h3>
-            <p class="credits-name">Lillian Swanson</p>
-            <p class="credits-name">Neveah</p>
-          </div>
-          <div class="credits-section">
-            <h3 class="credits-title">Beta Testers</h3>
-            <div class="credits-grid">
-              <p class="credits-name">Roland Swanson</p>
-              <p class="credits-name">Levi Moore</p>
-              <p class="credits-name">William Fetkovitch</p>
-              <p class="credits-name">Marcus Adelman</p>
-              <p class="credits-name">Jack Hurdley</p>
-              <p class="credits-name">Kayleb Bogart</p>
-              <p class="credits-name">Payton Monasco</p>
-              <p class="credits-name">Caleb Greathouse</p>
-              <p class="credits-name">Austin Burnell</p>
-              <p class="credits-name">Micheal Sekol</p>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="credits-modal-close" class="modal-submit-btn">Close</button>
+        <div class="info-card" id="info-agent">
+          <h3>Temporal Agent</h3>
+          <p>Sabotage the tribe. Eliminate them one by one. Do not get caught.</p>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ROLE STRATEGY MODAL -->
-    <div id="role-modal" class="hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <span id="role-modal-icon" class="task-icon">🛡️</span>
-          <h2 id="role-modal-title">Role Strategy</h2>
-        </div>
-        <div id="role-modal-body" class="modal-body">
-          <!-- strategy content injected here -->
-        </div>
-        <div class="modal-footer">
-          <button id="role-modal-close" class="modal-submit-btn">Got it!</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAIN MENU -->
-    <div id="main-menu" class="screen hidden">
-      <h1>The Primitive Peer</h1>
-      <p>Cavemen vs Time Travelers</p>
-      <input type="text" id="player-name" placeholder="Enter your name" maxlength="15">
-      <br>
-      <button id="create-btn">Create Lobby</button>
-      <br><br>
-      <input type="text" id="room-code-input" placeholder="Room Code (4 Letters)" maxlength="4" style="text-transform:uppercase">
-      <br>
-      <button id="join-btn">Join Lobby</button>
-      <div id="error-msg" style="color:#e74c3c; margin-top:10px;"></div>
-    </div>
-
+  <!-- MAIN UI LAYER (Everything goes in here) -->
+  <div id="ui-layer" class="screen hidden">
+    
     <!-- LOBBY SCREEN -->
     <div id="lobby-screen" class="screen hidden">
-      <h2>Lobby: <span id="current-room-code">XXXX</span></h2>
+      <div class="lobby-header">
+        <h2>Tribe Gathering</h2>
+        <div class="room-pill">ROOM: <span id="current-room-code">----</span></div>
+      </div>
       <p id="host-status" style="color: #f1c40f; font-weight:bold;"></p>
       
       <div id="player-list">Waiting for players...</div>
@@ -167,84 +83,77 @@
       <h2 id="end-text">Game Over</h2>
       <button id="restart-btn">Leave Game</button>
     </div>
-  </div>
-  
-  <!-- MEETING UI LAYER -->
-  <div id="meeting-ui-layer">
-    <!-- MEETING FLASH -->
-    <div id="meeting-flash">
-      <div id="meeting-flash-text">⚠️ EMERGENCY<br>MEETING!</div>
-    </div>
 
-    <!-- VOTE SCREEN -->
-    <div id="vote-screen">
-      <div class="vote-card">
-        <div class="vote-header">
-          <h2 id="vote-title">Emergency Meeting</h2>
-          <div id="vote-timer">1:00</div>
+    <!-- MEETING SYSTEM (Force-Integrated into UI layer) -->
+    <div id="meeting-ui-section" class="hidden">
+        <!-- FLASH -->
+        <div id="meeting-flash">
+          <div id="meeting-flash-text">⚠️ EMERGENCY<br>MEETING!</div>
         </div>
-        <p id="caller-info"></p>
-        <div id="vote-player-list"></div>
-        <div class="skip-wrap">
-          <button class="skip-btn" id="skip-vote-btn">⏭ Skip Vote</button>
-        </div>
-        <div id="vote-result"></div>
-        <div class="chat-section">
-          <button id="chat-toggle-btn">💬 Open Chat ▼</button>
-          <div id="chat-panel">
-            <div id="chat-messages"></div>
-            <div class="chat-input-row">
-              <input type="text" id="chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
-              <button id="chat-send-btn">Send</button>
+
+        <!-- VOTE SCREEN -->
+        <div id="vote-screen">
+          <div class="vote-card">
+            <div class="vote-header">
+              <h2 id="vote-title">Emergency Meeting</h2>
+              <div id="vote-timer">1:00</div>
+            </div>
+            <p id="caller-info"></p>
+            <div id="vote-player-list"></div>
+            <div class="skip-wrap">
+              <button class="skip-btn" id="skip-vote-btn">⏭ Skip Vote</button>
+            </div>
+            <div id="vote-result"></div>
+            <div class="chat-section">
+              <button id="chat-toggle-btn">💬 Open Chat ▼</button>
+              <div id="chat-panel">
+                <div id="chat-messages"></div>
+                <div class="chat-input-row">
+                  <input type="text" id="chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
+                  <button id="chat-send-btn">Send</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
     </div>
-  </div>
 
+  </div> <!-- ui-layer ends -->
+
+  <!-- CANVAS LAYER -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-  <!-- TASK MINIGAME MODAL -->
-  <div id="task-modal">
+  <!-- TASK MINIGAME MODAL (Global) -->
+  <div id="task-modal" class="hidden">
     <div class="modal-card">
       <div class="modal-header">
         <span class="task-icon" id="modal-icon">⚙️</span>
         <h2 id="modal-title">Task Name</h2>
-        <div class="modal-stage-label" id="modal-stage-label">Stage 1 / 2</div>
+        <button id="task-close-btn">&times;</button>
       </div>
-      <div class="modal-progress-bar">
-        <div class="modal-progress-fill" id="modal-progress-fill" style="width:0%"></div>
-      </div>
-
-      <!-- STAGE 1: Minigame -->
-      <div id="minigame-stage">
-        <p id="minigame-instructions" style="color:#bdc3c7; font-size:13px; margin-bottom:12px;"></p>
-        <div id="minigame-canvas-wrap">
-          <!-- dynamic content injected here -->
-        </div>
-        <div class="modal-footer">
-          <button class="modal-cancel-btn" id="modal-close-btn">Cancel</button>
-          <div class="feedback-msg" id="mg-feedback"></div>
-        </div>
-      </div>
-
-      <!-- STAGE 2: Coding Question -->
-      <div id="coding-stage">
-        <div class="lang-badge" id="coding-lang">JavaScript</div>
-        <p id="coding-prompt" style="color:#bdc3c7; font-size:14px; margin-bottom:10px;"></p>
-        <div class="code-block" id="coding-code"></div>
-        <div class="feedback-msg" id="coding-feedback"></div>
-        <div id="coding-answer-area"></div>
-        <div class="modal-footer">
-          <button class="modal-cancel-btn" id="coding-cancel-btn">Cancel</button>
-          <div class="attempt-indicator" id="attempt-indicator"></div>
-          <button class="modal-submit-btn" id="coding-submit-btn">Submit Answer</button>
-        </div>
+      <div id="task-body">
+        <!-- Minigame content gets injected here -->
       </div>
     </div>
   </div>
 
+  <!-- ROLE MODAL (Initial) -->
+  <div id="role-modal" class="modal hidden">
+    <div class="modal-content">
+      <div id="role-modal-icon"></div>
+      <h2 id="role-modal-title"></h2>
+      <p id="role-modal-body"></p>
+      <button id="role-modal-close" class="modal-submit-btn">UNDERSTOOD</button>
+    </div>
+  </div>
+
+  <div id="audio-ui">
+    <button id="audio-toggle">🔇 MUSIC OFF</button>
+  </div>
+
+  <div id="kick-msg" class="hidden">Kicked for inactivity</div>
+
+  <!-- SCRIPTS -->
   <script src="/socket.io/socket.io.js"></script>
   <script src="audio.js"></script>
   <script src="game.js"></script>

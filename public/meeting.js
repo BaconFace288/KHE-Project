@@ -1,7 +1,6 @@
 // =====================================================
-//  MEETING SYSTEM — The Primitive Peer (FAIL-SAFE RECONSTRUCTION)
-//  Syncing with globals: window.socket, window.players,
-//  window.myId, window.bodies, window.meetingActive, window.meetingStartTime
+//  MEETING SYSTEM — Unified UI Stacking (UNFAILABLE SYNC)
+//  Synchronized with: window.socket, window.players, window.myId, window.bodies
 // =====================================================
 
 let meetingTimerInterval = null;
@@ -9,9 +8,10 @@ let meetingTimeLeft = 60;
 let myVote = null;
 const votedPlayers = new Set(); 
 
-// Dynamic DOM Re-acquisition (Prevents missing-element-on-startup bugs)
 function getMeetingElements() {
   return {
+    uiLayer:       document.getElementById('ui-layer'),
+    uiSection:     document.getElementById('meeting-ui-section'),
     flashEl:       document.getElementById('meeting-flash'),
     flashText:     document.getElementById('meeting-flash-text'),
     voteScreen:    document.getElementById('vote-screen'),
@@ -25,10 +25,19 @@ function getMeetingElements() {
     chatPanel:     document.getElementById('chat-panel'),
     chatMessages:  document.getElementById('chat-messages'),
     chatInput:     document.getElementById('chat-input'),
-    chatSendBtn:   document.getElementById('chat-send-btn'),
-    uiLayer:       document.getElementById('meeting-ui-layer')
+    chatSendBtn:   document.getElementById('chat-send-btn')
   };
 }
+
+// ===== Diagnostic Helper (Type DEV_TEST_MEETING() in console) =====
+window.DEV_TEST_MEETING = function() {
+    console.log("MEETING SYSTEM: Manual test triggered via DEV_TEST_MEETING()");
+    openMeeting({
+        type: 'emergency',
+        callerName: 'DEVELOPER',
+        callerColor: '#3498db'
+    });
+};
 
 // ===== Socket Events =====
 if (window.socket) {
@@ -42,14 +51,13 @@ if (window.socket) {
   window.socket.on('meetingChatMsg', ({ name, color, text, isDead }) => {
     appendChat(name, color, text, isDead);
   });
-} else {
-  console.error("CRITICAL: MEETING SYSTEM: window.socket is not initialized!");
 }
 
 // ===== Open Meeting =====
 function openMeeting(data) {
   const els = getMeetingElements();
   
+  // Close any active task modal
   if (typeof closeModal === 'function') closeModal();
   
   window.meetingActive = true;
@@ -57,32 +65,33 @@ function openMeeting(data) {
   myVote = null;
   votedPlayers.clear();
   meetingTimeLeft = 60;
-  window.taskModalActive = true; // freeze movement
+  window.taskModalActive = true; 
 
-  if (!els.flashEl || !els.flashText) {
-    console.error("CRITICAL: MEETING SYSTEM: Flash elements missing from DOM!");
-    // At least the canvas strobe in game.js will trigger since window.meetingActive is true
+  if (!els.uiLayer || !els.uiSection) {
+    console.error("MEETING SYSTEM: Primary UI Layer missing!");
     return;
   }
 
-  // FORCE VISIBILITY VIA JAVASCRIPT (Overrides any CSS file issues)
-  els.flashEl.style.setProperty('display', 'flex', 'important');
-  els.flashEl.style.setProperty('z-index', '999999', 'important');
-  els.flashEl.style.setProperty('visibility', 'visible', 'important');
-  els.flashEl.style.setProperty('opacity', '1', 'important');
+  // FORCE UI LAYER VISIBILITY (The layer that has worked for lobby/modals)
+  els.uiLayer.classList.remove('hidden');
+  els.uiSection.classList.remove('hidden');
 
-  const isReport = data.type === 'report';
-  els.flashText.style.color = isReport ? '#e74c3c' : '#f39c12';
-  els.flashText.innerHTML = isReport ? '💀 DEAD BODY<br>REPORTED!' : '⚠️ EMERGENCY<br>MEETING!';
+  // Strobe/Flash initialization
+  if (els.flashEl && els.flashText) {
+      els.flashEl.style.setProperty('display', 'flex', 'important');
+      const isReport = data.type === 'report';
+      els.flashText.style.color = isReport ? '#e74c3c' : '#f39c12';
+      els.flashText.innerHTML = isReport ? '💀 DEAD BODY<br>REPORTED!' : '⚠️ EMERGENCY<br>MEETING!';
+  }
 
-  console.log("MEETING SYSTEM: openMeeting triggered successfully at", window.meetingStartTime);
+  console.log("MEETING SYSTEM: Meeting opened successfully.", data);
   
   setTimeout(() => {
-    els.flashEl.style.display = 'none';
+    if (els.flashEl) els.flashEl.style.display = 'none';
     showVoteScreen(data);
   }, 2500);
 
-  // Mark body
+  // Mark body reported
   if (data.type === 'report' && data.bodyName && window.bodies) {
     const b = window.bodies.find(bd => bd.name === data.bodyName && !bd.ejected);
     if (b) b.reported = true;
@@ -91,16 +100,9 @@ function openMeeting(data) {
 
 function showVoteScreen(data) {
   const els = getMeetingElements();
-  if (!els.voteScreen) {
-      console.error("CRITICAL: MEETING SYSTEM: Vote screen missing!");
-      return;
-  }
+  if (!els.voteScreen) return;
   
-  // FORCE VISIBILITY
   els.voteScreen.style.setProperty('display', 'flex', 'important');
-  els.voteScreen.style.setProperty('z-index', '999998', 'important');
-  els.voteScreen.style.setProperty('visibility', 'visible', 'important');
-  els.voteScreen.style.setProperty('opacity', '1', 'important');
 
   if (els.voteTitle) els.voteTitle.textContent = data.type === 'report' ? 'Dead Body Reported' : 'Emergency Meeting';
   if (els.callerInfoEl) {
@@ -113,14 +115,10 @@ function showVoteScreen(data) {
     els.voteResultEl.style.display = 'none';
     els.voteResultEl.textContent = '';
   }
-  if (els.chatPanel) els.chatPanel.classList.remove('open');
-  if (els.chatMessages) els.chatMessages.innerHTML = '';
-  if (els.chatInput) els.chatInput.value = '';
 
   buildPlayerList();
   if (els.skipBtn) {
     els.skipBtn.disabled = false;
-    els.skipBtn.className = 'skip-btn';
     els.skipBtn.textContent = '⏭ Skip Vote';
   }
 
@@ -135,48 +133,30 @@ function showVoteScreen(data) {
 
 function buildPlayerList() {
   const els = getMeetingElements();
-  try {
-    if (!els.playerListEl || !window.players) return;
-    els.playerListEl.innerHTML = '';
-    const amIDead = window.players[window.myId] && window.players[window.myId].isDead;
+  if (!els.playerListEl || !window.players) return;
+  els.playerListEl.innerHTML = '';
+  const amIDead = window.players[window.myId] && window.players[window.myId].isDead;
 
-    for (let id in window.players) {
-      const p = window.players[id];
-      const row = document.createElement('div');
-      row.className = 'vote-player-row' + (p.isDead ? ' dead' : '');
-      row.id = `vrow-${id}`;
+  for (let id in window.players) {
+    const p = window.players[id];
+    const row = document.createElement('div');
+    row.className = 'vote-player-row' + (p.isDead ? ' dead' : '');
+    row.id = `vrow-${id}`;
+    row.innerHTML = `
+        <span class="vote-color-dot" style="background:${p.color}"></span>
+        <span class="vote-player-name">${(p.isDead ? '💀 ' : '') + p.name + (id === window.myId ? ' (You)' : '')}</span>
+        <span class="vote-tally" id="vtl-${id}"></span>
+        <span class="voted-check" id="vck-${id}"></span>
+    `;
 
-      const dot = document.createElement('span');
-      dot.className = 'vote-color-dot';
-      dot.style.background = p.color;
-
-      const name = document.createElement('span');
-      name.className = 'vote-player-name';
-      name.textContent = (p.isDead ? '💀 ' : '') + p.name + (id === window.myId ? ' (You)' : '');
-
-      const check = document.createElement('span');
-      check.className = 'voted-check';
-      check.id = `vck-${id}`;
-      check.textContent = '';
-
-      const tally = document.createElement('span');
-      tally.className = 'vote-tally';
-      tally.id = `vtl-${id}`;
-
-      row.append(dot, name, tally, check);
-
-      if (!amIDead && !p.isDead && id !== window.myId) {
-        const btn = document.createElement('button');
-        btn.className = 'vote-btn';
-        btn.textContent = 'Vote';
-        btn.id = `vbtn-${id}`;
-        btn.addEventListener('click', () => castVote(id));
-        row.appendChild(btn);
-      }
-      els.playerListEl.appendChild(row);
+    if (!amIDead && !p.isDead && id !== window.myId) {
+      const btn = document.createElement('button');
+      btn.className = 'vote-btn';
+      btn.textContent = 'Vote';
+      btn.addEventListener('click', () => castVote(id));
+      row.appendChild(btn);
     }
-  } catch (err) {
-    console.error("MEETING SYSTEM: Error in buildPlayerList:", err);
+    els.playerListEl.appendChild(row);
   }
 }
 
@@ -187,16 +167,9 @@ function castVote(targetId) {
   window.socket.emit('castVote', targetId);
 
   document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
-  if (els.skipBtn) els.skipBtn.disabled = true;
-
-  if (targetId === 'skip') {
-    if (els.skipBtn) {
-      els.skipBtn.className = 'skip-btn chosen';
-      els.skipBtn.textContent = '✓ Skipped';
-    }
-  } else {
-    const b = document.getElementById(`vbtn-${targetId}`);
-    if (b) { b.classList.add('chosen'); b.textContent = '✓ Voted'; }
+  if (els.skipBtn) {
+      els.skipBtn.disabled = true;
+      if (targetId === 'skip') els.skipBtn.textContent = '✓ Skipped';
   }
 }
 
@@ -212,8 +185,9 @@ function updateTimer() {
 function showResult(data) {
   try {
     clearInterval(meetingTimerInterval);
-    document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
     const els = getMeetingElements();
+    
+    document.querySelectorAll('.vote-btn').forEach(b => b.disabled = true);
     if (els.skipBtn) els.skipBtn.disabled = true;
 
     for (let id in data.votes) {
@@ -226,32 +200,16 @@ function showResult(data) {
       if (data.eliminated) {
         els.voteResultEl.textContent = `🚀 ${data.eliminatedName} was killed!`;
         els.voteResultEl.style.color = '#e74c3c';
-        const row = document.getElementById(`vrow-${data.eliminated}`);
-        if (row) row.classList.add('ejected');
-        
         if (window.players && window.players[data.eliminated]) {
-          window.players[data.eliminated].isDead = true;
-          const p = window.players[data.eliminated];
-          if (window.bodies && !window.bodies.some(b => b.name === p.name && Math.hypot(b.x-p.x, b.y-p.y) < 5)) {
-            window.bodies.push({ x: p.x, y: p.y, color: p.color, name: p.name, role: p.role, ejected: true });
-          }
+           window.players[data.eliminated].isDead = true;
         }
       } else {
         els.voteResultEl.textContent = 'No one was killed. (Tie or skip)';
         els.voteResultEl.style.color = '#95a5a6';
       }
     }
-
-    if (data.spawnPositions && window.players) {
-      for (const id in data.spawnPositions) {
-        if (window.players[id]) {
-          window.players[id].x = data.spawnPositions[id].x;
-          window.players[id].y = data.spawnPositions[id].y;
-        }
-      }
-    }
   } catch (err) {
-    console.error("MEETING SYSTEM: Critical error in showResult:", err);
+    console.error("MEETING SYSTEM: Error in showResult:", err);
   }
 
   setTimeout(() => {
@@ -265,28 +223,21 @@ function closeMeeting() {
   window.meetingActive = false;
   window.meetingStartTime = 0;
   myVote = null;
+  if (els.uiSection) els.uiSection.classList.add('hidden');
   if (els.voteScreen) els.voteScreen.style.display = 'none';
   window.taskModalActive = false;
 }
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const els = getMeetingElements();
-    if (els.skipBtn) els.skipBtn.addEventListener('click', () => castVote('skip'));
-    if (els.chatToggleBtn && els.chatPanel) {
-        els.chatToggleBtn.addEventListener('click', () => {
-            const open = els.chatPanel.classList.toggle('open');
-            els.chatToggleBtn.textContent = open ? '💬 Close Chat ▲' : '💬 Open Chat ▼';
-            if (open && els.chatInput) els.chatInput.focus();
-        });
-    }
-    if (els.chatInput) {
-        els.chatInput.addEventListener('keydown', e => { if (e.code === 'Enter') sendChat(); });
-    }
-    if (els.chatSendBtn) {
-        els.chatSendBtn.addEventListener('click', sendChat);
-    }
-});
+// Event Listeners (Immediate attachment for bottom-of-body scripts)
+const e = getMeetingElements();
+if (e.skipBtn) e.skipBtn.onclick = () => castVote('skip');
+if (e.chatToggleBtn) e.chatToggleBtn.onclick = () => {
+    const open = e.chatPanel.classList.toggle('open');
+    e.chatToggleBtn.textContent = open ? '💬 Close Chat ▲' : '💬 Open Chat ▼';
+    if (open && e.chatInput) e.chatInput.focus();
+};
+if (e.chatSendBtn) e.chatSendBtn.onclick = sendChat;
+if (e.chatInput) e.chatInput.onkeydown = (ev) => { if (ev.code === 'Enter') sendChat(); };
 
 function sendChat() {
   const els = getMeetingElements();
