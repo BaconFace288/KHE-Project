@@ -254,6 +254,7 @@ canvas {
 .info-icon.credits {
     right: 25px;
     bottom: 25px;
+    top: auto !important; /* Overcome base .info-icon top: 20px */
     position: fixed;
     z-index: 100;
     border-color: #bdc3c7;
