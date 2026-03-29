@@ -1417,7 +1417,9 @@ function drawPlayer(p, isMe, time) {
   let isVertical = false;
   if (p.isMoving) {
     anim = Math.sin(time * 0.02) * 6;
-    isVertical = p.facingUp || (Math.abs(p.y - p.lastDrawY || 0) > Math.abs(p.x - p.lastDrawX || 0));
+    const dy = Math.abs(p.y - (p.lastDrawY || p.y));
+    const dx = Math.abs(p.x - (p.lastDrawX || p.x));
+    isVertical = dy > dx;
   }
 
   // --- Feet (Back-layer: hide foot going "up" behind body) ---
