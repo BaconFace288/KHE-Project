@@ -117,12 +117,16 @@ const MAP_DATA = {
       { x: 1360, y: 1360, w: 40, h: 40 }, { x: 1600, y: 1360, w: 40, h: 40 }, // Pillars
       { x: 1360, y: 1600, w: 40, h: 40 }, { x: 1600, y: 1600, w: 40, h: 40 },
       
-      // SPARK-HALL (SW) — 3 dorms
+    // SPARK-HALL (SW) — 3 dorms
       { x: 400, y: 2100, w: 500, h: 20 }, // Top
-      { x: 400, y: 2600, w: 500, h: 20 }, // Bottom
+      // Bottom wall split into 4 segments to leave 3 entrance gaps (one per dorm)
+      { x: 400, y: 2600, w: 55, h: 20 }, // Left edge
+      { x: 515, y: 2600, w: 95, h: 20 }, // Between dorm 1 and 2
+      { x: 670, y: 2600, w: 95, h: 20 }, // Between dorm 2 and 3
+      { x: 825, y: 2600, w: 75, h: 20 }, // Right edge
       { x: 400, y: 2100, w: 20, h: 500 }, // Left wall
       { x: 900, y: 2100, w: 20, h: 500 }, // Right wall
-      { x: 560, y: 2100, w: 20, h: 420 }, { x: 740, y: 2180, w: 20, h: 420 }, // Room dividers (gap at bottom = door)
+      { x: 560, y: 2100, w: 20, h: 420 }, { x: 740, y: 2180, w: 20, h: 420 }, // Room dividers
       
       // COBALT-WING (SE) — core room
       { x: 2200, y: 2100, w: 400, h: 20 }, // Top
@@ -160,16 +164,32 @@ const MAP_DATA = {
       {id:'B5c',x:2600,y:2300,w:240,h:240}
     ],
     doors: [
-      {x:620,y:645,w:100,h:20},
-      {x:2120,y:645,w:100,h:20},
-      {x:2370,y:645,w:100,h:20},
-      {x:1450,y:1195,w:100,h:20},
-      {x:1215,y:1450,w:20,h:100},
-      {x:470,y:2595,w:80,h:20},
-      {x:650,y:2595,w:80,h:20},
-      {x:810,y:2595,w:80,h:20},
-      {x:2215,y:2310,w:20,h:80},
-      {x:2300,y:2595,w:100,h:20}
+      // NW Building — left outer entrance (gap in left wall x=400, y=650-700)
+      {x:395,y:645,w:16,h:60},
+      // NW Building — internal room divider gap (y=650, x=580-720)
+      {x:580,y:640,w:140,h:16},
+      // NE Building — left outer entrance (gap in left wall x=2100, y=600-660)
+      {x:2090,y:595,w:16,h:70},
+      // NE Building — corridor wall passage (gap x=2350, y=600-660)
+      {x:2345,y:595,w:16,h:70},
+      // Central Hub — top entrance (gap y=1200, x=1450-1500)
+      {x:1440,y:1190,w:70,h:16},
+      // Central Hub — bottom entrance (gap y=1800, x=1500-1550)
+      {x:1490,y:1790,w:70,h:16},
+      // Central Hub — left entrance (gap x=1200, y=1450-1500)
+      {x:1190,y:1440,w:16,h:70},
+      // Central Hub — right entrance (gap x=1800, y=1450-1500)
+      {x:1790,y:1440,w:16,h:70},
+      // SW Dorm 1 bottom entrance (gap y=2600, x=455-515)
+      {x:450,y:2590,w:70,h:16},
+      // SW Dorm 2 bottom entrance (gap y=2600, x=610-670)
+      {x:610,y:2590,w:64,h:16},
+      // SW Dorm 3 bottom entrance (gap y=2600, x=765-825)
+      {x:765,y:2590,w:64,h:16},
+      // SE Cobalt — left outer entrance (gap x=2200, y=2300-2360)
+      {x:2190,y:2295,w:16,h:70},
+      // SE Cobalt — annex passage (gap x=2600, y=2300-2360)
+      {x:2595,y:2295,w:16,h:70}
     ]
   },
   'Charlie': {
@@ -1116,34 +1136,51 @@ function drawGame(time) {
   // =============================================
   const doors = MAP_DATA[currentMap]?.doors || [];
   for (let d of doors) {
-    // Stone mat base
+    const isHoriz = d.w > d.h;
+    // Bright floor mat — large, contrasting, clearly visible from outside
+    const matPad = 18;
+    ctx.fillStyle = '#f5c518'; // amber yellow
+    ctx.fillRect(d.x - matPad, d.y - matPad, d.w + matPad*2, d.h + matPad*2);
+    // Mat border
+    ctx.strokeStyle = '#e6a817';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(d.x - matPad, d.y - matPad, d.w + matPad*2, d.h + matPad*2);
+    // Stripes across the mat
+    ctx.strokeStyle = 'rgba(0,0,0,0.18)';
+    ctx.lineWidth = 4;
+    if (isHoriz) {
+      for (let sx = d.x - matPad + 8; sx < d.x + d.w + matPad; sx += 12) {
+        ctx.beginPath(); ctx.moveTo(sx, d.y - matPad); ctx.lineTo(sx, d.y + d.h + matPad); ctx.stroke();
+      }
+    } else {
+      for (let sy = d.y - matPad + 8; sy < d.y + d.h + matPad; sy += 12) {
+        ctx.beginPath(); ctx.moveTo(d.x - matPad, sy); ctx.lineTo(d.x + d.w + matPad, sy); ctx.stroke();
+      }
+    }
+    // Door panel (dark wood, inset from mat)
     ctx.fillStyle = '#5d4037';
     ctx.fillRect(d.x - 2, d.y - 2, d.w + 4, d.h + 4);
-    // Door surface
-    const isWide = d.w > d.h;
     ctx.fillStyle = '#795548';
     ctx.fillRect(d.x, d.y, d.w, d.h);
-    // Plank lines
     ctx.strokeStyle = '#4e342e';
     ctx.lineWidth = 2;
-    if (isWide) {
+    if (isHoriz) {
       ctx.beginPath(); ctx.moveTo(d.x + d.w/3, d.y); ctx.lineTo(d.x + d.w/3, d.y + d.h); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(d.x + 2*d.w/3, d.y); ctx.lineTo(d.x + 2*d.w/3, d.y + d.h); ctx.stroke();
     } else {
-      ctx.beginPath(); ctx.moveTo(d.x, d.y + d.h/3); ctx.lineTo(d.x + d.w, d.y + d.h/3); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(d.x, d.y + 2*d.h/3); ctx.lineTo(d.x + d.w, d.y + 2*d.h/3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(d.x, d.y + d.h/2); ctx.lineTo(d.x + d.w, d.y + d.h/2); ctx.stroke();
     }
-    // Door knob
+    // Gold knob
     ctx.fillStyle = '#ffd54f';
     ctx.beginPath();
-    ctx.arc(d.x + d.w/2, d.y + d.h/2, 4, 0, Math.PI * 2);
+    ctx.arc(d.x + d.w/2, d.y + d.h/2, 5, 0, Math.PI * 2);
     ctx.fill();
-    // Faint green glow around doorways
+    // Green glow on mat border
     ctx.shadowColor = '#00e676';
-    ctx.shadowBlur = 10;
-    ctx.strokeStyle = 'rgba(0,230,118,0.35)';
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = 'rgba(0,230,118,0.5)';
     ctx.lineWidth = 2;
-    ctx.strokeRect(d.x - 1, d.y - 1, d.w + 2, d.h + 2);
+    ctx.strokeRect(d.x - matPad, d.y - matPad, d.w + matPad*2, d.h + matPad*2);
     ctx.shadowBlur = 0;
   }
 
@@ -1208,7 +1245,7 @@ function drawGame(time) {
   // =============================================
   // ROOFS — fog of war with improved look
   // =============================================
-  const isMe = players[myId];
+  const isMe = findMe(); // Use findMe() so transparency works even if socket ID flickered
   const amIDead = isMe && isMe.isDead;
   let myRoomId = (!amIDead && isMe) ? getRoomId(isMe.x, isMe.y) : null;
 
