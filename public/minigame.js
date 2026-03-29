@@ -659,6 +659,7 @@ function startUploadGame() {
 
   let caught = 0;
   const total = 5;
+  let active = true;
 
   function spawn() {
     if (caught >= total || mgWrap.innerHTML === '') return;
@@ -713,6 +714,7 @@ function startReactorGame() {
   let lastAngle = null;
   let totalRotation = 0;
   let dragging = false;
+  let active = true;
 
   wheel.onmousedown = () => { if(active) dragging = true; };
   window.onmousemove = e => {
