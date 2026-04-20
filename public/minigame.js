@@ -269,6 +269,7 @@ let currentTask = null;
 let currentQuestion = null;
 let codingAttempts = 0;
 const MAX_ATTEMPTS = 2;
+let _activeIntervalId = null; // generic interval tracker for cleanup
 
 const modal       = document.getElementById('task-modal');
 const mgStage     = document.getElementById('minigame-stage');
@@ -293,8 +294,10 @@ function closeModal() {
   currentTask = null;
   currentQuestion = null;
   codingAttempts = 0;
-  // Clean up any minigame timers
-  if (simonTimeout) { clearTimeout(simonTimeout); simonTimeout = null; }
+  // Clean up any active minigame timers/listeners
+  if (_activeIntervalId) { clearInterval(_activeIntervalId); _activeIntervalId = null; }
+  if (typeof window._dialCleanup === 'function') { window._dialCleanup(); window._dialCleanup = null; }
+  if (typeof window._rhythmCleanup === 'function') { window._rhythmCleanup(); window._rhythmCleanup = null; }
   // re-enable game keys
   if (typeof taskModalActive !== 'undefined') window.taskModalActive = false;
 }
@@ -1044,25 +1047,28 @@ function startGridGame() {
     gridEl.appendChild(cell);
   }
 
-  timerId=setInterval(()=>{
-    timeLeft--;
-    timerEl.textContent=`⏱ ${timeLeft}s`;
-    if(timeLeft<=0){
-      clearInterval(timerId);
-      mgFeedback.textContent=`Time's up! (${found}/${LIT_COUNT} found). Try again.`;
-      mgFeedback.style.color='#e74c3c';
-      // reset
-      found=0; timeLeft=TIME;
-      cells.forEach((c,i)=>{
-        const isLit=litSet.has(i);
-        c.dataset.clicked='0';
-        c.style.background=isLit?'rgba(243,156,18,0.25)':'#0f0f23';
-        c.style.borderColor=isLit?'#f39c12':'#2c2c4a';
-        c.style.boxShadow=isLit?'0 0 8px rgba(243,156,18,0.5)':'none';
-      });
-      timerId=setInterval(arguments.callee,1000);
-    }
-  },1000);
+  function startTimer() {
+    timerId = setInterval(()=>{
+      timeLeft--;
+      timerEl.textContent=`⏱ ${timeLeft}s`;
+      if(timeLeft<=0){
+        clearInterval(timerId);
+        mgFeedback.textContent=`Time's up! (${found}/${LIT_COUNT} found). Try again.`;
+        mgFeedback.style.color='#e74c3c';
+        // reset
+        found=0; timeLeft=TIME;
+        cells.forEach((c,i)=>{
+          const isLit=litSet.has(i);
+          c.dataset.clicked='0';
+          c.style.background=isLit?'rgba(243,156,18,0.25)':'#0f0f23';
+          c.style.borderColor=isLit?'#f39c12':'#2c2c4a';
+          c.style.boxShadow=isLit?'0 0 8px rgba(243,156,18,0.5)':'none';
+        });
+        startTimer(); // restart instead of arguments.callee
+      }
+    },1000);
+  }
+  startTimer();
 
   wrap.appendChild(timerEl); wrap.appendChild(gridEl);
   mgWrap.appendChild(wrap);
