@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Primitive Peer</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="minigame.css">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -124,16 +125,43 @@
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
   <!-- TASK MINIGAME MODAL (Global) -->
-  <div id="task-modal" class="hidden">
+  <div id="task-modal">
     <div class="modal-card">
+
+      <!-- Header -->
       <div class="modal-header">
         <span class="task-icon" id="modal-icon">⚙️</span>
         <h2 id="modal-title">Task Name</h2>
-        <button id="task-close-btn">&times;</button>
+        <span class="modal-stage-label" id="modal-stage-label">Stage 1 / 2</span>
+        <button id="modal-close-btn" class="modal-cancel-btn" style="margin-left:8px;padding:4px 10px;font-size:18px;line-height:1;">×</button>
       </div>
-      <div id="task-body">
-        <!-- Minigame content gets injected here -->
+
+      <!-- Progress Bar -->
+      <div class="modal-progress-bar">
+        <div class="modal-progress-fill" id="modal-progress-fill" style="width:0%"></div>
       </div>
+
+      <!-- ===== STAGE 1: MINIGAME ===== -->
+      <div id="minigame-stage">
+        <p id="minigame-instructions" style="font-size:13px;color:#bdc3c7;margin-bottom:12px;"></p>
+        <div id="minigame-canvas-wrap"></div>
+        <p id="mg-feedback" style="min-height:20px;font-size:13px;color:#e74c3c;text-align:center;margin-top:8px;"></p>
+      </div>
+
+      <!-- ===== STAGE 2: CODING QUESTION ===== -->
+      <div id="coding-stage">
+        <span class="lang-badge" id="coding-lang">JavaScript</span>
+        <p id="coding-prompt" style="font-size:14px;margin:10px 0 8px;"></p>
+        <pre class="code-block" id="coding-code"></pre>
+        <div id="coding-answer-area"></div>
+        <p id="coding-feedback" style="min-height:18px;font-size:13px;text-align:center;"></p>
+        <div class="modal-footer">
+          <span class="attempt-indicator" id="attempt-indicator"></span>
+          <button id="coding-submit-btn" class="modal-submit-btn" style="display:none;">Submit</button>
+          <button id="coding-cancel-btn" class="modal-cancel-btn">Close</button>
+        </div>
+      </div>
+
     </div>
   </div>
 

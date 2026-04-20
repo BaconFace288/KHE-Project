@@ -353,6 +353,7 @@ let currentTask = null;
 let currentQuestion = null;
 let codingAttempts = 0;
 let codingQuestionsSolved = 0;
+let simonTimeout = null;
 const MAX_ATTEMPTS = 2;
 
 const modal       = document.getElementById('task-modal');
