@@ -145,6 +145,9 @@
     
     <!-- GAME HUD -->
     <div id="game-ui" class="hidden">
+      <div id="minimap-container">
+        <canvas id="minimap-canvas" width="160" height="160"></canvas>
+      </div>
       <div id="role-display">Role: <span id="role-text">Crewmate</span></div>
       <button id="action-btn" class="hidden">Club [Space]</button>
     </div>
@@ -156,31 +159,34 @@
     </div>
   </div>
   
-  <!-- MEETING FLASH -->
-  <div id="meeting-flash">
-    <div id="meeting-flash-text">⚠️ EMERGENCY<br>MEETING!</div>
-  </div>
+  <!-- MEETING SYSTEM -->
+  <div id="meeting-ui-section" class="hidden">
+    <!-- MEETING FLASH -->
+    <div id="meeting-flash">
+      <div id="meeting-flash-text">⚠️ EMERGENCY<br>MEETING!</div>
+    </div>
 
-  <!-- VOTE SCREEN -->
-  <div id="vote-screen">
-    <div class="vote-card">
-      <div class="vote-header">
-        <h2 id="vote-title">Emergency Meeting</h2>
-        <div id="vote-timer">1:00</div>
-      </div>
-      <p id="caller-info"></p>
-      <div id="vote-player-list"></div>
-      <div class="skip-wrap">
-        <button class="skip-btn" id="skip-vote-btn">⏭ Skip Vote</button>
-      </div>
-      <div id="vote-result"></div>
-      <div class="chat-section">
-        <button id="chat-toggle-btn">💬 Open Chat ▼</button>
-        <div id="chat-panel">
-          <div id="chat-messages"></div>
-          <div class="chat-input-row">
-            <input type="text" id="chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
-            <button id="chat-send-btn">Send</button>
+    <!-- VOTE SCREEN -->
+    <div id="vote-screen">
+      <div class="vote-card">
+        <div class="vote-header">
+          <h2 id="vote-title">Emergency Meeting</h2>
+          <div id="vote-timer">1:00</div>
+        </div>
+        <p id="caller-info"></p>
+        <div id="vote-player-list"></div>
+        <div class="skip-wrap">
+          <button class="skip-btn" id="skip-vote-btn">⏭ Skip Vote</button>
+        </div>
+        <div id="vote-result"></div>
+        <div class="chat-section">
+          <button id="chat-toggle-btn">💬 Open Chat ▼</button>
+          <div id="chat-panel">
+            <div id="chat-messages"></div>
+            <div class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Say something..." maxlength="150" autocomplete="off">
+              <button id="chat-send-btn">Send</button>
+            </div>
           </div>
         </div>
       </div>
@@ -229,6 +235,8 @@
 
     </div>
   </div>
+
+  <div id="kick-msg" class="hidden">Kicked for inactivity</div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="audio.js"></script>
