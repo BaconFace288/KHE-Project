@@ -709,9 +709,9 @@ io.on('connection', (socket) => {
 
     // If reporting a body, mark it so it can be cleared after meeting
     if (type === 'report' && bodyName) {
-        const body = room.bodies.find(b => b.name === bodyName && !b.reported);
-        if (body) {
-            body.reported = true;
+        const deadPlayerKey = Object.keys(room.players).find(k => room.players[k].name === bodyName && room.players[k].isDead && !room.players[k].reported);
+        if (deadPlayerKey) {
+            room.players[deadPlayerKey].reported = true;
             console.log(`[Meeting] Body of ${bodyName} reported in room ${roomId}`);
         }
     }
