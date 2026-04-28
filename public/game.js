@@ -1637,7 +1637,7 @@ function renderCharacterModel(ctx, p, state, time, isMe) {
 
     if (isDead) {
         // Dead Eyes (X)
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
         const drawX = (ox, oy) => {
             ctx.beginPath(); ctx.moveTo(ox-3.5, oy-3.5); ctx.lineTo(ox+3.5, oy+3.5); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(ox+3.5, oy-3.5); ctx.lineTo(ox-3.5, oy+3.5); ctx.stroke();
