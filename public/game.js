@@ -933,9 +933,20 @@ function gameLoop() {
 
 function renderMinimap() {
   if (!minimapCtx || !players[myId]) return;
+  const me = players[myId];
   const mm = minimapCanvas;
   const mctx = minimapCtx;
-  const scale = mm.width / MAP_WIDTH; // 160 / 3000
+
+  // Realignment constants (based on physical walls bounding box)
+  const padding = 100;
+  const boundX = 480 - padding;
+  const boundY = 580 - padding;
+  const boundW = 2420 - 480 + padding*2;
+  const boundH = 2820 - 580 + padding*2;
+  const scale = mm.width / Math.max(boundW, boundH);
+
+  const getX = (x) => (x - boundX) * scale;
+  const getY = (y) => (y - boundY) * scale;
 
   mctx.clearRect(0, 0, mm.width, mm.height);
 
@@ -954,21 +965,20 @@ function renderMinimap() {
   // Draw scaled walls — thicker for visibility
   mctx.fillStyle = 'rgba(100, 120, 140, 0.8)';
   for (let w of walls) {
-    // Math.max(2, ...) ensure walls are at least 2px thick on map
-    mctx.fillRect(w.x * scale, w.y * scale, Math.max(2, w.w * scale), Math.max(2, w.h * scale));
+    mctx.fillRect(getX(w.x), getY(w.y), Math.max(2, w.w * scale), Math.max(2, w.h * scale));
   }
 
-  // Draw scaled roofs/buildings (faint scanline overlay)
+  // Draw scaled roofs/buildings
   mctx.fillStyle = 'rgba(52, 152, 219, 0.1)';
   for (let r of roofs) {
-     mctx.fillRect(r.x * scale, r.y * scale, r.w * scale, r.h * scale);
+     mctx.fillRect(getX(r.x), getY(r.y), r.w * scale, r.h * scale);
   }
 
   // Emergency Button (Pulsing White dot)
   const btnPulse = 1 + 0.2 * Math.sin(Date.now() * 0.005);
   mctx.fillStyle = '#fff';
   mctx.beginPath();
-  mctx.arc(EMERGENCY_BTN.x * scale, EMERGENCY_BTN.y * scale, 3 * btnPulse, 0, Math.PI * 2);
+  mctx.arc(getX(EMERGENCY_BTN.x), getY(EMERGENCY_BTN.y), 3 * btnPulse, 0, Math.PI * 2);
   mctx.fill();
 
   // Tasks (Orange dots - only for current player's tasks)
@@ -978,10 +988,9 @@ function renderMinimap() {
         const tPulse = 1 + 0.4 * Math.sin(Date.now() * 0.007);
         mctx.fillStyle = '#f39c12';
         mctx.beginPath();
-        mctx.arc(t.x * scale, t.y * scale, 4 * tPulse, 0, Math.PI * 2);
+        mctx.arc(getX(t.x), getY(t.y), 4 * tPulse, 0, Math.PI * 2);
         mctx.fill();
         
-        // Glow effect
         mctx.shadowBlur = 10;
         mctx.shadowColor = '#f39c12';
         mctx.stroke();
@@ -990,8 +999,68 @@ function renderMinimap() {
     }
   }
 
-  // BALANCE: Still no other player dots. 
-  // Map just serves as a reference for walls and task locations.
+  // === CAVEMAN RADAR MECHANIC ===
+  if (me.role === 'impostor') {
+      const radarTimerEl = document.getElementById('radar-timer');
+      const timeLoop = 30000;
+      const elapsed = Date.now() % timeLoop;
+      
+      if (radarTimerEl) {
+          radarTimerEl.classList.remove('hidden');
+          if (elapsed < 3000) {
+              radarTimerEl.innerText = "RADAR ACTIVE";
+              radarTimerEl.style.color = "#fff";
+              radarTimerEl.style.background = "rgba(231, 76, 60, 0.8)";
+          } else {
+              const remaining = Math.ceil((timeLoop - elapsed) / 1000);
+              radarTimerEl.innerText = `Radar: ${remaining}s`;
+              radarTimerEl.style.color = "#e74c3c";
+              radarTimerEl.style.background = "rgba(231, 76, 60, 0.2)";
+          }
+      }
+
+      // Radar is active for the first 3000ms
+      if (elapsed < 3000) {
+          // Blink 3 times (every 1000ms, visible for 500ms)
+          const blinkOn = (elapsed % 1000) < 500;
+          
+          // Audio Trigger Check
+          if (blinkOn && !window._radarAudioPlayedForThisBlink) {
+              window._radarAudioPlayedForThisBlink = true;
+              playSubtleRadarPing(); // new audio function
+          } else if (!blinkOn) {
+              window._radarAudioPlayedForThisBlink = false;
+          }
+
+          if (blinkOn) {
+              for (let id in players) {
+                  const p = players[id];
+                  if (p.role !== 'impostor' && !p.isDead) {
+                      mctx.fillStyle = '#e74c3c';
+                      mctx.beginPath();
+                      mctx.arc(getX(p.x), getY(p.y), 4.5, 0, Math.PI * 2);
+                      mctx.fill();
+                      
+                      mctx.shadowBlur = 12;
+                      mctx.shadowColor = '#e74c3c';
+                      mctx.stroke();
+                      mctx.shadowBlur = 0;
+                  }
+              }
+          }
+      } else {
+          window._radarAudioPlayedForThisBlink = false;
+      }
+  } else {
+      const radarTimerEl = document.getElementById('radar-timer');
+      if (radarTimerEl) radarTimerEl.classList.add('hidden');
+  }
+
+  // Draw local player dot
+  mctx.fillStyle = '#2ecc71';
+  mctx.beginPath();
+  mctx.arc(getX(me.x), getY(me.y), 3.5, 0, Math.PI * 2);
+  mctx.fill();
 }
 
 const SPEED = 200;
