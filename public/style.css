@@ -811,3 +811,20 @@ canvas {
 .chat-input-row { display: flex; gap: 10px; margin-top: 10px; }
 #chat-input { flex-grow: 1; margin: 0; }
 
+
+#radar-timer {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    pointer-events: none;
+}
+
