@@ -1513,130 +1513,197 @@ function drawMapDecorations(time) {
   }
 }
 
-function drawPlayer(p, isMe, time) {
+// Unified character rendering pipeline
+function renderCharacterModel(ctx, p, state, time, isMe) {
   if (!p) return;
-  // Local player direction detection
-  if (isMe) {
+
+  // Local player direction detection for ghosts and alive
+  if (isMe && state !== 'DEAD') {
     if (keys['w']) p.facingUp = true;
     else if (keys['s']) p.facingUp = false;
   }
 
-  let bob = p.isMoving ? Math.abs(Math.sin(time * 0.015)) * 5 : 0;
+  const isDead = state === 'DEAD';
+  const isGhost = state === 'GHOST';
+
+  let bob = (p.isMoving && !isDead) ? Math.abs(Math.sin(time * 0.015)) * 5 : 0;
+  if (isGhost) bob = Math.sin(time * 0.003) * 6; // slow floating bob
+
   ctx.save();
-  ctx.translate(p.x, p.y - bob);
-  if (p.flipX) ctx.scale(-1, 1);
-
-  // --- Hair (Visible on front and back) ---
-  ctx.fillStyle = '#2d3436'; // Charcoal black for contrast
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  if (p.facingUp) {
-    // Full back hair
-    ctx.arc(0, -18, 13, 0, Math.PI * 2);
-  } else {
-    // Front fringe
-    ctx.arc(0, -18, 12, Math.PI, Math.PI * 2.1);
+  ctx.translate(p.x, p.y - (isDead ? 0 : bob));
+  
+  if (isDead) {
+      // flat on ground
+      ctx.rotate(Math.PI / 2.2);
   }
-  ctx.fill(); ctx.stroke();
-
-  if (!p.facingUp) {
-    // --- Head (Front skin tone) ---
-    ctx.fillStyle = '#ffdbac';
-    ctx.beginPath();
-    ctx.arc(0, -18, 12, 0, Math.PI);
-    ctx.fill();
-    ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // --- Sunglasses ---
-    ctx.fillStyle = '#1e1e1e';
-    ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill(); 
-    ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
-    ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
-    // Shine
-    ctx.fillStyle = 'white';
-    ctx.beginPath(); ctx.arc(-4, -19, 1, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(5, -19, 1, 0, Math.PI * 2); ctx.fill();
-  }
+  
+  if (p.flipX && !isDead) ctx.scale(-1, 1);
+  
+  if (isGhost) ctx.globalAlpha = 0.45;
 
   // Pre-calculate stride for depth layering
   let anim = 0;
   let isVertical = false;
-  if (p.isMoving) {
+  if (p.isMoving && !isDead) {
     anim = Math.sin(time * 0.02) * 6;
     const dy = Math.abs(p.y - (p.lastDrawY || p.y));
     const dx = Math.abs(p.x - (p.lastDrawX || p.x));
     isVertical = dy > dx;
   }
 
-  // --- Feet (Back-layer: hide foot going "up" behind body) ---
-  if (p.isMoving && isVertical) {
-    ctx.fillStyle = '#333';
-    if (anim < 0) ctx.fillRect(-10, 16 + anim, 8, 5);
-    else ctx.fillRect(2, 16 - anim, 8, 5);
+  // --- Feet (Back-layer) ---
+  if (!isDead && !isGhost) {
+      if (p.isMoving && isVertical) {
+        ctx.fillStyle = '#222';
+        if (anim < 0) { ctx.beginPath(); ctx.roundRect(-10, 16 + anim, 8, 6, 2); ctx.fill(); }
+        else { ctx.beginPath(); ctx.roundRect(2, 16 - anim, 8, 6, 2); ctx.fill(); }
+      }
   }
 
-  // --- Earpiece ---
-  ctx.fillStyle = '#dfe6e9';
-  ctx.beginPath();
-  ctx.arc(p.flipX ? 10 : -10, -18, 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#636e72'; ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(p.flipX ? 10 : -10, -16);
-  ctx.bezierCurveTo(p.flipX ? 12 : -12, -12, p.flipX ? 8 : -8, -10, p.flipX ? 10 : -10, -8);
-  ctx.stroke();
-
   // --- Suit Body ---
-  ctx.fillStyle = p.color;
+  ctx.fillStyle = isGhost ? p.color : p.color; // Keep color
+  if (isGhost) ctx.globalAlpha = 0.35;
+  
   ctx.beginPath();
-  ctx.roundRect(-14, -8, 28, 24, 6);
+  if (isGhost) {
+      ctx.roundRect(-14, -8, 28, 20, { tl: 8, tr: 8, bl: 0, br: 0 });
+  } else {
+      ctx.roundRect(-14, -8, 28, 24, 8);
+  }
   ctx.fill();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5;
-  ctx.stroke();
+  
+  // Shadow on suit
+  if (!isGhost) {
+      const g = ctx.createLinearGradient(-14, 0, 14, 0);
+      g.addColorStop(0, 'rgba(0,0,0,0.4)');
+      g.addColorStop(0.5, 'rgba(0,0,0,0)');
+      g.addColorStop(1, 'rgba(255,255,255,0.15)');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.roundRect(-14, -8, 28, 24, 8); ctx.fill();
+  }
 
-  if (p.facingUp) {
-    // --- Back Suit Details (Seam & Vent) ---
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = '#000'; ctx.lineWidth = isGhost ? 1 : 2;
+  if (!isGhost) ctx.stroke();
+
+  if (p.facingUp || isDead) {
+    // --- Back Suit Details ---
+    ctx.strokeStyle = isGhost ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.4)'; 
+    ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 16); ctx.stroke(); // Seam
     ctx.beginPath(); ctx.moveTo(-4, 16); ctx.lineTo(4, 16); ctx.stroke(); // Vent
   }
 
-  if (!p.facingUp) {
-    // --- Shirt & Tie (V-neck look) ---
-    ctx.fillStyle = 'white';
+  if (!p.facingUp || isDead) {
+    // --- Shirt & Tie ---
+    ctx.fillStyle = isGhost ? 'rgba(255,255,255,0.7)' : '#f1f2f6';
     ctx.beginPath();
     ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4); ctx.closePath();
     ctx.fill();
 
-    ctx.fillStyle = '#000'; // black tie
+    ctx.fillStyle = isGhost ? 'rgba(0,0,0,0.6)' : '#2f3640'; // tie
     ctx.beginPath();
-    ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
+    ctx.moveTo(-2, -8); ctx.lineTo(2, -8); ctx.lineTo(0, 2); ctx.closePath();
     ctx.fill();
   }
 
-  // --- Feet (Front-layer: show foot going "down" or sliding over body) ---
-  ctx.fillStyle = '#333';
-  if (p.isMoving) {
-    if (isVertical) {
-      if (anim >= 0) ctx.fillRect(-10, 16 + anim, 8, 5);
-      else ctx.fillRect(2, 16 - anim, 8, 5);
-    } else {
-      // Stepping left/right: Horizontal alternate stride
-      ctx.fillRect(-10 + anim, 16, 8, 5);
-      ctx.fillRect(2 - anim, 16, 8, 5);
-    }
-    p.lastDrawX = p.x; p.lastDrawY = p.y;
+  // --- Hair (Back or Front) ---
+  ctx.fillStyle = '#2f3640'; 
+  ctx.strokeStyle = isGhost ? 'rgba(0,0,0,0.5)' : '#111'; 
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (p.facingUp || isDead) {
+    ctx.arc(0, -18, 13.5, 0, Math.PI * 2);
   } else {
-    ctx.fillRect(-10, 16, 8, 5);
-    ctx.fillRect(2, 16, 8, 5);
+    ctx.arc(0, -18, 12.5, Math.PI, Math.PI * 2.1);
+  }
+  ctx.fill(); 
+  if (!isGhost) ctx.stroke();
+
+  if (!p.facingUp || isDead) {
+    // --- Head (Skin) ---
+    ctx.fillStyle = isGhost ? '#dfe6e9' : '#ffdbac';
+    ctx.beginPath();
+    ctx.arc(0, -18, 12, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = isGhost ? 'rgba(0,0,0,0.5)' : '#000'; 
+    ctx.lineWidth = isGhost ? 1.2 : 2;
+    ctx.stroke();
+
+    // Shading on face
+    if (!isGhost && !isDead) {
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.beginPath(); ctx.arc(0, -18, 12, 0, Math.PI); ctx.fill();
+    }
+
+    if (isDead) {
+        // Dead Eyes (X)
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5;
+        const drawX = (ox, oy) => {
+            ctx.beginPath(); ctx.moveTo(ox-3.5, oy-3.5); ctx.lineTo(ox+3.5, oy+3.5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox+3.5, oy-3.5); ctx.lineTo(ox-3.5, oy+3.5); ctx.stroke();
+        };
+        drawX(-4, -20); drawX(4, -20);
+    } else {
+        // --- Sunglasses (Only when alive/ghost) ---
+        ctx.fillStyle = '#1e1e1e';
+        ctx.beginPath(); ctx.roundRect(-9, -21.5, 7.5, 6.5, 2.5); ctx.fill(); 
+        ctx.beginPath(); ctx.roundRect(1.5, -21.5, 7.5, 6.5, 2.5); ctx.fill();
+        ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
+        
+        // Shine
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        ctx.beginPath(); ctx.arc(-5, -19.5, 1.2, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(4, -19.5, 1.2, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+
+  // --- Earpiece (Alive and Ghost only) ---
+  if (!isDead) {
+      ctx.fillStyle = isGhost ? 'rgba(255,255,255,0.5)' : '#dfe6e9';
+      ctx.beginPath();
+      ctx.arc(p.flipX ? 10.5 : -10.5, -18, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = isGhost ? 'rgba(0,0,0,0.4)' : '#636e72'; 
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(p.flipX ? 10.5 : -10.5, -16);
+      ctx.bezierCurveTo(p.flipX ? 12 : -12, -12, p.flipX ? 8 : -8, -10, p.flipX ? 10.5 : -10.5, -8);
+      ctx.stroke();
+  }
+
+  if (isGhost) {
+      // --- Wavy triangle tail ---
+      ctx.fillStyle = '#dfe6e9';
+      const tipX = Math.sin(time * 0.005) * 12;
+      ctx.beginPath();
+      ctx.moveTo(-14, 10);
+      ctx.lineTo(14, 10);
+      ctx.lineTo(tipX, 35);
+      ctx.closePath();
+      ctx.fill();
+  } else if (!isDead) {
+      // --- Feet (Front-layer) ---
+      ctx.fillStyle = '#222';
+      if (p.isMoving) {
+        if (isVertical) {
+          if (anim >= 0) { ctx.beginPath(); ctx.roundRect(-10, 16 + anim, 8, 6, 2); ctx.fill(); }
+          else { ctx.beginPath(); ctx.roundRect(2, 16 - anim, 8, 6, 2); ctx.fill(); }
+        } else {
+          // Horizontal alternate stride
+          ctx.beginPath(); ctx.roundRect(-10 + anim, 16, 8, 6, 2); ctx.fill();
+          ctx.beginPath(); ctx.roundRect(2 - anim, 16, 8, 6, 2); ctx.fill();
+        }
+        p.lastDrawX = p.x; p.lastDrawY = p.y;
+      } else {
+        ctx.beginPath(); ctx.roundRect(-10, 16, 8, 6, 2); ctx.fill();
+        ctx.beginPath(); ctx.roundRect(2, 16, 8, 6, 2); ctx.fill();
+      }
   }
 
   // --- Role Specific: Impostor Weapon (Club) ---
-  if (p.role === 'impostor') {
-    // Only show weapon while swinging (only for local player for now, or based on anim state)
-    if (isMe && swingAnim > 0) {
+  if (!isDead && p.role === 'impostor') {
+    if (isMe && typeof swingAnim !== 'undefined' && swingAnim > 0) {
       ctx.save();
       ctx.translate(14, 5);
       ctx.rotate(Math.PI / 2 * swingAnim);
@@ -1645,171 +1712,56 @@ function drawPlayer(p, isMe, time) {
       ctx.fillStyle = '#8B4513';
       ctx.beginPath();
       ctx.arc(0, -20, 6, 0, Math.PI * 2);
-      ctx.lineTo(-3, 0); ctx.lineTo(-6, -20);
-      ctx.lineTo(6, -20); ctx.lineTo(3, 0);
+      ctx.lineTo(-3.5, 0); ctx.lineTo(-6.5, -20);
+      ctx.lineTo(6.5, -20); ctx.lineTo(3.5, 0);
       ctx.fill();
       ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5;
       ctx.stroke();
       
       // Some texture/bands
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
       ctx.beginPath(); ctx.moveTo(-4, -10); ctx.lineTo(4, -10); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(-5, -15); ctx.lineTo(5, -15); ctx.stroke();
       
       ctx.restore();
     }
   }
-  
+
   ctx.restore();
 
   // Nametag
-  ctx.fillStyle = 'white';
+  ctx.save();
   ctx.font = 'bold 12px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(p.name, p.x, p.y - 48 - bob);
-}
-
-// Draw the ghost (dead player that can still move)
-function drawGhost(p, isMe, time) {
-  if (!p) return;
-  // Local player direction detection
-  if (isMe) {
-    if (keys['w']) p.facingUp = true;
-    else if (keys['s']) p.facingUp = false;
-  }
-
-  const bob = Math.sin(Date.now() * 0.003) * 6;
-  ctx.save();
-  ctx.translate(p.x, p.y + bob);
-  if (p.flipX) ctx.scale(-1, 1);
-  ctx.globalAlpha = 0.45;
-
-  // --- Hair (Spectral) ---
-  ctx.fillStyle = '#2d3436';
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  if (p.facingUp) {
-    ctx.arc(0, -18, 13.5, 0, Math.PI * 2);
+  
+  if (isGhost) {
+      ctx.globalAlpha = 0.7;
+      ctx.fillStyle = '#b2bec3';
+      ctx.fillText('👻 ' + p.name, p.x, p.y - 42 + bob);
+  } else if (isDead) {
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillText('💀 ' + p.name, p.x, p.y - 34);
   } else {
-    ctx.arc(0, -18, 12, Math.PI, Math.PI * 2.1);
+      ctx.fillStyle = 'white';
+      // Outline for nametag
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = 2;
+      ctx.strokeText(p.name, p.x, p.y - 48 - bob);
+      ctx.fillText(p.name, p.x, p.y - 48 - bob);
   }
-  ctx.fill(); ctx.stroke();
-
-  if (!p.facingUp) {
-    // Head skin tone
-    ctx.fillStyle = '#dfe6e9';
-    ctx.beginPath();
-    ctx.arc(0, -18, 12, 0, Math.PI);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.2;
-    ctx.stroke();
-  }
-
-  // --- Spectral Suit (desaturated) ---
-  ctx.fillStyle = p.color;
-  ctx.globalAlpha = 0.3;
-  ctx.beginPath();
-  ctx.roundRect(-14, -8, 28, 20, { tl: 6, tr: 6, bl: 0, br: 0 });
-  ctx.fill();
-  
-  if (p.facingUp) {
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 12); ctx.stroke();
-  }
-  
-  ctx.globalAlpha = 0.45;
-  ctx.fillStyle = '#dfe6e9';
-  ctx.beginPath();
-  ctx.roundRect(-14, -8, 28, 18, { tl: 6, tr: 6, bl: 0, br: 0 });
-  ctx.fill();
-
-  if (!p.facingUp) {
-    // Shirt & Tie
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.beginPath();
-    ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4); ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.beginPath();
-    ctx.moveTo(-1.5, -8); ctx.lineTo(1.5, -8); ctx.lineTo(0, 2); ctx.closePath();
-    ctx.fill();
-  }
-
-  // --- Wavy triangle tail ---
-  ctx.fillStyle = '#dfe6e9';
-  const tipX = Math.sin(Date.now() * 0.005) * 12;
-  ctx.beginPath();
-  ctx.moveTo(-14, 10);
-  ctx.lineTo(14, 10);
-  ctx.lineTo(tipX, 35);
-  ctx.closePath();
-  ctx.fill();
-
-  if (!p.facingUp) {
-    // Sunglasses (spectral)
-    ctx.fillStyle = '#1e1e1e';
-    ctx.beginPath(); ctx.roundRect(-9, -21, 7, 6, 2); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(2, -21, 7, 6, 2); ctx.fill();
-    ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-2, -20); ctx.lineTo(2, -20); ctx.stroke();
-  }
-
-  ctx.restore();
-
-  // Ghost nametag
-  ctx.save();
-  ctx.globalAlpha = 0.7;
-  ctx.fillStyle = '#b2bec3';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('👻 ' + p.name, p.x, p.y - 42 + bob);
   ctx.restore();
 }
 
-// Draw a sideways corpse at the death location
+function drawPlayer(p, isMe, time) {
+  renderCharacterModel(ctx, p, 'ALIVE', time, isMe);
+}
+
+function drawGhost(p, isMe, time) {
+  renderCharacterModel(ctx, p, 'GHOST', time, isMe);
+}
+
 function drawDeadBody(body) {
-  if (!body) return;
-  ctx.save();
-  ctx.translate(body.x, body.y);
-  ctx.rotate(Math.PI / 2.2); // flat on ground
-
-  // Agent head with X eyes
-  ctx.fillStyle = '#ffdbac';
-  ctx.beginPath(); ctx.arc(0, -18, 12, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
-
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-  const drawX = (ox, oy) => {
-    ctx.beginPath(); ctx.moveTo(ox-3, oy-3); ctx.lineTo(ox+3, oy+3); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(ox+3, oy-3); ctx.lineTo(ox-3, oy+3); ctx.stroke();
-  };
-  drawX(-4, -20); drawX(4, -20);
-
-  // Agent suit
-  ctx.fillStyle = body.color;
-  ctx.beginPath(); ctx.roundRect(-14, -8, 28, 24, 6); ctx.fill();
-  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5; ctx.stroke();
-
-  // Shirt/Tie
-  ctx.fillStyle = 'rgba(255,255,255,0.7)';
-  ctx.beginPath();
-  ctx.moveTo(-6, -8); ctx.lineTo(6, -8); ctx.lineTo(0, 4);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#000';
-  ctx.beginPath();
-  ctx.moveTo(-1, -8); ctx.lineTo(1, -8); ctx.lineTo(0, 0);
-  ctx.closePath(); ctx.fill();
-
-  ctx.restore();
-
-  // Name tag
-  ctx.save();
-  ctx.fillStyle = '#e74c3c';
-  ctx.font = 'bold 11px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('💀 ' + body.name, body.x, body.y - 34);
-  ctx.restore();
+  renderCharacterModel(ctx, body, 'DEAD', Date.now(), false);
 }
 
 // Draw task markers on the map
