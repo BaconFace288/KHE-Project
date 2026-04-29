@@ -1014,38 +1014,22 @@ function renderMinimap() {
 
   // === CAVEMAN RADAR MECHANIC ===
   if (me.role === 'impostor') {
-      const radarTimerEl = document.getElementById('radar-timer');
       const timeLoop = 30000;
       window.radarStartTime = window.radarStartTime || Date.now();
       const elapsed = (Date.now() - window.radarStartTime) % timeLoop;
       
-      if (radarTimerEl) {
-          radarTimerEl.classList.remove('hidden');
-          if (elapsed < 3000) {
-              radarTimerEl.innerText = "RADAR ACTIVE";
-              radarTimerEl.style.color = "#fff";
-              radarTimerEl.style.background = "rgba(231, 76, 60, 0.8)";
-          } else {
-              const remaining = Math.ceil((timeLoop - elapsed) / 1000);
-              radarTimerEl.innerText = `Radar: ${remaining}s`;
-              radarTimerEl.style.color = "#e74c3c";
-              radarTimerEl.style.background = "rgba(231, 76, 60, 0.2)";
-          }
-      }
+      // Draw timer background
+      mctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      mctx.fillRect(mm.width - 70, 0, 70, 20);
 
-      // Radar is active for the first 3000ms
       if (elapsed < 3000) {
-          // Blink 3 times (every 1000ms, visible for 500ms)
-          const blinkOn = (elapsed % 1000) < 500;
-          
-          // Audio Trigger Check
-          if (blinkOn && !window._radarAudioPlayedForThisBlink) {
-              window._radarAudioPlayedForThisBlink = true;
-              playSubtleRadarPing(); // new audio function
-          } else if (!blinkOn) {
-              window._radarAudioPlayedForThisBlink = false;
-          }
+          mctx.fillStyle = '#fff';
+          mctx.font = 'bold 10px sans-serif';
+          mctx.textAlign = 'right';
+          mctx.fillText("RADAR ACTIVE", mm.width - 5, 14);
 
+          // Blink 3 times
+          const blinkOn = (elapsed % 1000) < 500;
           if (blinkOn) {
               for (let id in players) {
                   const p = players[id];
@@ -1054,7 +1038,6 @@ function renderMinimap() {
                       mctx.beginPath();
                       mctx.arc(getX(p.x), getY(p.y), 4.5, 0, Math.PI * 2);
                       mctx.fill();
-                      
                       mctx.shadowBlur = 12;
                       mctx.shadowColor = '#e74c3c';
                       mctx.stroke();
@@ -1063,11 +1046,12 @@ function renderMinimap() {
               }
           }
       } else {
-          window._radarAudioPlayedForThisBlink = false;
+          const remaining = Math.ceil((timeLoop - elapsed) / 1000);
+          mctx.fillStyle = '#e74c3c';
+          mctx.font = 'bold 10px sans-serif';
+          mctx.textAlign = 'right';
+          mctx.fillText(`Radar: ${remaining}s`, mm.width - 5, 14);
       }
-  } else {
-      const radarTimerEl = document.getElementById('radar-timer');
-      if (radarTimerEl) radarTimerEl.classList.add('hidden');
   }
 
   // Draw local player dot
