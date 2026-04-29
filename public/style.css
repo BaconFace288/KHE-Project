@@ -631,7 +631,6 @@ canvas {
   background: rgba(10, 15, 25, 0.7);
   border: 2px solid rgba(52, 152, 219, 0.5);
   border-radius: 12px;
-  padding: 0;
   box-sizing: border-box;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(52, 152, 219, 0.2);
   backdrop-filter: blur(4px);
@@ -645,6 +644,10 @@ canvas {
   height: 100%;
   display: block;
   opacity: 0.85;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 #role-display {

@@ -1014,20 +1014,26 @@ function renderMinimap() {
 
   // === CAVEMAN RADAR MECHANIC ===
   if (me.role === 'impostor') {
+      const radarTimerEl = document.getElementById('radar-timer');
       const timeLoop = 30000;
       window.radarStartTime = window.radarStartTime || Date.now();
       const elapsed = (Date.now() - window.radarStartTime) % timeLoop;
       
-      // Draw timer background
-      mctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-      mctx.fillRect(mm.width - 70, 0, 70, 20);
+      if (radarTimerEl) {
+          radarTimerEl.classList.remove('hidden');
+          if (elapsed < 3000) {
+              radarTimerEl.innerText = "RADAR ACTIVE";
+              radarTimerEl.style.color = "#fff";
+              radarTimerEl.style.background = "rgba(231, 76, 60, 0.8)";
+          } else {
+              const remaining = Math.ceil((timeLoop - elapsed) / 1000);
+              radarTimerEl.innerText = `Radar: ${remaining}s`;
+              radarTimerEl.style.color = "#e74c3c";
+              radarTimerEl.style.background = "rgba(0, 0, 0, 0.7)";
+          }
+      }
 
       if (elapsed < 3000) {
-          mctx.fillStyle = '#fff';
-          mctx.font = 'bold 10px sans-serif';
-          mctx.textAlign = 'right';
-          mctx.fillText("RADAR ACTIVE", mm.width - 5, 14);
-
           // Blink 3 times
           const blinkOn = (elapsed % 1000) < 500;
           if (blinkOn) {
@@ -1045,13 +1051,10 @@ function renderMinimap() {
                   }
               }
           }
-      } else {
-          const remaining = Math.ceil((timeLoop - elapsed) / 1000);
-          mctx.fillStyle = '#e74c3c';
-          mctx.font = 'bold 10px sans-serif';
-          mctx.textAlign = 'right';
-          mctx.fillText(`Radar: ${remaining}s`, mm.width - 5, 14);
       }
+  } else {
+      const radarTimerEl = document.getElementById('radar-timer');
+      if (radarTimerEl) radarTimerEl.classList.add('hidden');
   }
 
   // Draw local player dot
