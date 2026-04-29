@@ -937,16 +937,29 @@ function renderMinimap() {
   const mm = minimapCanvas;
   const mctx = minimapCtx;
 
-  // Realignment constants (based on physical walls bounding box)
+  // Dynamically calculate map bounds to perfectly center minimap
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let w of walls) {
+      if (w.x < minX) minX = w.x;
+      if (w.y < minY) minY = w.y;
+      if (w.x + w.w > maxX) maxX = w.x + w.w;
+      if (w.y + w.h > maxY) maxY = w.y + w.h;
+  }
   const padding = 100;
-  const boundX = 480 - padding;
-  const boundY = 580 - padding;
-  const boundW = 2420 - 480 + padding*2;
-  const boundH = 2820 - 580 + padding*2;
-  const scale = mm.width / Math.max(boundW, boundH);
+  const boundX = minX - padding;
+  const boundY = minY - padding;
+  const boundW = (maxX - minX) + padding * 2;
+  const boundH = (maxY - minY) + padding * 2;
+  const maxDim = Math.max(boundW, boundH);
+  
+  // Center it if map isn't perfectly square
+  const offsetX = (maxDim - boundW) / 2;
+  const offsetY = (maxDim - boundH) / 2;
+  
+  const scale = mm.width / maxDim;
 
-  const getX = (x) => (x - boundX) * scale;
-  const getY = (y) => (y - boundY) * scale;
+  const getX = (x) => (x - boundX + offsetX) * scale;
+  const getY = (y) => (y - boundY + offsetY) * scale;
 
   mctx.clearRect(0, 0, mm.width, mm.height);
 
@@ -1003,7 +1016,8 @@ function renderMinimap() {
   if (me.role === 'impostor') {
       const radarTimerEl = document.getElementById('radar-timer');
       const timeLoop = 30000;
-      const elapsed = Date.now() % timeLoop;
+      window.radarStartTime = window.radarStartTime || Date.now();
+      const elapsed = (Date.now() - window.radarStartTime) % timeLoop;
       
       if (radarTimerEl) {
           radarTimerEl.classList.remove('hidden');
@@ -1706,7 +1720,7 @@ function renderCharacterModel(ctx, p, state, time, isMe) {
 
     if (isDead) {
         // Dead Eyes (X)
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2.5;
         const drawX = (ox, oy) => {
             ctx.beginPath(); ctx.moveTo(ox-3.5, oy-3.5); ctx.lineTo(ox+3.5, oy+3.5); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(ox+3.5, oy-3.5); ctx.lineTo(ox-3.5, oy+3.5); ctx.stroke();

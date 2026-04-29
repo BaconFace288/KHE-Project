@@ -222,6 +222,7 @@ function closeMeeting() {
   const els = getMeetingElements();
   window.meetingActive = false;
   window.meetingStartTime = 0;
+  window.radarStartTime = Date.now(); // Reset caveman radar
   myVote = null;
   if (els.uiSection) els.uiSection.classList.add('hidden');
   if (els.voteScreen) els.voteScreen.style.display = 'none';
