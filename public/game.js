@@ -1014,7 +1014,18 @@ function renderMinimap() {
 
   // === CAVEMAN RADAR MECHANIC ===
   if (me.role === 'impostor') {
-      const radarTimerEl = document.getElementById('radar-timer');
+      let radarTimerEl = document.getElementById('radar-timer');
+      if (!radarTimerEl) {
+          radarTimerEl = document.createElement('div');
+          radarTimerEl.id = 'radar-timer';
+          radarTimerEl.className = 'hidden';
+          radarTimerEl.style.cssText = "background: rgba(0,0,0,0.7); color: #fff; padding: 10px 15px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; border: 2px solid #e74c3c; margin-bottom: 10px;";
+          const actionBtn = document.getElementById('action-btn');
+          if (actionBtn && actionBtn.parentNode) {
+              actionBtn.parentNode.insertBefore(radarTimerEl, actionBtn);
+          }
+      }
+      
       const timeLoop = 30000;
       window.radarStartTime = window.radarStartTime || Date.now();
       const elapsed = (Date.now() - window.radarStartTime) % timeLoop;
