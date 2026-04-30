@@ -332,6 +332,7 @@ var currentRoomCode = null;
 var currentState = 'LANDING';
 var hostId = null;
 var completedTasks = new Set();
+var window.myTaskIds = null;
 window.completedTasks = completedTasks;
 var bodies = [];
 window.bodies = bodies;
@@ -354,7 +355,7 @@ function assignMyTasks() {
         [all[i], all[j]] = [all[j], all[i]];
     }
     const myIdsList = all.slice(0, 7);
-    myTaskIds = new Set(myIdsList);
+    window.myTaskIds = new Set(myIdsList);
 
     // Pick 2 random from our 7 to be "hard" tasks (2 coding questions)
     const shuffled7 = [...myIdsList].sort(() => Math.random() - 0.5);
@@ -881,7 +882,7 @@ function checkWinCondition() {
 // Check if ALL alive crewmates have finished their 7 tasks
 function checkTaskWinCondition() {
     if (myRole !== 'crewmate') return;
-    if (!myTaskIds) return;
+    if (!window.myTaskIds) return;
     // If this player has completed all their tasks
     if (completedTasks.size >= 7) {
         socket.emit('allTasksDone'); // tell server this crewmate is done
@@ -995,9 +996,9 @@ function renderMinimap() {
   mctx.fill();
 
   // Tasks (Orange dots - only for current player's tasks)
-  if (myTaskIds) {
+  if (window.myTaskIds) {
     for (let t of TASKS) {
-      if (myTaskIds.has(t.id) && !completedTasks.has(t.id)) {
+      if (window.myTaskIds.has(t.id) && !completedTasks.has(t.id)) {
         const tPulse = 1 + 0.4 * Math.sin(Date.now() * 0.007);
         mctx.fillStyle = '#f39c12';
         mctx.beginPath();
@@ -1011,6 +1012,12 @@ function renderMinimap() {
       }
     }
   }
+
+  // Draw local player dot
+  mctx.fillStyle = '#2ecc71';
+  mctx.beginPath();
+  mctx.arc(getX(me.x), getY(me.y), 3.5, 0, Math.PI * 2);
+  mctx.fill();
 
   // === CAVEMAN RADAR MECHANIC ===
   if (me.role === 'impostor') {
@@ -1067,12 +1074,6 @@ function renderMinimap() {
       const radarTimerEl = document.getElementById('radar-timer');
       if (radarTimerEl) radarTimerEl.classList.add('hidden');
   }
-
-  // Draw local player dot
-  mctx.fillStyle = '#2ecc71';
-  mctx.beginPath();
-  mctx.arc(getX(me.x), getY(me.y), 3.5, 0, Math.PI * 2);
-  mctx.fill();
 }
 
 const SPEED = 200;
@@ -1147,7 +1148,7 @@ function updateLocalPlayer(dt) {
   let foundTask = null;
   if (myRole === 'crewmate' && myTaskIds) {
     for (let task of TASKS) {
-      if (myTaskIds.has(task.id) && !completedTasks.has(task.id)) {
+      if (window.myTaskIds.has(task.id) && !completedTasks.has(task.id)) {
         if (Math.hypot(me.x - task.x, me.y - task.y) < 55) {
           foundTask = task;
           break;
@@ -1847,11 +1848,11 @@ function drawDeadBody(body) {
 
 // Draw task markers on the map
 function drawTasks() {
-  if (!myTaskIds) return; // tasks not assigned yet
+  if (!window.myTaskIds) return; // tasks not assigned yet
   const me = players[myId];
 
   for (let task of TASKS) {
-    if (!myTaskIds.has(task.id)) continue; // not assigned to this player
+    if (!window.myTaskIds.has(task.id)) continue; // not assigned to this player
     if (completedTasks.has(task.id)) {
       // Draw faint checkmark for completed tasks
       ctx.save();
