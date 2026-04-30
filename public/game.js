@@ -332,7 +332,7 @@ var currentRoomCode = null;
 var currentState = 'LANDING';
 var hostId = null;
 var completedTasks = new Set();
-var window.myTaskIds = null;
+window.myTaskIds = null;
 window.completedTasks = completedTasks;
 var bodies = [];
 window.bodies = bodies;
@@ -1013,12 +1013,6 @@ function renderMinimap() {
     }
   }
 
-  // Draw local player dot
-  mctx.fillStyle = '#2ecc71';
-  mctx.beginPath();
-  mctx.arc(getX(me.x), getY(me.y), 3.5, 0, Math.PI * 2);
-  mctx.fill();
-
   // === CAVEMAN RADAR MECHANIC ===
   if (me.role === 'impostor') {
       let radarTimerEl = document.getElementById('radar-timer');
@@ -1052,7 +1046,7 @@ function renderMinimap() {
       }
 
       if (elapsed < 3000) {
-          // Blink 3 times
+          // Blink 3 times during the 3-second active window (on/off every 500ms)
           const blinkOn = (elapsed % 1000) < 500;
           if (blinkOn) {
               for (let id in players) {
@@ -1060,7 +1054,7 @@ function renderMinimap() {
                   if (p.role !== 'impostor' && !p.isDead) {
                       mctx.fillStyle = '#e74c3c';
                       mctx.beginPath();
-                      mctx.arc(getX(p.x), getY(p.y), 4.5, 0, Math.PI * 2);
+                      mctx.arc(getX(p.x), getY(p.y), 5, 0, Math.PI * 2);
                       mctx.fill();
                       mctx.shadowBlur = 12;
                       mctx.shadowColor = '#e74c3c';
@@ -1074,6 +1068,12 @@ function renderMinimap() {
       const radarTimerEl = document.getElementById('radar-timer');
       if (radarTimerEl) radarTimerEl.classList.add('hidden');
   }
+
+  // Draw local player dot
+  mctx.fillStyle = '#2ecc71';
+  mctx.beginPath();
+  mctx.arc(getX(me.x), getY(me.y), 3.5, 0, Math.PI * 2);
+  mctx.fill();
 }
 
 const SPEED = 200;
