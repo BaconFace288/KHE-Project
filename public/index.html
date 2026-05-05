@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -13,7 +13,7 @@
 </head>
 <body>
   <div id="ui-layer">
-    <button id="audio-toggle" class="audio-toggle">🔇 Music: Off</button>
+    <button id="audio-toggle" class="audio-toggle">ðŸ”‡ Music: Off</button>
     
     <!-- ROLE INTRO SCREEN -->
     <div id="role-intro" class="hidden">
@@ -29,14 +29,14 @@
     <div id="landing-page" class="screen">
       <h1 class="landing-title">The Primitive Peer</h1>
       <div class="landing-banner-wrap">
-        <div id="info-caveman" class="info-icon left" title="Caveman Strategy">ⓘ</div>
-        <div id="info-agent" class="info-icon right" title="Agent Strategy">ⓘ</div>
+        <div id="info-caveman" class="info-icon left" title="Caveman Strategy">â“˜</div>
+        <div id="info-agent" class="info-icon right" title="Agent Strategy">â“˜</div>
         <img src="landing_banner_wide.png" alt="Caveman vs Secret Agent" class="landing-banner">
       </div>
       <div class="play-btn-row">
         <button id="play-btn" class="play-btn">PLAY</button>
-        <div id="info-lore" class="info-icon lore" title="Game Lore">ⓘ</div>
-        <div id="info-credits" class="info-icon credits" title="Game Credits">©</div>
+        <div id="info-lore" class="info-icon lore" title="Game Lore">â“˜</div>
+        <div id="info-credits" class="info-icon credits" title="Game Credits">Â©</div>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
     <div id="lore-modal" class="hidden">
       <div class="modal-card lore-card">
         <div class="modal-header">
-          <span class="task-icon">📖</span>
+          <span class="task-icon">ðŸ“–</span>
           <h2>The Story So Far</h2>
         </div>
         <div id="lore-modal-body" class="modal-body">
@@ -59,7 +59,7 @@
     <div id="credits-modal" class="hidden">
       <div class="modal-card credits-card">
         <div class="modal-header">
-          <span class="task-icon">🌟</span>
+          <span class="task-icon">ðŸŒŸ</span>
           <h2>Game Credits</h2>
         </div>
         <div id="credits-modal-body" class="modal-body">
@@ -98,7 +98,7 @@
     <div id="role-modal" class="hidden">
       <div class="modal-card">
         <div class="modal-header">
-          <span id="role-modal-icon" class="task-icon">🛡️</span>
+          <span id="role-modal-icon" class="task-icon">ðŸ›¡ï¸</span>
           <h2 id="role-modal-title">Role Strategy</h2>
         </div>
         <div id="role-modal-body" class="modal-body">
@@ -136,7 +136,7 @@
          <p style="font-size: 12px; color: #7f8c8d;">Minimum 4 players required to start. Max 10.</p>
          <button id="start-btn" disabled>Start Game (Waiting for 4+)</button>
          <br>
-         <button id="add-bot-btn" class="modal-submit-btn" style="background: #3498db; margin-top: 10px; width: 100%;">👤 Add AI Player</button>
+         <button id="add-bot-btn" class="modal-submit-btn" style="background: #3498db; margin-top: 10px; width: 100%;">ðŸ‘¤ Add AI Player</button>
       </div>
 
       <!-- NON HOST MSG -->
@@ -144,28 +144,68 @@
 
       <!-- CLASS PICKER -->
       <div id="class-select-panel">
-        <h3 class="class-picker-title">?? Choose Your Classes</h3>
-        <p class="class-picker-hint">Pick one for each team � you'll use the one that matches your assigned role.</p>
+        <h3 class="class-picker-title">Choose Your Classes</h3>
+        <p class="class-picker-hint">Pick one for each team - you'll use the one that matches your assigned role.</p>
 
         <div class="class-team-section caveman-section">
-          <h4 class="class-team-label">?? Caveman Classes</h4>
+          <h4 class="class-team-label">CAVEMAN CLASSES</h4>
           <div class="class-grid">
             <div class="class-card caveman-card selected-cav" data-team="caveman" data-class="techsavvy" onclick="selectClass(this)">
-              <div class="class-icon">??</div>
+              <div class="class-icon-txt cav-icon">TS</div>
               <div class="class-name">Tech Savvy</div>
-              <div class="class-desc">Radar Ping � Reveal all TT positions for 3s</div>
+              <div class="class-desc">Radar Ping - Reveal all TT positions for 3s</div>
               <div class="class-cooldown">30s CD</div>
             </div>
             <div class="class-card caveman-card" data-team="caveman" data-class="berserker" onclick="selectClass(this)">
+              <div class="class-icon-txt cav-icon">BR</div>
+              <div class="class-name">Berserker</div>
+              <div class="class-desc">Blood Rage - Club cooldown permanently 8s</div>
+              <div class="class-cooldown passive-tag">Passive</div>
+            </div>
+            <div class="class-card caveman-card" data-team="caveman" data-class="agile" onclick="selectClass(this)">
+              <div class="class-icon-txt cav-icon">AG</div>
+              <div class="class-name">Agile</div>
+              <div class="class-desc">Shadow Dash - Sprint at 2x speed for 4s</div>
+              <div class="class-cooldown">45s CD</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="class-team-section crewmate-section">
+          <h4 class="class-team-label">TIME TRAVELER CLASSES</h4>
+          <div class="class-grid">
+            <div class="class-card crewmate-card selected-crew" data-team="crewmate" data-class="emp" onclick="selectClass(this)">
+              <div class="class-icon-txt crew-icon">EMP</div>
+              <div class="class-name">EMP</div>
+              <div class="class-desc">Signal Jam - Permanently invisible to radar pings</div>
+              <div class="class-cooldown passive-tag">Passive</div>
+            </div>
+            <div class="class-card crewmate-card" data-team="crewmate" data-class="stealthcloak" onclick="selectClass(this)">
+              <div class="class-icon-txt crew-icon">SC</div>
+              <div class="class-name">Stealth Cloak</div>
+              <div class="class-desc">Phase Cloak - Fully invisible to all for 6s</div>
+              <div class="class-cooldown">90s CD</div>
+            </div>
+            <div class="class-card crewmate-card" data-team="crewmate" data-class="engineer" onclick="selectClass(this)">
+              <div class="class-icon-txt crew-icon">ENG</div>
+              <div class="class-name">Engineer</div>
+              <div class="class-desc">Bypass - Skip minigame phase of a task</div>
+              <div class="class-cooldown">2 uses</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+            <div class="class-card caveman-card" data-team="caveman" data-class="berserker" onclick="selectClass(this)">
               <div class="class-icon">??</div>
               <div class="class-name">Berserker</div>
-              <div class="class-desc">Blood Rage � Club cooldown permanently 8s</div>
+              <div class="class-desc">Blood Rage — Club cooldown permanently 8s</div>
               <div class="class-cooldown passive-tag">Passive</div>
             </div>
             <div class="class-card caveman-card" data-team="caveman" data-class="agile" onclick="selectClass(this)">
               <div class="class-icon">?</div>
               <div class="class-name">Agile</div>
-              <div class="class-desc">Shadow Dash � Sprint at 2� speed for 4s</div>
+              <div class="class-desc">Shadow Dash — Sprint at 2× speed for 4s</div>
               <div class="class-cooldown">45s CD</div>
             </div>
           </div>
@@ -177,19 +217,19 @@
             <div class="class-card crewmate-card selected-crew" data-team="crewmate" data-class="emp" onclick="selectClass(this)">
               <div class="class-icon">??</div>
               <div class="class-name">EMP</div>
-              <div class="class-desc">Signal Jam � Permanently invisible to radar pings</div>
+              <div class="class-desc">Signal Jam — Permanently invisible to radar pings</div>
               <div class="class-cooldown passive-tag">Passive</div>
             </div>
             <div class="class-card crewmate-card" data-team="crewmate" data-class="stealthcloak" onclick="selectClass(this)">
               <div class="class-icon">??</div>
               <div class="class-name">Stealth Cloak</div>
-              <div class="class-desc">Phase Cloak � Fully invisible to all for 6s</div>
+              <div class="class-desc">Phase Cloak — Fully invisible to all for 6s</div>
               <div class="class-cooldown">90s CD</div>
             </div>
             <div class="class-card crewmate-card" data-team="crewmate" data-class="engineer" onclick="selectClass(this)">
               <div class="class-icon">??</div>
               <div class="class-name">Engineer</div>
-              <div class="class-desc">Bypass � Skip minigame phase of a task</div>
+              <div class="class-desc">Bypass — Skip minigame phase of a task</div>
               <div class="class-cooldown">2 uses</div>
             </div>
           </div>
@@ -203,6 +243,7 @@
         <canvas id="minimap-canvas" width="160" height="160"></canvas>
       </div>
       <div id="role-display">Role: <span id="role-text">Crewmate</span></div>
+      <div id="class-display">Class: <span id="class-text">-</span></div>
       <div id="radar-timer" class="hidden" style="background: rgba(0,0,0,0.7); color: #fff; padding: 10px 15px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; border: 2px solid #e74c3c; margin-bottom: 10px;">Radar: 30s</div>
       <button id="radar-btn" class="hidden">Radar Ping [R]</button>
       <button id="ability-btn" class="hidden">Ability [R]</button>
@@ -220,7 +261,7 @@
     <div id="meeting-ui-section" class="hidden">
     <!-- MEETING FLASH -->
     <div id="meeting-flash">
-      <div id="meeting-flash-text">⚠️ EMERGENCY<br>MEETING!</div>
+      <div id="meeting-flash-text">âš ï¸ EMERGENCY<br>MEETING!</div>
     </div>
 
     <!-- VOTE SCREEN -->
@@ -233,11 +274,11 @@
         <p id="caller-info"></p>
         <div id="vote-player-list"></div>
         <div class="skip-wrap">
-          <button class="skip-btn" id="skip-vote-btn">⏭ Skip Vote</button>
+          <button class="skip-btn" id="skip-vote-btn">â­ Skip Vote</button>
         </div>
         <div id="vote-result"></div>
         <div class="chat-section">
-          <button id="chat-toggle-btn">💬 Open Chat ▼</button>
+          <button id="chat-toggle-btn">ðŸ’¬ Open Chat â–¼</button>
           <div id="chat-panel">
             <div id="chat-messages"></div>
             <div class="chat-input-row">
@@ -259,10 +300,10 @@
 
       <!-- Header -->
       <div class="modal-header">
-        <span class="task-icon" id="modal-icon">⚙️</span>
+        <span class="task-icon" id="modal-icon">âš™ï¸</span>
         <h2 id="modal-title">Task Name</h2>
         <span class="modal-stage-label" id="modal-stage-label">Stage 1 / 2</span>
-        <button id="modal-close-btn" class="modal-cancel-btn" style="margin-left:8px;padding:4px 10px;font-size:18px;line-height:1;">×</button>
+        <button id="modal-close-btn" class="modal-cancel-btn" style="margin-left:8px;padding:4px 10px;font-size:18px;line-height:1;">Ã—</button>
       </div>
 
       <!-- Progress Bar -->

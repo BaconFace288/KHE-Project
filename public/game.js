@@ -825,6 +825,16 @@ function updateScreenState() {
       
       roleText.innerText = myRole === 'impostor' ? 'Caveman' : 'Time Traveler';
       roleText.style.color = myRole === 'impostor' ? '#c0392b' : '#3498db';
+  const classDisplayNames = {
+    techsavvy: 'Tech Savvy', berserker: 'Berserker', agile: 'Agile',
+    emp: 'EMP', stealthcloak: 'Stealth Cloak', engineer: 'Engineer'
+  };
+  const classTextEl = document.getElementById('class-text');
+  const classDisplayEl = document.getElementById('class-display');
+  if (classTextEl) classTextEl.innerText = classDisplayNames[myClass] || myClass;
+  if (classDisplayEl) {
+    classDisplayEl.style.display = (currentState === 'PLAYING') ? '' : 'none';
+  }
       
       if (myRole === 'impostor') {
           actionBtn.classList.remove('hidden');
