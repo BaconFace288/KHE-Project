@@ -845,7 +845,7 @@ function updateScreenState() {
             else abilityBtn.classList.add('hidden');
           }
           if (passiveBadge) {
-            if (myClass === 'berserker') { passiveBadge.classList.remove('hidden'); passiveBadge.innerText = '?? Passive: 8s Club CD'; }
+            if (myClass === 'berserker') { passiveBadge.classList.remove('hidden'); passiveBadge.innerText = 'Passive: 8s Club CD'; }
             else passiveBadge.classList.add('hidden');
           }
       } else {
@@ -858,7 +858,7 @@ function updateScreenState() {
             else abilityBtn.classList.add('hidden');
           }
           if (passiveBadge) {
-            if (myClass === 'emp') { passiveBadge.classList.remove('hidden'); passiveBadge.innerText = '?? Passive: Radar Immune'; }
+            if (myClass === 'emp') { passiveBadge.classList.remove('hidden'); passiveBadge.innerText = 'Passive: Radar Immune'; }
             else passiveBadge.classList.add('hidden');
           }
       }
