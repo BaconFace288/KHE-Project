@@ -448,7 +448,10 @@ io.on('connection', (socket) => {
         flipX: false,
         isMoving: false,
         tasksCompleted: 0,
-        taskTimer: 0
+        taskTimer: 0,
+        cavemanClass: 'techsavvy',
+        crewmateClass: 'emp',
+        activeClass: null
       };
   }
 
@@ -497,6 +500,20 @@ io.on('connection', (socket) => {
         hostId: room.hostId,
         state: room.state
     });
+  });
+
+  socket.on('selectClass', ({team, className}) => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (room.state !== GAME_STATE.LOBBY) return;
+    const player = room.players[socket.id];
+    if (!player || player.isBot) return;
+    const validCav = ['techsavvy', 'berserker', 'agile'];
+    const validCrew = ['emp', 'stealthcloak', 'engineer'];
+    if (team === 'caveman' && validCav.includes(className)) player.cavemanClass = className;
+    else if (team === 'crewmate' && validCrew.includes(className)) player.crewmateClass = className;
+    io.to(roomId).emit('roomUpdate', { players: room.players, hostId: room.hostId, state: room.state });
   });
 
   socket.on('kickPlayer', (targetId) => {
@@ -648,6 +665,22 @@ io.on('connection', (socket) => {
         }
       });
 
+      // Assign active class based on final role
+      const cavClasses = ['techsavvy', 'berserker', 'agile'];
+      const crewClasses = ['emp', 'stealthcloak', 'engineer'];
+      playerIds.forEach(id => {
+        const p = room.players[id];
+        if (p.isBot) {
+          p.activeClass = p.role === 'impostor'
+            ? cavClasses[Math.floor(Math.random() * cavClasses.length)]
+            : crewClasses[Math.floor(Math.random() * crewClasses.length)];
+        } else {
+          p.activeClass = p.role === 'impostor'
+            ? (p.cavemanClass || 'techsavvy')
+            : (p.crewmateClass || 'emp');
+        }
+      });
+
       room.roundStartTime = Date.now();
 
       // Pick randomly 1-2 impostors (Cavemen) depending on size
@@ -672,6 +705,20 @@ io.on('connection', (socket) => {
       io.in(roomId).emit('roomUpdate', payload);
       io.in(roomId).emit('gameStarted', payload);
     }
+  });
+
+  socket.on('activateStealth', () => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (room.state !== GAME_STATE.PLAYING) return;
+    const player = room.players[socket.id];
+    if (!player || player.activeClass !== 'stealthcloak' || player.isDead) return;
+    const STEALTH_CD = 90 * 1000;
+    if (player.lastStealthTime && Date.now() - player.lastStealthTime < STEALTH_CD) return;
+    player.lastStealthTime = Date.now();
+    const until = Date.now() + 6000;
+    io.to(roomId).emit('stealthActivated', { id: socket.id, until });
   });
 
   socket.on('activateRadar', () => {

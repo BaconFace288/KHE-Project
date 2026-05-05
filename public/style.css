@@ -844,3 +844,149 @@ canvas {
 
 
 
+
+/* ========= CLASS PICKER ========= */
+#class-select-panel {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+.class-picker-title {
+  color: #f39c12;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  text-align: center;
+  margin: 0 0 4px;
+  letter-spacing: 2px;
+}
+.class-picker-hint {
+  color: #7f8c8d;
+  font-size: 11px;
+  text-align: center;
+  margin: 0 0 14px;
+}
+.class-team-section { margin-bottom: 14px; }
+.class-team-label {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.caveman-section .class-team-label {
+  color: #e74c3c;
+  border-left: 3px solid #e74c3c;
+  background: rgba(231,76,60,0.08);
+}
+.crewmate-section .class-team-label {
+  color: #3498db;
+  border-left: 3px solid #3498db;
+  background: rgba(52,152,219,0.08);
+}
+.class-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.class-card {
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  user-select: none;
+}
+.class-card:hover {
+  background: rgba(255,255,255,0.09);
+  transform: translateY(-2px);
+}
+.caveman-card.selected-cav {
+  border-color: #e74c3c;
+  background: rgba(231,76,60,0.15);
+  box-shadow: 0 0 12px rgba(231,76,60,0.3);
+}
+.crewmate-card.selected-crew {
+  border-color: #3498db;
+  background: rgba(52,152,219,0.15);
+  box-shadow: 0 0 12px rgba(52,152,219,0.3);
+}
+.class-icon { font-size: 22px; margin-bottom: 4px; }
+.class-name {
+  font-size: 12px;
+  font-weight: 900;
+  color: #ecf0f1;
+  margin-bottom: 4px;
+  font-family: 'Orbitron', sans-serif;
+}
+.class-desc {
+  font-size: 10px;
+  color: #95a5a6;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+.class-cooldown {
+  font-size: 10px;
+  font-weight: bold;
+  color: #f39c12;
+  font-family: 'Orbitron', sans-serif;
+}
+.passive-tag { color: #2ecc71 !important; }
+
+/* ========= ABILITY BUTTON ========= */
+#ability-btn {
+  background-color: #1a527a;
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 20px;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+#ability-btn:hover:not(:disabled) {
+  background-color: #1f6fa0;
+  box-shadow: 0 0 12px rgba(52,152,219,0.6);
+}
+
+/* ========= PASSIVE BADGE ========= */
+.passive-badge {
+  background: rgba(46,204,113,0.15);
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+  font-size: 12px;
+  font-family: 'Orbitron', sans-serif;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* ========= ENGINEER BYPASS BTN ========= */
+.engineer-bypass-btn {
+  display: block;
+  margin: 8px auto 0;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 24px;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  box-shadow: 0 3px 0 #d35400;
+}
+.engineer-bypass-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #d35400;
+}

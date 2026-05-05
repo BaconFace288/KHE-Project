@@ -426,6 +426,24 @@ function showMinigameStage() {
   codingStage.classList.remove('active');
   mgStage.style.display = '';
   codingStage.style.display = 'none';
+  var bypassBtn2 = document.getElementById('engineer-bypass-btn');
+  if (bypassBtn2) {
+    if (window.myClass === 'engineer' && window.engineerBypassUses > 0) {
+      bypassBtn2.classList.remove('hidden');
+      bypassBtn2.innerText = 'Bypass Minigame (' + window.engineerBypassUses + ' left)';
+    } else { bypassBtn2.classList.add('hidden'); }
+  }
+
+  // Engineer bypass button
+  const bypassBtn = document.getElementById('engineer-bypass-btn');
+  if (bypassBtn) {
+    if (window.myClass === 'engineer' && window.engineerBypassUses > 0) {
+      bypassBtn.classList.remove('hidden');
+      bypassBtn.innerText = '\u26a1 Bypass Minigame (' + window.engineerBypassUses + ' left)';
+    } else {
+      bypassBtn.classList.add('hidden');
+    }
+  }
   modalStageLabel.textContent = 'Stage 1 / 2 — Minigame';
   progressFill.style.width = '0%';
   mgFeedback.textContent = '';
@@ -1262,3 +1280,18 @@ function shuffle(arr) {
   }
   return arr;
 }
+
+// Engineer bypass button handler
+(function() {
+  const bypassBtn = document.getElementById('engineer-bypass-btn');
+  if (bypassBtn) {
+    bypassBtn.addEventListener('click', () => {
+      if (window.engineerBypassUses > 0 && typeof onMinigameComplete === 'function') {
+        window.engineerBypassUses--;
+        window.engineerBypassActive = false;
+        bypassBtn.classList.add('hidden');
+        onMinigameComplete();
+      }
+    });
+  }
+})();

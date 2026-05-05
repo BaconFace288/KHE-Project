@@ -141,6 +141,60 @@
 
       <!-- NON HOST MSG -->
       <p id="wait-msg" class="hidden" style="color: #bdc3c7;">Waiting for Host to start the game...</p>
+
+      <!-- CLASS PICKER -->
+      <div id="class-select-panel">
+        <h3 class="class-picker-title">?? Choose Your Classes</h3>
+        <p class="class-picker-hint">Pick one for each team — you'll use the one that matches your assigned role.</p>
+
+        <div class="class-team-section caveman-section">
+          <h4 class="class-team-label">?? Caveman Classes</h4>
+          <div class="class-grid">
+            <div class="class-card caveman-card selected-cav" data-team="caveman" data-class="techsavvy" onclick="selectClass(this)">
+              <div class="class-icon">??</div>
+              <div class="class-name">Tech Savvy</div>
+              <div class="class-desc">Radar Ping — Reveal all TT positions for 3s</div>
+              <div class="class-cooldown">30s CD</div>
+            </div>
+            <div class="class-card caveman-card" data-team="caveman" data-class="berserker" onclick="selectClass(this)">
+              <div class="class-icon">??</div>
+              <div class="class-name">Berserker</div>
+              <div class="class-desc">Blood Rage — Club cooldown permanently 8s</div>
+              <div class="class-cooldown passive-tag">Passive</div>
+            </div>
+            <div class="class-card caveman-card" data-team="caveman" data-class="agile" onclick="selectClass(this)">
+              <div class="class-icon">?</div>
+              <div class="class-name">Agile</div>
+              <div class="class-desc">Shadow Dash — Sprint at 2× speed for 4s</div>
+              <div class="class-cooldown">45s CD</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="class-team-section crewmate-section">
+          <h4 class="class-team-label">? Time Traveler Classes</h4>
+          <div class="class-grid">
+            <div class="class-card crewmate-card selected-crew" data-team="crewmate" data-class="emp" onclick="selectClass(this)">
+              <div class="class-icon">??</div>
+              <div class="class-name">EMP</div>
+              <div class="class-desc">Signal Jam — Permanently invisible to radar pings</div>
+              <div class="class-cooldown passive-tag">Passive</div>
+            </div>
+            <div class="class-card crewmate-card" data-team="crewmate" data-class="stealthcloak" onclick="selectClass(this)">
+              <div class="class-icon">??</div>
+              <div class="class-name">Stealth Cloak</div>
+              <div class="class-desc">Phase Cloak — Fully invisible to all for 6s</div>
+              <div class="class-cooldown">90s CD</div>
+            </div>
+            <div class="class-card crewmate-card" data-team="crewmate" data-class="engineer" onclick="selectClass(this)">
+              <div class="class-icon">??</div>
+              <div class="class-name">Engineer</div>
+              <div class="class-desc">Bypass — Skip minigame phase of a task</div>
+              <div class="class-cooldown">2 uses</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     
     <!-- GAME HUD -->
@@ -151,6 +205,8 @@
       <div id="role-display">Role: <span id="role-text">Crewmate</span></div>
       <div id="radar-timer" class="hidden" style="background: rgba(0,0,0,0.7); color: #fff; padding: 10px 15px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; border: 2px solid #e74c3c; margin-bottom: 10px;">Radar: 30s</div>
       <button id="radar-btn" class="hidden">Radar Ping [R]</button>
+      <button id="ability-btn" class="hidden">Ability [R]</button>
+      <div id="passive-badge" class="hidden passive-badge"></div>
       <button id="action-btn" class="hidden">Club [Space]</button>
     </div>
     
@@ -219,6 +275,7 @@
         <p id="minigame-instructions" style="font-size:13px;color:#bdc3c7;margin-bottom:12px;"></p>
         <div id="minigame-canvas-wrap"></div>
         <p id="mg-feedback" style="min-height:20px;font-size:13px;color:#e74c3c;text-align:center;margin-top:8px;"></p>
+        <button id="engineer-bypass-btn" class="hidden engineer-bypass-btn">? Bypass Minigame</button>
       </div>
 
       <!-- ===== STAGE 2: CODING QUESTION ===== -->

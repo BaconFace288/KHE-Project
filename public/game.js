@@ -338,6 +338,16 @@ window.completedTasks = completedTasks;
 // Radar ability state (on-demand, 30-min cooldown)
 window.radarActiveUntil = 0;   // timestamp when radar visual expires
 window.radarCooldownUntil = 0; // timestamp when cooldown expires
+
+// Class system state
+var myClass = 'techsavvy';
+window.myClass = myClass;
+window.stealthedPlayers = {};  // id -> until timestamp
+window.sprintUntil = 0;
+window.agileCooldownUntil = 0;
+window.stealthCooldownUntil = 0;
+window.engineerBypassUses = 2;
+window.engineerBypassActive = false;
 var bodies = [];
 window.bodies = bodies;
 var nearbyBody = null;
@@ -387,7 +397,7 @@ function handleKey(e, isDown) {
       }
   }
   if (code === 'KeyR' && isDown) {
-      triggerRadarPing();
+      triggerAbility();
   }
 }
 
@@ -549,6 +559,15 @@ function handleGameStart() {
     
     if (players[myId]) {
         myRole = players[myId].role;
+        myClass = players[myId].activeClass || 'techsavvy';
+        window.myClass = myClass;
+        // Reset ability state for new game
+        window.radarActiveUntil = 0; window.radarCooldownUntil = 0;
+        window.sprintUntil = 0; window.agileCooldownUntil = 0;
+        window.stealthCooldownUntil = 0;
+        window.engineerBypassUses = 2; window.engineerBypassActive = false;
+        window.stealthedPlayers = {};
+        window.radarPingPlayed = false;
         if (myRole === 'crewmate') assignMyTasks();
         updateScreenState();
         if (!introActive) showRoleIntro(myRole);
@@ -593,6 +612,10 @@ socket.on('radarActivated', () => {
   } else if (!players[myId]?.isDead) {
     if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
   }
+});
+
+socket.on('stealthActivated', ({id, until}) => {
+  window.stealthedPlayers[id] = until;
 });
 
 socket.on('cavemanLeftWin', () => {
@@ -662,6 +685,11 @@ actionBtn.addEventListener('click', triggerClub);
 const radarBtn = document.getElementById('radar-btn');
 if (radarBtn) radarBtn.addEventListener('click', triggerRadarPing);
 
+const abilityBtn = document.getElementById('ability-btn');
+if (abilityBtn) abilityBtn.addEventListener('click', triggerAbility);
+
+const passiveBadge = document.getElementById('passive-badge');
+
 if (audioToggle) {
   audioToggle.addEventListener('click', () => {
     const isOn = toggleAmbientMusic();
@@ -683,6 +711,58 @@ window.kick = (targetId) => {
 
 // ==== Game Logic ====
 
+// ===== CLASS ABILITY FUNCTIONS =====
+
+function triggerAbility() {
+  // Route [R] to the correct ability based on myClass
+  if (myClass === 'techsavvy') triggerRadarPing();
+  else if (myClass === 'agile') triggerSprint();
+  else if (myClass === 'stealthcloak') triggerStealth();
+  else if (myClass === 'engineer') triggerBypass();
+  // berserker and emp are passive — no ability to trigger
+}
+
+function triggerSprint() {
+  if (introActive || myRole !== 'impostor' || myClass !== 'agile') return;
+  if (!players[myId] || players[myId].isDead) return;
+  if (Date.now() < window.agileCooldownUntil) return;
+  window.sprintUntil = Date.now() + 4000;
+  window.agileCooldownUntil = Date.now() + 45000;
+}
+
+function triggerStealth() {
+  if (introActive || myRole !== 'crewmate' || myClass !== 'stealthcloak') return;
+  if (!players[myId] || players[myId].isDead) return;
+  if (Date.now() < window.stealthCooldownUntil) return;
+  socket.emit('activateStealth');
+  window.stealthCooldownUntil = Date.now() + 90000; // optimistic
+}
+
+function triggerBypass() {
+  if (myRole !== 'crewmate' || myClass !== 'engineer') return;
+  if (window.engineerBypassUses <= 0) return;
+  // Signal minigame.js to skip the minigame stage
+  window.engineerBypassActive = true;
+  // If task modal is already open, trigger skip immediately
+  if (typeof onMinigameComplete === 'function' && window.taskModalActive) {
+    window.engineerBypassUses--;
+    window.engineerBypassActive = false;
+    onMinigameComplete();
+  }
+}
+
+// Global selectClass called from HTML onclick on class cards
+window.selectClass = function(card) {
+  const team = card.dataset.team;
+  const className = card.dataset.class;
+  // Remove selected state from siblings in same team
+  document.querySelectorAll(`.class-card[data-team="${team}"]`).forEach(c => {
+    c.classList.remove('selected-cav', 'selected-crew');
+  });
+  card.classList.add(team === 'caveman' ? 'selected-cav' : 'selected-crew');
+  socket.emit('selectClass', {team, className});
+};
+
 function triggerRadarPing() {
   if (introActive) return;
   if (myRole !== 'impostor') return;
@@ -696,7 +776,8 @@ function triggerClub() {
    if (introActive) return;
    if (myRole === 'impostor' && players[myId] && !players[myId].isDead) {
       const now = Date.now();
-      if (now - lastSwingTime < SWING_COOLDOWN) return; // on cooldown
+      const effectiveCooldown = myClass === 'berserker' ? 8000 : SWING_COOLDOWN;
+      if (now - lastSwingTime < effectiveCooldown) return; // on cooldown
       
       lastSwingTime = now;
       swingAnim = 1; 
@@ -747,10 +828,29 @@ function updateScreenState() {
       
       if (myRole === 'impostor') {
           actionBtn.classList.remove('hidden');
-          if (radarBtn) radarBtn.classList.remove('hidden');
+          // Caveman class buttons
+          if (radarBtn) radarBtn.classList.toggle('hidden', myClass !== 'techsavvy');
+          if (abilityBtn) {
+            if (myClass === 'agile') { abilityBtn.classList.remove('hidden'); abilityBtn.innerText = 'Shadow Dash [R]'; }
+            else abilityBtn.classList.add('hidden');
+          }
+          if (passiveBadge) {
+            if (myClass === 'berserker') { passiveBadge.classList.remove('hidden'); passiveBadge.innerText = '?? Passive: 8s Club CD'; }
+            else passiveBadge.classList.add('hidden');
+          }
       } else {
           actionBtn.classList.add('hidden');
           if (radarBtn) radarBtn.classList.add('hidden');
+          // Crewmate class buttons
+          if (abilityBtn) {
+            if (myClass === 'stealthcloak') { abilityBtn.classList.remove('hidden'); abilityBtn.innerText = 'Phase Cloak [R]'; }
+            else if (myClass === 'engineer') { abilityBtn.classList.remove('hidden'); abilityBtn.innerText = `Bypass [R] (${window.engineerBypassUses})`; }
+            else abilityBtn.classList.add('hidden');
+          }
+          if (passiveBadge) {
+            if (myClass === 'emp') { passiveBadge.classList.remove('hidden'); passiveBadge.innerText = '?? Passive: Radar Immune'; }
+            else passiveBadge.classList.add('hidden');
+          }
       }
   } 
   else if (currentState === 'GAMEOVER') {
@@ -943,7 +1043,8 @@ function gameLoop() {
 
     // Update swing button (cooldown indicator)
     if (myRole === 'impostor' && currentState === 'PLAYING') {
-        const remaining = Math.max(0, SWING_COOLDOWN - (now - lastSwingTime));
+        const activeCooldown = myClass === 'berserker' ? 8000 : SWING_COOLDOWN;
+        const remaining = Math.max(0, activeCooldown - (now - lastSwingTime));
         if (remaining > 0) {
             const secs = Math.ceil(remaining / 1000);
             actionBtn.innerText = `COOLDOWN (${secs}s)`;
@@ -983,6 +1084,27 @@ function gameLoop() {
                 radarBtn.style.opacity = '1';
                 radarBtn.style.pointerEvents = 'auto';
             }
+        }
+    }
+
+    // Update ability button cooldown/uses for non-Tech-Savvy classes
+    if (currentState === 'PLAYING' && abilityBtn && !abilityBtn.classList.contains('hidden')) {
+        if (myClass === 'agile') {
+            const cd = Math.max(0, window.agileCooldownUntil - now);
+            if (now < window.sprintUntil) { abilityBtn.innerText = 'DASHING!'; abilityBtn.disabled=true; abilityBtn.style.opacity='1'; abilityBtn.style.pointerEvents='none'; }
+            else if (cd > 0) { abilityBtn.innerText = 'Dash [R]: ' + Math.ceil(cd/1000) + 's'; abilityBtn.disabled=true; abilityBtn.style.opacity='0.5'; abilityBtn.style.pointerEvents='none'; }
+            else { abilityBtn.innerText = 'Shadow Dash [R]'; abilityBtn.disabled=false; abilityBtn.style.opacity='1'; abilityBtn.style.pointerEvents='auto'; }
+        } else if (myClass === 'stealthcloak') {
+            const cd = Math.max(0, window.stealthCooldownUntil - now);
+            const cloaked = window.stealthedPlayers[myId] && now < window.stealthedPlayers[myId];
+            if (cloaked) { abilityBtn.innerText = 'CLOAKED!'; abilityBtn.disabled=true; abilityBtn.style.opacity='1'; abilityBtn.style.pointerEvents='none'; }
+            else if (cd > 0) { abilityBtn.innerText = 'Cloak [R]: ' + Math.ceil(cd/1000) + 's'; abilityBtn.disabled=true; abilityBtn.style.opacity='0.5'; abilityBtn.style.pointerEvents='none'; }
+            else { abilityBtn.innerText = 'Phase Cloak [R]'; abilityBtn.disabled=false; abilityBtn.style.opacity='1'; abilityBtn.style.pointerEvents='auto'; }
+        } else if (myClass === 'engineer') {
+            const uses = window.engineerBypassUses;
+            abilityBtn.innerText = 'Bypass [R] (' + uses + ')';
+            if (uses <= 0) { abilityBtn.disabled=true; abilityBtn.style.opacity='0.5'; abilityBtn.style.pointerEvents='none'; }
+            else { abilityBtn.disabled=false; abilityBtn.style.opacity='1'; abilityBtn.style.pointerEvents='auto'; }
         }
     }
 
@@ -1072,7 +1194,7 @@ function renderMinimap() {
           if (blinkOn) {
               for (let id in players) {
                   const p = players[id];
-                  if (p.role !== 'impostor' && !p.isDead) {
+                  if (p.role !== 'impostor' && !p.isDead && p.activeClass !== 'emp' && !(window.stealthedPlayers[id] && Date.now() < window.stealthedPlayers[id])) {
                       mctx.shadowBlur = 12;
                       mctx.shadowColor = '#e74c3c';
                       mctx.fillStyle = '#e74c3c';
@@ -1114,7 +1236,7 @@ function updateLocalPlayer(dt) {
   if (dx !== 0 || dy !== 0) {
     const length = Math.hypot(dx, dy);
     dx /= length; dy /= length;
-    const speed = isGhost ? GHOST_SPEED : SPEED;
+    const speed = isGhost ? GHOST_SPEED : (Date.now() < window.sprintUntil ? SPEED * 2 : SPEED);
     
     let newX = me.x;
     let newY = me.y;
@@ -1390,6 +1512,7 @@ function drawGame(time) {
     const amIDead = players[myId] && players[myId].isDead;
     if (p.isDead && !amIDead && !isMe) continue;
     if (!p.isDead) {
+      if (!isMe && window.stealthedPlayers[id] && Date.now() < window.stealthedPlayers[id]) continue; // stealthed
       drawPlayer(p, isMe, time);
     } else {
       drawGhost(p, isMe, time);
