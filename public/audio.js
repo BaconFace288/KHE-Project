@@ -164,18 +164,18 @@ function playSubtleRadarPing() {
   const gain = audioCtx.createGain();
   
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.3);
+  osc.frequency.setValueAtTime(2400, audioCtx.currentTime);           // Higher start pitch
+  osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 1.4); // Slow descent
   
   gain.gain.setValueAtTime(0, audioCtx.currentTime);
-  gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
-  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+  gain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.04); // Quick attack
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5); // Long fade out
   
   // Connect directly to destination to bypass music mute
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   
   osc.start();
-  osc.stop(audioCtx.currentTime + 0.6);
+  osc.stop(audioCtx.currentTime + 1.6);
 }
 
