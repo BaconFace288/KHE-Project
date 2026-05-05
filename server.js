@@ -665,6 +665,18 @@ io.on('connection', (socket) => {
         }
       });
 
+      // Pick randomly 1-2 impostors (Cavemen) depending on size
+      let impostorCount = 1;
+      if (playerIds.length >= 8) impostorCount = 2; // For larger groups
+
+      let possibleImpostors = [...playerIds];
+      for(let i=0; i<impostorCount; i++) {
+         const idx = Math.floor(Math.random() * possibleImpostors.length);
+         const impostorId = possibleImpostors[idx];
+         room.players[impostorId].role = 'impostor';
+         possibleImpostors.splice(idx, 1);
+      }
+
       // Assign active class based on final role
       const cavClasses = ['techsavvy', 'berserker', 'agile'];
       const crewClasses = ['emp', 'stealthcloak', 'engineer'];
@@ -682,18 +694,6 @@ io.on('connection', (socket) => {
       });
 
       room.roundStartTime = Date.now();
-
-      // Pick randomly 1-2 impostors (Cavemen) depending on size
-      let impostorCount = 1;
-      if (playerIds.length >= 8) impostorCount = 2; // For larger groups
-
-      let possibleImpostors = [...playerIds];
-      for(let i=0; i<impostorCount; i++) {
-         const idx = Math.floor(Math.random() * possibleImpostors.length);
-         const impostorId = possibleImpostors[idx];
-         room.players[impostorId].role = 'impostor';
-         possibleImpostors.splice(idx, 1);
-      }
 
       // Sync state and trigger the reveal across the room
       const payload = {
