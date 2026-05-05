@@ -650,6 +650,33 @@ canvas {
   box-shadow: none;
 }
 
+#radar-btn {
+  background-color: #1a6b7a;
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 20px;
+  border: 2px solid #e74c3c;
+  border-radius: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+#radar-btn:hover:not(:disabled) {
+  background-color: #1f8da0;
+  box-shadow: 0 0 12px rgba(231, 76, 60, 0.6);
+}
+#radar-btn.radar-active-btn {
+  background-color: rgba(231, 76, 60, 0.85);
+  animation: radarPulse 0.5s infinite alternate;
+}
+@keyframes radarPulse {
+  from { box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); }
+  to   { box-shadow: 0 0 22px rgba(231, 76, 60, 1); }
+}
+
 #role-display {
     position: fixed;
     top: 20px;

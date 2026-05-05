@@ -334,6 +334,10 @@ var hostId = null;
 var completedTasks = new Set();
 window.myTaskIds = null;
 window.completedTasks = completedTasks;
+
+// Radar ability state (on-demand, 30-min cooldown)
+window.radarActiveUntil = 0;   // timestamp when radar visual expires
+window.radarCooldownUntil = 0; // timestamp when cooldown expires
 var bodies = [];
 window.bodies = bodies;
 var nearbyBody = null;
@@ -367,7 +371,7 @@ function assignMyTasks() {
 }
 
 // Input Handling
-window.keys = { w: false, a: false, s: false, d: false, space: false };
+window.keys = { w: false, a: false, s: false, d: false, space: false, r: false };
 const keys = window.keys;
 
 function handleKey(e, isDown) {
@@ -381,6 +385,9 @@ function handleKey(e, isDown) {
       if (isDown && !actionBtn.classList.contains('hidden')) {
           triggerClub();
       }
+  }
+  if (code === 'KeyR' && isDown) {
+      triggerRadarPing();
   }
 }
 
@@ -578,6 +585,16 @@ socket.on('crewmatesWinTasks', () => {
     updateScreenState();
 });
 
+socket.on('radarActivated', () => {
+  // Server confirmed radar is active — show visual for Caveman, ping for crewmates
+  window.radarActiveUntil = Date.now() + 3000;
+  if (myRole === 'impostor') {
+    window.radarCooldownUntil = Date.now() + 30 * 60 * 1000; // 30-min cooldown starts now
+  } else if (!players[myId]?.isDead) {
+    if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
+  }
+});
+
 socket.on('cavemanLeftWin', () => {
     currentState = 'GAMEOVER';
     endText.innerText = 'TIME TRAVELERS WIN! The Caveman has abandoned the mission.';
@@ -642,6 +659,9 @@ creditsModalClose.addEventListener('click', () => { creditsModal.classList.add('
 
 actionBtn.addEventListener('click', triggerClub);
 
+const radarBtn = document.getElementById('radar-btn');
+if (radarBtn) radarBtn.addEventListener('click', triggerRadarPing);
+
 if (audioToggle) {
   audioToggle.addEventListener('click', () => {
     const isOn = toggleAmbientMusic();
@@ -662,6 +682,15 @@ window.kick = (targetId) => {
 };
 
 // ==== Game Logic ====
+
+function triggerRadarPing() {
+  if (introActive) return;
+  if (myRole !== 'impostor') return;
+  if (!players[myId] || players[myId].isDead) return;
+  const now = Date.now();
+  if (now < window.radarCooldownUntil) return; // still on cooldown
+  socket.emit('activateRadar');
+}
 
 function triggerClub() {
    if (introActive) return;
@@ -716,8 +745,13 @@ function updateScreenState() {
       roleText.innerText = myRole === 'impostor' ? 'Caveman' : 'Time Traveler';
       roleText.style.color = myRole === 'impostor' ? '#c0392b' : '#3498db';
       
-      if (myRole === 'impostor') actionBtn.classList.remove('hidden');
-      else actionBtn.classList.add('hidden');
+      if (myRole === 'impostor') {
+          actionBtn.classList.remove('hidden');
+          if (radarBtn) radarBtn.classList.remove('hidden');
+      } else {
+          actionBtn.classList.add('hidden');
+          if (radarBtn) radarBtn.classList.add('hidden');
+      }
   } 
   else if (currentState === 'GAMEOVER') {
       endScreen.classList.remove('hidden');
@@ -924,6 +958,35 @@ function gameLoop() {
         }
     }
 
+    // Update radar button cooldown display
+    if (myRole === 'impostor' && currentState === 'PLAYING') {
+        const radarBtn = document.getElementById('radar-btn');
+        if (radarBtn) {
+            const cdLeft = Math.max(0, window.radarCooldownUntil - now);
+            if (now < window.radarActiveUntil) {
+                radarBtn.innerText = 'RADAR ACTIVE';
+                radarBtn.classList.add('radar-active-btn');
+                radarBtn.disabled = true;
+                radarBtn.style.opacity = '1';
+                radarBtn.style.pointerEvents = 'none';
+            } else if (cdLeft > 0) {
+                const mins = Math.floor(cdLeft / 60000);
+                const secs = Math.ceil((cdLeft % 60000) / 1000);
+                radarBtn.innerText = 'Radar [R]: ' + mins + ':' + secs.toString().padStart(2, '0');
+                radarBtn.classList.remove('radar-active-btn');
+                radarBtn.disabled = true;
+                radarBtn.style.opacity = '0.5';
+                radarBtn.style.pointerEvents = 'none';
+            } else {
+                radarBtn.innerText = 'Radar Ping [R]';
+                radarBtn.classList.remove('radar-active-btn');
+                radarBtn.disabled = false;
+                radarBtn.style.opacity = '1';
+                radarBtn.style.pointerEvents = 'auto';
+            }
+        }
+    }
+
     drawGame(now);
     if (currentState === 'PLAYING') renderMinimap();
   } catch (err) {
@@ -998,41 +1061,15 @@ function renderMinimap() {
     }
   }
 
-  // === CAVEMAN RADAR MECHANIC ===
+  // === CAVEMAN RADAR MECHANIC (on-demand ability) ===
   if (me.role === 'impostor') {
-      let radarTimerEl = document.getElementById('radar-timer');
-      if (!radarTimerEl) {
-          radarTimerEl = document.createElement('div');
-          radarTimerEl.id = 'radar-timer';
-          radarTimerEl.className = 'hidden';
-          radarTimerEl.style.cssText = "background: rgba(0,0,0,0.7); color: #fff; padding: 10px 15px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; border: 2px solid #e74c3c; margin-bottom: 10px;";
-          const actionBtn = document.getElementById('action-btn');
-          if (actionBtn && actionBtn.parentNode) {
-              actionBtn.parentNode.insertBefore(radarTimerEl, actionBtn);
-          }
-      }
-      
-      const timeLoop = 30000;
-      window.radarStartTime = window.radarStartTime || Date.now();
-      const elapsed = (Date.now() - window.radarStartTime) % timeLoop;
-      
-      if (radarTimerEl) {
-          radarTimerEl.classList.remove('hidden');
-          if (elapsed < 3000) {
-              radarTimerEl.innerText = "RADAR ACTIVE";
-              radarTimerEl.style.color = "#fff";
-              radarTimerEl.style.background = "rgba(231, 76, 60, 0.8)";
-          } else {
-              const remaining = Math.ceil((timeLoop - elapsed) / 1000);
-              radarTimerEl.innerText = `Radar: ${remaining}s`;
-              radarTimerEl.style.color = "#e74c3c";
-              radarTimerEl.style.background = "rgba(0, 0, 0, 0.7)";
-          }
-      }
+      const now_r = Date.now();
+      const radarActive = now_r < window.radarActiveUntil;
+      const onCooldown = now_r < window.radarCooldownUntil;
 
-      if (elapsed < 3000) {
-          // Blink 3 times during the 3-second active window (on/off every 500ms)
-          const blinkOn = (elapsed % 1000) < 500;
+      // Show red dots while radar is active (blinking every 500ms)
+      if (radarActive) {
+          const blinkOn = (Math.floor(now_r / 500) % 2 === 0);
           if (blinkOn) {
               for (let id in players) {
                   const p = players[id];
@@ -1050,27 +1087,6 @@ function renderMinimap() {
                   }
               }
           }
-      }
-  } else {
-      const radarTimerEl = document.getElementById('radar-timer');
-      if (radarTimerEl) radarTimerEl.classList.add('hidden');
-  }
-
-  // === CREWMATE RADAR PING SOUND ===
-  // Calculated independently of role so crewmates always get the alert.
-  // Uses a debounce flag so it fires exactly once per 30-second radar cycle.
-  if (me.role !== 'impostor' && !me.isDead) {
-      const _timeLoop = 30000;
-      window.radarStartTime = window.radarStartTime || Date.now();
-      const _elapsed = (Date.now() - window.radarStartTime) % _timeLoop;
-      if (_elapsed < 3000) {
-          if (!window.radarPingPlayed) {
-              window.radarPingPlayed = true;
-              if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
-          }
-      } else {
-          // Reset flag once the window closes so it can fire next cycle
-          window.radarPingPlayed = false;
       }
   }
 

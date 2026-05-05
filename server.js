@@ -674,6 +674,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('activateRadar', () => {
+    const roomId = socket.roomId;
+    if (!roomId || !rooms[roomId]) return;
+    const room = rooms[roomId];
+    if (room.state !== GAME_STATE.PLAYING) return;
+    const player = room.players[socket.id];
+    if (!player || player.role !== 'impostor' || player.isDead) return;
+
+    const RADAR_COOLDOWN = 30 * 60 * 1000; // 30 minutes
+    if (player.lastRadarTime && Date.now() - player.lastRadarTime < RADAR_COOLDOWN) return;
+
+    player.lastRadarTime = Date.now();
+    io.to(roomId).emit('radarActivated');
+  });
+
   socket.on('clubPlayer', (targetId) => {
     const roomId = socket.roomId;
     if (!roomId) return;
