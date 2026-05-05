@@ -938,29 +938,14 @@ function renderMinimap() {
   const mm = minimapCanvas;
   const mctx = minimapCtx;
 
-  // Dynamically calculate map bounds to perfectly center minimap
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (let w of walls) {
-      if (w.x < minX) minX = w.x;
-      if (w.y < minY) minY = w.y;
-      if (w.x + w.w > maxX) maxX = w.x + w.w;
-      if (w.y + w.h > maxY) maxY = w.y + w.h;
-  }
-  const padding = 100;
-  const boundX = minX - padding;
-  const boundY = minY - padding;
-  const boundW = (maxX - minX) + padding * 2;
-  const boundH = (maxY - minY) + padding * 2;
-  const maxDim = Math.max(boundW, boundH);
-  
-  // Center it if map isn't perfectly square
-  const offsetX = (maxDim - boundW) / 2;
-  const offsetY = (maxDim - boundH) / 2;
-  
-  const scale = mm.width / maxDim;
+  // Use full MAP_WIDTH/MAP_HEIGHT as bounds so players at the map edges
+  // always render within the minimap canvas and are never clipped.
+  const boundX = 0;
+  const boundY = 0;
+  const scale = mm.width / MAP_WIDTH;
 
-  const getX = (x) => (x - boundX + offsetX) * scale;
-  const getY = (y) => (y - boundY + offsetY) * scale;
+  const getX = (x) => x * scale;
+  const getY = (y) => y * scale;
 
   mctx.clearRect(0, 0, mm.width, mm.height);
 
@@ -1046,6 +1031,11 @@ function renderMinimap() {
       }
 
       if (elapsed < 3000) {
+          // Play ping sound once at the very start of the active window for crewmates
+          if (elapsed < 50 && me.role !== 'impostor') {
+              if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
+          }
+
           // Blink 3 times during the 3-second active window (on/off every 500ms)
           const blinkOn = (elapsed % 1000) < 500;
           if (blinkOn) {
