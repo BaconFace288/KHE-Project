@@ -1052,12 +1052,14 @@ function renderMinimap() {
               for (let id in players) {
                   const p = players[id];
                   if (p.role !== 'impostor' && !p.isDead) {
+                      mctx.shadowBlur = 12;
+                      mctx.shadowColor = '#e74c3c';
                       mctx.fillStyle = '#e74c3c';
+                      mctx.strokeStyle = '#ff6b6b';
+                      mctx.lineWidth = 1;
                       mctx.beginPath();
                       mctx.arc(getX(p.x), getY(p.y), 5, 0, Math.PI * 2);
                       mctx.fill();
-                      mctx.shadowBlur = 12;
-                      mctx.shadowColor = '#e74c3c';
                       mctx.stroke();
                       mctx.shadowBlur = 0;
                   }
