@@ -1031,11 +1031,6 @@ function renderMinimap() {
       }
 
       if (elapsed < 3000) {
-          // Play ping sound once at the very start of the active window for crewmates
-          if (elapsed < 50 && me.role !== 'impostor') {
-              if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
-          }
-
           // Blink 3 times during the 3-second active window (on/off every 500ms)
           const blinkOn = (elapsed % 1000) < 500;
           if (blinkOn) {
@@ -1059,6 +1054,24 @@ function renderMinimap() {
   } else {
       const radarTimerEl = document.getElementById('radar-timer');
       if (radarTimerEl) radarTimerEl.classList.add('hidden');
+  }
+
+  // === CREWMATE RADAR PING SOUND ===
+  // Calculated independently of role so crewmates always get the alert.
+  // Uses a debounce flag so it fires exactly once per 30-second radar cycle.
+  if (me.role !== 'impostor' && !me.isDead) {
+      const _timeLoop = 30000;
+      window.radarStartTime = window.radarStartTime || Date.now();
+      const _elapsed = (Date.now() - window.radarStartTime) % _timeLoop;
+      if (_elapsed < 3000) {
+          if (!window.radarPingPlayed) {
+              window.radarPingPlayed = true;
+              if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
+          }
+      } else {
+          // Reset flag once the window closes so it can fire next cycle
+          window.radarPingPlayed = false;
+      }
   }
 
   // Draw local player dot
