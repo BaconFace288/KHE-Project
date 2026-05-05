@@ -589,7 +589,7 @@ socket.on('radarActivated', () => {
   // Server confirmed radar is active — show visual for Caveman, ping for crewmates
   window.radarActiveUntil = Date.now() + 3000;
   if (myRole === 'impostor') {
-    window.radarCooldownUntil = Date.now() + 30 * 60 * 1000; // 30-min cooldown starts now
+    window.radarCooldownUntil = Date.now() + 30 * 1000; // 30-sec cooldown starts now
   } else if (!players[myId]?.isDead) {
     if (typeof playSubtleRadarPing === 'function') playSubtleRadarPing();
   }
@@ -970,9 +970,8 @@ function gameLoop() {
                 radarBtn.style.opacity = '1';
                 radarBtn.style.pointerEvents = 'none';
             } else if (cdLeft > 0) {
-                const mins = Math.floor(cdLeft / 60000);
-                const secs = Math.ceil((cdLeft % 60000) / 1000);
-                radarBtn.innerText = 'Radar [R]: ' + mins + ':' + secs.toString().padStart(2, '0');
+                const secs = Math.ceil(cdLeft / 1000);
+                radarBtn.innerText = 'Radar [R]: ' + secs + 's';
                 radarBtn.classList.remove('radar-active-btn');
                 radarBtn.disabled = true;
                 radarBtn.style.opacity = '0.5';

@@ -682,7 +682,7 @@ io.on('connection', (socket) => {
     const player = room.players[socket.id];
     if (!player || player.role !== 'impostor' || player.isDead) return;
 
-    const RADAR_COOLDOWN = 30 * 60 * 1000; // 30 minutes
+    const RADAR_COOLDOWN = 30 * 1000; // 30 seconds
     if (player.lastRadarTime && Date.now() - player.lastRadarTime < RADAR_COOLDOWN) return;
 
     player.lastRadarTime = Date.now();
