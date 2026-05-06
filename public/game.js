@@ -2372,3 +2372,97 @@ function drawEmergencyButton(time) {
 }
 
 requestAnimationFrame(gameLoop);
+
+// --- MOBILE CONTROLS LOGIC ---
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileToggle = document.getElementById('mobile-controls-toggle');
+    const mobileDpadContainer = document.getElementById('mobile-dpad-container');
+    const mobileActions = document.getElementById('mobile-actions');
+    const mobileMeetingBtn = document.getElementById('mobile-meeting-btn');
+    const mobileReportBtn = document.getElementById('mobile-report-btn');
+    
+    // Auto-detect touchscreen
+    if (navigator.maxTouchPoints > 0) {
+        if (mobileToggle) mobileToggle.checked = true;
+    }
+    
+    function isMobileMode() {
+        return mobileToggle && mobileToggle.checked;
+    }
+
+    // Sync visibility of mobile controls when game UI is active
+    setInterval(() => {
+        const gameUi = document.getElementById('game-ui');
+        if (gameUi && !gameUi.classList.contains('hidden') && isMobileMode()) {
+            if (mobileDpadContainer) mobileDpadContainer.classList.remove('hidden');
+            if (mobileActions) mobileActions.classList.remove('hidden');
+        } else {
+            if (mobileDpadContainer) mobileDpadContainer.classList.add('hidden');
+            if (mobileActions) mobileActions.classList.add('hidden');
+        }
+    }, 500);
+
+    // D-Pad handling
+    const dpadMap = {
+        'dpad-up': 'w',
+        'dpad-down': 's',
+        'dpad-left': 'a',
+        'dpad-right': 'd'
+    };
+
+    for (const [id, key] of Object.entries(dpadMap)) {
+        const btn = document.getElementById(id);
+        if (btn) {
+            const press = (e) => {
+                e.preventDefault();
+                if (typeof keys !== 'undefined') keys[key] = true;
+                btn.classList.add('active');
+            };
+            const release = (e) => {
+                e.preventDefault();
+                if (typeof keys !== 'undefined') keys[key] = false;
+                btn.classList.remove('active');
+            };
+            btn.addEventListener('touchstart', press, {passive: false});
+            btn.addEventListener('touchend', release, {passive: false});
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+        }
+    }
+
+    // Meeting and Report Actions
+    if (mobileMeetingBtn) {
+        const callMeeting = (e) => {
+            e.preventDefault();
+            if (typeof socket !== 'undefined' && typeof me !== 'undefined' && typeof EMERGENCY_BTN !== 'undefined') {
+               if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
+                   socket.emit('callMeeting', { type: 'emergency' });
+               }
+            }
+        };
+        mobileMeetingBtn.addEventListener('touchstart', callMeeting, {passive: false});
+        mobileMeetingBtn.addEventListener('mousedown', callMeeting);
+    }
+
+    if (mobileReportBtn) {
+        const callReport = (e) => {
+            e.preventDefault();
+            if (typeof socket !== 'undefined' && typeof me !== 'undefined' && typeof bodies !== 'undefined') {
+               let foundBody = null;
+               for (const body of bodies) {
+                   if (body.ejected || body.reported) continue;
+                   if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
+                       foundBody = body;
+                       break;
+                   }
+               }
+               if (foundBody) {
+                   socket.emit('callMeeting', { type: 'report', bodyName: foundBody.name });
+               }
+            }
+        };
+        mobileReportBtn.addEventListener('touchstart', callReport, {passive: false});
+        mobileReportBtn.addEventListener('mousedown', callReport);
+    }
+});

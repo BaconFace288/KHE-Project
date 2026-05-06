@@ -35,6 +35,11 @@
         <div id="info-lore" class="info-icon lore" title="Game Lore">&#9432;</div>
         <div id="info-credits" class="info-icon credits" title="Game Credits">&copy;</div>
       </div>
+      <div style="text-align:center; margin-top: 15px;">
+        <label style="color:#bdc3c7; font-family:'Orbitron', sans-serif; cursor: pointer;">
+          <input type="checkbox" id="mobile-controls-toggle"> Mobile Controls (D-Pad)
+        </label>
+      </div>
     </div>
     <!-- LORE MODAL -->
     <div id="lore-modal" class="hidden">
@@ -153,6 +158,12 @@
       <div id="role-display">Role: <span id="role-text">Crewmate</span></div>
       <div id="class-display">Class: <span id="class-text">-</span></div>
       <div id="radar-timer" class="hidden" style="background: rgba(0,0,0,0.7); color: #fff; padding: 10px 15px; border-radius: 8px; font-family: 'Orbitron', sans-serif; font-weight: bold; border: 2px solid #e74c3c; margin-bottom: 10px;">Radar: 30s</div>
+      
+      <div id="mobile-actions" class="hidden">
+        <button id="mobile-meeting-btn" class="mobile-action-btn">&#128680; Meeting</button>
+        <button id="mobile-report-btn" class="mobile-action-btn">&#9888; Report</button>
+      </div>
+
       <button id="radar-btn" class="hidden">Radar Ping [R]</button>
       <button id="ability-btn" class="hidden">Ability [R]</button>
       <div id="passive-badge" class="hidden passive-badge"></div>
@@ -193,6 +204,16 @@
       </div>
     </div>
   </div>
+  </div>
+
+  <!-- MOBILE D-PAD -->
+  <div id="mobile-dpad-container" class="hidden">
+    <div class="dpad-row"><button class="dpad-btn" id="dpad-up">&#9650;</button></div>
+    <div class="dpad-row">
+       <button class="dpad-btn" id="dpad-left">&#9664;</button>
+       <button class="dpad-btn" id="dpad-down">&#9660;</button>
+       <button class="dpad-btn" id="dpad-right">&#9654;</button>
+    </div>
   </div>
 
   <canvas id="gameCanvas" width="800" height="600"></canvas>
