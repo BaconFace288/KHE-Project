@@ -186,12 +186,31 @@ function handleCrewmateBot(bot, room) {
         bot.isMoving = true;
     }
 
+    // Stealth Cloak logic
+    if (bot.activeClass === 'stealthcloak') {
+        const STEALTH_CD = 90000;
+        if (!bot.lastStealthTime || (Date.now() - bot.lastStealthTime > STEALTH_CD)) {
+            if (Math.random() < 0.01) { // 1% chance per tick to activate if able
+                bot.lastStealthTime = Date.now();
+                const until = Date.now() + 6000;
+                io.to(room.code).emit('stealthActivated', { id: bot.id, until });
+            }
+        }
+    }
+
     if (bot.botState === 'MOVING') {
         const dist = Math.hypot(bot.target.x - bot.x, bot.target.y - bot.y);
         if (dist < 25) {
             bot.botState = 'TASKING';
             // Each task takes solid 25 seconds
-            bot.taskTimer = Date.now() + 25000;
+            let taskTime = 25000;
+            if (bot.activeClass === 'engineer' && (bot.engineerUses === undefined || bot.engineerUses < 2)) {
+                if (Math.random() < 0.5) { // 50% chance to use bypass ability if available
+                    bot.engineerUses = (bot.engineerUses || 0) + 1;
+                    taskTime = 5000; // 5 seconds instead of 25
+                }
+            }
+            bot.taskTimer = Date.now() + taskTime;
             bot.isMoving = false;
         } else {
             moveTowards(bot, bot.target.x, bot.target.y);
@@ -224,8 +243,31 @@ function handleCavemanBot(bot, room, botId) {
         return;
     }
 
-    // 2. Kill Cooldown check (20s)
-    const canKill = !bot.lastKillTime || (Date.now() - bot.lastKillTime > 20000);
+    // Tech Savvy logic
+    if (bot.activeClass === 'techsavvy') {
+        const RADAR_CD = 30000;
+        if (!bot.lastRadarTime || (Date.now() - bot.lastRadarTime > RADAR_CD)) {
+            if (Math.random() < 0.01) {
+                bot.lastRadarTime = Date.now();
+                io.to(room.code).emit('radarActivated');
+            }
+        }
+    }
+
+    // Agile logic
+    if (bot.activeClass === 'agile') {
+        const AGILE_CD = 45000;
+        if (!bot.lastAgileTime || (Date.now() - bot.lastAgileTime > AGILE_CD)) {
+            if (Math.random() < 0.01) {
+                bot.lastAgileTime = Date.now();
+                bot.agileUntil = Date.now() + 4000;
+            }
+        }
+    }
+
+    // 2. Kill Cooldown check
+    const cd = bot.activeClass === 'berserker' ? 8000 : 20000;
+    const canKill = !bot.lastKillTime || (Date.now() - bot.lastKillTime > cd);
 
     // 3. Find nearest crewmate
     let nearest = null; let minDist = Infinity;
@@ -266,10 +308,12 @@ function moveTowards(bot, tx, ty) {
     const probes = [0, 0.26, -0.26, 0.52, -0.52, 0.78, -0.78, 1.04, -1.04, 1.31, -1.31, 1.57, -1.57];
     let selectedAngle = null;
 
+    const currentSpeed = (bot.agileUntil && Date.now() < bot.agileUntil) ? BOT_WALK_SPEED * 2 : BOT_WALK_SPEED;
+
     for (let offset of probes) {
         const testAngle = directAngle + offset;
-        const nextX = bot.x + Math.cos(testAngle) * BOT_WALK_SPEED;
-        const nextY = bot.y + Math.sin(testAngle) * BOT_WALK_SPEED;
+        const nextX = bot.x + Math.cos(testAngle) * currentSpeed;
+        const nextY = bot.y + Math.sin(testAngle) * currentSpeed;
         
         if (!collides(nextX, nextY, BOT_RADIUS)) {
             selectedAngle = testAngle;
@@ -279,8 +323,8 @@ function moveTowards(bot, tx, ty) {
 
     if (selectedAngle !== null) {
         // Swept check: check midpoint to prevent tunneling at high speed
-        const midX = bot.x + Math.cos(selectedAngle) * (BOT_WALK_SPEED / 2);
-        const midY = bot.y + Math.sin(selectedAngle) * (BOT_WALK_SPEED / 2);
+        const midX = bot.x + Math.cos(selectedAngle) * (currentSpeed / 2);
+        const midY = bot.y + Math.sin(selectedAngle) * (currentSpeed / 2);
         
         if (collides(midX, midY, BOT_RADIUS)) {
             selectedAngle = null; // Midpoint blocked!
@@ -288,8 +332,8 @@ function moveTowards(bot, tx, ty) {
     }
 
     if (selectedAngle !== null) {
-        const nextX = bot.x + Math.cos(selectedAngle) * BOT_WALK_SPEED;
-        const nextY = bot.y + Math.sin(selectedAngle) * BOT_WALK_SPEED;
+        const nextX = bot.x + Math.cos(selectedAngle) * currentSpeed;
+        const nextY = bot.y + Math.sin(selectedAngle) * currentSpeed;
         
         // Progress tracking: If we haven't gotten closer to TARGET in 6 ticks (0.6s), we are "ramming"
         if (!bot.progressCheckTicks) bot.progressCheckTicks = 0;
@@ -307,8 +351,8 @@ function moveTowards(bot, tx, ty) {
     }
 
     if (selectedAngle !== null) {
-        const nextX = bot.x + Math.cos(selectedAngle) * BOT_WALK_SPEED;
-        const nextY = bot.y + Math.sin(selectedAngle) * BOT_WALK_SPEED;
+        const nextX = bot.x + Math.cos(selectedAngle) * currentSpeed;
+        const nextY = bot.y + Math.sin(selectedAngle) * currentSpeed;
         bot.flipX = (nextX < bot.x);
         bot.x = nextX; bot.y = nextY;
         bot.isMoving = true;
