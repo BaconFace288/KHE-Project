@@ -426,7 +426,7 @@ document.addEventListener('keydown', (e) => {
     let foundBody = null;
     for (const body of bodies) {
         if (body.ejected || body.reported) continue;
-        if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
+        if (Math.hypot(me.x - body.x, me.y - body.y) < 120) {
             foundBody = body;
             break;
         }
@@ -442,7 +442,7 @@ document.addEventListener('keydown', (e) => {
     const me = players[myId];
     if (!me || me.isDead) return;
     // Standard 110px detection radius
-    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
+    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 120) {
       console.log("CRITICAL: Emergency Meeting triggered via KeyQ");
       socket.emit('callMeeting', { type: 'emergency' });
     }
@@ -451,21 +451,35 @@ document.addEventListener('keydown', (e) => {
 
 // Canvas click → emergency button
 canvas.addEventListener('click', (e) => {
-  if (currentState !== 'PLAYING' || window.taskModalActive || window.meetingActive) return;
-  const me = players[myId];
-  if (!me || me.isDead) return;
-  
-  if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) > 120) return;
-  
-  const rect = canvas.getBoundingClientRect();
-  const camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, me.x - canvas.width / 2));
-  const camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, me.y - canvas.height / 2));
-  const wx = (e.clientX - rect.left) + camX;
-  const wy = (e.clientY - rect.top) + camY;
-  
-  if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < 55) {
-    console.log("CRITICAL: Emergency Meeting triggered via Canvas Click");
-    socket.emit('callMeeting', { type: 'emergency' });
+    if (currentState !== 'PLAYING' || window.taskModalActive || window.meetingActive) return;
+    const me = players[myId];
+    if (!me || me.isDead) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const camX = Math.max(0, Math.min(MAP_WIDTH - canvas.width, me.x - canvas.width / 2));
+    const camY = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, me.y - canvas.height / 2));
+    const wx = (e.clientX - rect.left) + camX;
+    const wy = (e.clientY - rect.top) + camY;
+    
+    if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) <= 120) {
+        if (Math.hypot(wx - EMERGENCY_BTN.x, wy - EMERGENCY_BTN.y) < 55) {
+            console.log("CRITICAL: Emergency Meeting triggered via Canvas Click");
+            socket.emit('callMeeting', { type: 'emergency' });
+            return;
+        }
+    }
+
+    for (const body of bodies) {
+        if (body.ejected || body.reported) continue;
+        if (Math.hypot(me.x - body.x, me.y - body.y) <= 120) {
+            if (Math.hypot(wx - body.x, wy - body.y) < 40) {
+                console.log("CRITICAL: Report triggered via Canvas Click on body:", body.name);
+                socket.emit('callMeeting', { type: 'report', bodyName: body.name });
+                return;
+            }
+        }
+    }
+});
   }
 });
 
@@ -1289,7 +1303,7 @@ function updateLocalPlayer(dt) {
   if (!isGhost) {
     for (let body of bodies) {
       if (body.ejected || body.reported) continue; 
-      if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
+      if (Math.hypot(me.x - body.x, me.y - body.y) < 120) {
         nearbyBody = body;
         break;
       }
@@ -2142,7 +2156,7 @@ function drawTaskHUD() {
 
   // [Q] prompt when near emergency button
   if (me && !me.isDead && !window.meetingActive &&
-      Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
+      Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 120) {
     const cx = canvas.width / 2;
     const cy = canvas.height - 175;
     ctx.save();
@@ -2439,7 +2453,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (mobileMeetingBtn) {
                 // Emergency button is at x=0, y=0
-                const canMeeting = !me.isDead && Math.hypot(me.x - 0, me.y - 0) < 110;
+                const canMeeting = !me.isDead && Math.hypot(me.x - 0, me.y - 0) < 120;
                 mobileMeetingBtn.style.opacity = canMeeting ? '1' : '0.5';
                 mobileMeetingBtn.style.pointerEvents = canMeeting ? 'auto' : 'none';
             }
@@ -2448,7 +2462,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let canReport = false;
                 if (!me.isDead) {
                     for (const body of window.bodies) {
-                        if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < 110) {
+                        if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < 120) {
                             canReport = true; break;
                         }
                     }
@@ -2467,7 +2481,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (window.socket && window.players && window.myId && window.players[window.myId]) {
                const me = window.players[window.myId];
-               if (!me.isDead && Math.hypot(me.x - 0, me.y - 0) < 110) {
+               if (!me.isDead && Math.hypot(me.x - 0, me.y - 0) < 120) {
                    window.socket.emit('callMeeting', { type: 'emergency' });
                }
             }
@@ -2484,7 +2498,7 @@ document.addEventListener('DOMContentLoaded', () => {
                let foundBody = null;
                for (const body of window.bodies) {
                    if (body.ejected || body.reported) continue;
-                   if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
+                   if (Math.hypot(me.x - body.x, me.y - body.y) < 120) {
                        foundBody = body;
                        break;
                    }
@@ -2498,3 +2512,4 @@ document.addEventListener('DOMContentLoaded', () => {
         mobileReportBtn.addEventListener('mousedown', callReport);
     }
 });
+
