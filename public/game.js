@@ -2373,6 +2373,7 @@ function drawEmergencyButton(time) {
 
 requestAnimationFrame(gameLoop);
 
+
 // --- MOBILE CONTROLS LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
     const mobileToggle = document.getElementById('mobile-controls-toggle');
@@ -2415,12 +2416,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btn) {
             const press = (e) => {
                 e.preventDefault();
-                if (typeof keys !== 'undefined') keys[key] = true;
+                if (window.keys) window.keys[key] = true;
                 btn.classList.add('active');
             };
             const release = (e) => {
                 e.preventDefault();
-                if (typeof keys !== 'undefined') keys[key] = false;
+                if (window.keys) window.keys[key] = false;
                 btn.classList.remove('active');
             };
             btn.addEventListener('touchstart', press, {passive: false});
@@ -2431,13 +2432,43 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Update button states (grayed out if unusable)
+    function updateMobileButtons() {
+        if (isMobileMode() && window.players && window.myId && window.players[window.myId]) {
+            const me = window.players[window.myId];
+            
+            if (mobileMeetingBtn) {
+                // Emergency button is at x=0, y=0
+                const canMeeting = !me.isDead && Math.hypot(me.x - 0, me.y - 0) < 110;
+                mobileMeetingBtn.style.opacity = canMeeting ? '1' : '0.5';
+                mobileMeetingBtn.style.pointerEvents = canMeeting ? 'auto' : 'none';
+            }
+            
+            if (mobileReportBtn && window.bodies) {
+                let canReport = false;
+                if (!me.isDead) {
+                    for (const body of window.bodies) {
+                        if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < 110) {
+                            canReport = true; break;
+                        }
+                    }
+                }
+                mobileReportBtn.style.opacity = canReport ? '1' : '0.5';
+                mobileReportBtn.style.pointerEvents = canReport ? 'auto' : 'none';
+            }
+        }
+        requestAnimationFrame(updateMobileButtons);
+    }
+    requestAnimationFrame(updateMobileButtons);
+
     // Meeting and Report Actions
     if (mobileMeetingBtn) {
         const callMeeting = (e) => {
             e.preventDefault();
-            if (typeof socket !== 'undefined' && typeof me !== 'undefined' && typeof EMERGENCY_BTN !== 'undefined') {
-               if (Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < 110) {
-                   socket.emit('callMeeting', { type: 'emergency' });
+            if (window.socket && window.players && window.myId && window.players[window.myId]) {
+               const me = window.players[window.myId];
+               if (!me.isDead && Math.hypot(me.x - 0, me.y - 0) < 110) {
+                   window.socket.emit('callMeeting', { type: 'emergency' });
                }
             }
         };
@@ -2448,17 +2479,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mobileReportBtn) {
         const callReport = (e) => {
             e.preventDefault();
-            if (typeof socket !== 'undefined' && typeof me !== 'undefined' && typeof bodies !== 'undefined') {
+            if (window.socket && window.players && window.myId && window.players[window.myId] && window.bodies) {
+               const me = window.players[window.myId];
                let foundBody = null;
-               for (const body of bodies) {
+               for (const body of window.bodies) {
                    if (body.ejected || body.reported) continue;
                    if (Math.hypot(me.x - body.x, me.y - body.y) < 110) {
                        foundBody = body;
                        break;
                    }
                }
-               if (foundBody) {
-                   socket.emit('callMeeting', { type: 'report', bodyName: foundBody.name });
+               if (foundBody && !me.isDead) {
+                   window.socket.emit('callMeeting', { type: 'report', bodyName: foundBody.name });
                }
             }
         };
