@@ -1117,26 +1117,34 @@ canvas {
 html, body {
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: none;
   height: 100%;
   width: 100%;
 }
 
-/* Override the canvas so it fills the window on mobile;
-   JS resizeCanvas() will set its internal pixel dimensions. */
-@media (max-width: 1024px) {
-  #gameCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw !important;
-    height: 100vh !important;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    z-index: 0;
-  }
+/* Prevent default touch gestures only on the game canvas itself */
+#gameCanvas {
+  touch-action: none;
+}
 
+/* ── Canvas: sits beneath the UI layer.
+   resizeCanvas() in game.js sets the pixel dimensions via .width/.height.
+   CSS just positions it at (0,0) without stealing stacking context. */
+#gameCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;         /* below #ui-layer (z-index 2) */
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* The UI layer must sit above the canvas at all times */
+#ui-layer {
+  z-index: 2;
+}
+
+@media (max-width: 1024px) {
   /* Game UI anchored to top-right, scaled down for small screens */
   #game-ui {
     position: fixed;
@@ -1149,13 +1157,13 @@ html, body {
   }
 
   #minimap-container {
-    width: 120px;
-    height: 120px;
+    width: 110px;
+    height: 110px;
   }
 
   #minimap-canvas {
-    width: 120px !important;
-    height: 120px !important;
+    width: 110px !important;
+    height: 110px !important;
   }
 
   /* D-pad: bottom-left, smaller buttons */
