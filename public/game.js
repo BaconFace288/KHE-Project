@@ -48,6 +48,27 @@ const addBotBtn = document.getElementById('add-bot-btn');
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// --- RESPONSIVE CANVAS RESIZE ---
+// Resizes the canvas drawing buffer to fill the browser window exactly.
+// Called on load and on every resize/orientationchange so mobile landscape
+// always fills the screen without letterboxing or OS-level zoom.
+function resizeCanvas() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  if (canvas.width !== w || canvas.height !== h) {
+    canvas.width  = w;
+    canvas.height = h;
+  }
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+  // orientationchange fires before the new dimensions are available;
+  // a small delay lets the browser settle first.
+  setTimeout(resizeCanvas, 150);
+});
+
+
 const minimapCanvas = document.getElementById('minimap-canvas');
 const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
 
