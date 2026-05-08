@@ -57,6 +57,7 @@ const MAP_HEIGHT = 3000;
 // Emergency meeting button (center of map)
 // r = visual button radius, collisionR = physical block radius (includes pedestal)
 const EMERGENCY_BTN = { x: 1500, y: 1490, r: 22, collisionR: 36 };
+const INTERACT_RADIUS = 120; // shared distance for body reports & emergency meetings (PC + mobile)
 
 // === Map Obstacles ===
 const WT = 20; // Wall thickness
@@ -480,8 +481,6 @@ canvas.addEventListener('click', (e) => {
         }
     }
 });
-  }
-});
 
 
 // ==== Socket Events ====
@@ -619,7 +618,7 @@ socket.on('crewmatesWinTasks', () => {
 });
 
 socket.on('radarActivated', () => {
-  // Server confirmed radar is active — show visual for Caveman, ping for crewmates
+  // Server confirmed radar is active ï¿½ show visual for Caveman, ping for crewmates
   window.radarActiveUntil = Date.now() + 3000;
   if (myRole === 'impostor') {
     window.radarCooldownUntil = Date.now() + 30 * 1000; // 30-sec cooldown starts now
@@ -733,7 +732,7 @@ function triggerAbility() {
   else if (myClass === 'agile') triggerSprint();
   else if (myClass === 'stealthcloak') triggerStealth();
   else if (myClass === 'engineer') triggerBypass();
-  // berserker and emp are passive — no ability to trigger
+  // berserker and emp are passive ï¿½ no ability to trigger
 }
 
 function triggerSprint() {
@@ -2452,8 +2451,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const me = window.players[window.myId];
             
             if (mobileMeetingBtn) {
-                // Emergency button is at x=0, y=0
-                const canMeeting = !me.isDead && Math.hypot(me.x - 0, me.y - 0) < 120;
+                const canMeeting = !me.isDead && Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < INTERACT_RADIUS;
                 mobileMeetingBtn.style.opacity = canMeeting ? '1' : '0.5';
                 mobileMeetingBtn.style.pointerEvents = canMeeting ? 'auto' : 'none';
             }
@@ -2462,7 +2460,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let canReport = false;
                 if (!me.isDead) {
                     for (const body of window.bodies) {
-                        if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < 120) {
+                        if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < INTERACT_RADIUS) {
                             canReport = true; break;
                         }
                     }
@@ -2481,7 +2479,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             if (window.socket && window.players && window.myId && window.players[window.myId]) {
                const me = window.players[window.myId];
-               if (!me.isDead && Math.hypot(me.x - 0, me.y - 0) < 120) {
+               if (!me.isDead && Math.hypot(me.x - EMERGENCY_BTN.x, me.y - EMERGENCY_BTN.y) < INTERACT_RADIUS) {
                    window.socket.emit('callMeeting', { type: 'emergency' });
                }
             }
