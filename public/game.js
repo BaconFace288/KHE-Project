@@ -844,6 +844,9 @@ function updateScreenState() {
   gameUi.classList.add('hidden');
   endScreen.classList.add('hidden');
 
+  // Toggle body class so CSS can lock scroll during play but allow it on menus
+  document.body.classList.toggle('game-active', currentState === 'PLAYING' || currentState === 'GAMEOVER');
+
   if (currentState === 'LANDING') {
       landingPage.classList.remove('hidden');
   }
