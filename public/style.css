@@ -679,7 +679,7 @@ canvas {
 
 #role-display {
     position: fixed;
-    top: 20px;
+    top: 55px;
     left: 20px;
     background: rgba(0,0,0,0.6);
     padding: 10px 15px;
@@ -993,8 +993,8 @@ canvas {
 
 /* ===== LOBBY SCROLL FIX ===== */
 #lobby-screen {
-  overflow-y: auto;
-  max-height: 540px; /* Fits inside the 600px canvas */
+  overflow-y: visible;
+  max-height: none;
   padding-bottom: 20px;
   margin: auto;
   width: 90%;
@@ -1029,7 +1029,7 @@ canvas {
 /* ===== IN-GAME CLASS DISPLAY ===== */
 #class-display {
   position: fixed;
-  top: 65px;
+  top: 95px;
   left: 20px;
   background: rgba(0, 0, 0, 0.65);
   color: #bdc3c7;
@@ -1199,6 +1199,20 @@ html, body {
     font-size: 13px;
     padding: 8px 12px;
   }
+
+  /* Move role/class display on mobile to avoid task list overlap */
+  #role-display {
+    top: 75px !important;
+    left: 10px !important;
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
+  #class-display {
+    top: 105px !important;
+    left: 10px !important;
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+  }
 }
 
 /* Portrait-mode rotate overlay: only shown on touch devices in portrait */
@@ -1269,7 +1283,7 @@ html, body {
   }
 
   #ui-layer {
-    overflow-y: auto;
+    overflow-y: visible;
     overflow-x: hidden;
     height: auto;
     min-height: 100%;
@@ -1304,8 +1318,8 @@ html, body {
   }
 
   .landing-banner {
-    object-fit: cover;      /* crop sides rather than letterbox */
-    object-position: center;
+    object-fit: cover;
+    object-position: center top;   /* show the characters faces, not their bodies */
   }
 
   /* Stack PLAY button, lore/credits icons */
@@ -1352,4 +1366,47 @@ html, body {
 
   h1 { font-size: 22px; }
   h2 { font-size: 18px; }
+
+  /* Remove inner scrollbars to avoid double-scrolling on mobile */
+  #player-list, #vote-player-list {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+}
+
+/* FIX 4: Role intro image smaller on mobile so it isn't cut off */
+@media (max-width: 768px) {
+  .intro-image {
+    max-height: 32vh;
+    max-width: 60vw;
+    margin-bottom: 12px;
+  }
+  .intro-role {
+    font-size: 36px;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+  .intro-header {
+    font-size: 16px;
+  }
+  .intro-objective {
+    font-size: 15px;
+  }
+  .intro-content {
+    max-width: 95%;
+  }
+}
+
+/* Double scrollbar fix */
+#lobby-screen { overflow: hidden; }
+#class-select-panel { overflow-y: auto; max-height: 60vh; }
+
+/* Role Intro Mobile Size */
+@media (max-width: 1024px) {
+  #intro-image {
+    max-width: 80vw;
+    max-height: 40vh;
+    object-fit: contain;
+  }
 }

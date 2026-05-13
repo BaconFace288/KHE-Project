@@ -1262,7 +1262,7 @@ document.addEventListener('keydown', e => {
     for (let task of TASKS) {
       if (assignedTasks && !assignedTasks.has(task.id)) continue; // skip unassigned
       if (completedTasks.has(task.id)) continue;
-      if (Math.hypot(me.x - task.x, me.y - task.y) < 50) {
+      if (Math.hypot(me.x - task.x, me.y - task.y) < 55) {
         window.openTaskModal(task);
         break;
       }

@@ -350,6 +350,7 @@ window.players = players;
 var myId = null;
 window.myId = myId;
 var myRole = 'crewmate';
+window.myRole = myRole;
 var currentRoomCode = null;
 var currentState = 'LANDING';
 var hostId = null;
@@ -593,6 +594,7 @@ function handleGameStart() {
     
     if (players[myId]) {
         myRole = players[myId].role;
+        window.myRole = myRole;
         myClass = players[myId].activeClass || 'techsavvy';
         window.myClass = myClass;
         // Reset ability state for new game
@@ -2060,7 +2062,7 @@ function drawTasks() {
       continue;
     }
 
-    const nearby = me && Math.hypot(me.x - task.x, me.y - task.y) < 50;
+    const nearby = me && Math.hypot(me.x - task.x, me.y - task.y) < 55;
     
     ctx.save();
     ctx.translate(task.x, task.y - 30);
@@ -2097,9 +2099,11 @@ function drawTasks() {
 function showTaskPrompt(task) {
   if (shownTaskId === task.id) return;
   shownTaskId = task.id;
+  window.shownTaskId = task.id;
 }
 function hideTaskPrompt() {
   shownTaskId = null;
+  window.shownTaskId = null;
 }
 
 // Render the task HUD (task prompt + progress bar)
@@ -2480,17 +2484,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 mobileMeetingBtn.style.pointerEvents = canMeeting ? 'auto' : 'none';
             }
             
-            if (mobileReportBtn && window.bodies) {
-                let canReport = false;
-                if (!me.isDead) {
-                    for (const body of window.bodies) {
-                        if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < INTERACT_RADIUS) {
-                            canReport = true; break;
+            if (mobileReportBtn) {
+                // Crewmate near task? Switch button to "Do Task", else show Report
+                const nearTask = (myRole === 'crewmate') && shownTaskId && !window.meetingActive;
+                if (nearTask) {
+                    mobileReportBtn.textContent = '⚡ Do Task';
+                    mobileReportBtn.style.backgroundColor = '#27ae60';
+                    mobileReportBtn.style.borderColor = '#1e8449';
+                    mobileReportBtn.style.opacity = '1';
+                    mobileReportBtn.style.pointerEvents = 'auto';
+                    mobileReportBtn.dataset.mode = 'task';
+                } else {
+                    mobileReportBtn.textContent = '⚠ Report';
+                    mobileReportBtn.style.backgroundColor = '';
+                    mobileReportBtn.style.borderColor = '';
+                    mobileReportBtn.dataset.mode = 'report';
+                    let canReport = false;
+                    if (!me.isDead && window.bodies) {
+                        for (const body of window.bodies) {
+                            if (!body.ejected && !body.reported && Math.hypot(me.x - body.x, me.y - body.y) < INTERACT_RADIUS) {
+                                canReport = true; break;
+                            }
                         }
                     }
+                    mobileReportBtn.style.opacity = canReport ? '1' : '0.5';
+                    mobileReportBtn.style.pointerEvents = canReport ? 'auto' : 'none';
                 }
-                mobileReportBtn.style.opacity = canReport ? '1' : '0.5';
-                mobileReportBtn.style.pointerEvents = canReport ? 'auto' : 'none';
             }
         }
         requestAnimationFrame(updateMobileButtons);
@@ -2515,12 +2534,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mobileReportBtn) {
         const callReport = (e) => {
             e.preventDefault();
+            // Task mode: fire F key to open the task modal
+            if (mobileReportBtn.dataset.mode === 'task') {
+                document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyF', key: 'f', bubbles: true }));
+                document.dispatchEvent(new KeyboardEvent('keyup',   { code: 'KeyF', key: 'f', bubbles: true }));
+                return;
+            }
+            // Report mode
             if (window.socket && window.players && window.myId && window.players[window.myId] && window.bodies) {
                const me = window.players[window.myId];
                let foundBody = null;
                for (const body of window.bodies) {
                    if (body.ejected || body.reported) continue;
-                   if (Math.hypot(me.x - body.x, me.y - body.y) < 120) {
+                   if (Math.hypot(me.x - body.x, me.y - body.y) < INTERACT_RADIUS) {
                        foundBody = body;
                        break;
                    }
@@ -2529,7 +2555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                    window.socket.emit('callMeeting', { type: 'report', bodyName: foundBody.name });
                }
             }
-        };
+        }
         mobileReportBtn.addEventListener('touchstart', callReport, {passive: false});
         mobileReportBtn.addEventListener('mousedown', callReport);
     }
