@@ -403,3 +403,24 @@
     position: absolute; top: 0; left: 160px; width: 20px; height: 100%; 
     border-left: 2px dashed rgba(255,255,255,0.3); border-right: 2px dashed rgba(255,255,255,0.3);
 }
+
+/* Mobile Responsive for Minigames */
+@media (max-width: 800px), (max-height: 500px) {
+  .modal-card {
+    padding: 10px 15px !important;
+    width: 95vw !important;
+    max-height: 95vh !important;
+    overflow-y: auto;
+  }
+  .modal-header h2 { font-size: 16px !important; }
+  .modal-stage-label { font-size: 11px !important; }
+  .modal-progress-bar { height: 4px !important; margin-bottom: 8px !important; }
+  #minigame-instructions { font-size: 11px !important; margin-bottom: 6px !important; }
+  .modal-cancel-btn { padding: 2px 8px !important; font-size: 16px !important; }
+  
+  #minigame-canvas-wrap {
+    transform: scale(0.85);
+    transform-origin: top center;
+    margin-bottom: -10%;
+  }
+}

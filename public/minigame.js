@@ -518,7 +518,7 @@ function startRelayGame() {
   draw();
 
   let active = true;
-  canvas.onmousedown = e => {
+  const t1Down = e => {
     if (!active) return;
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
@@ -529,13 +529,13 @@ function startRelayGame() {
       }
     });
   };
-  canvas.onmousemove = e => {
+  const t1Move = e => {
     if (!dragging || !active) return;
     const r = canvas.getBoundingClientRect();
     dragging.x = e.clientX - r.left; dragging.y = e.clientY - r.top;
     draw();
   };
-  canvas.onmouseup = e => {
+  const t1Up = e => {
     if (!dragging || !active) return;
     const r = canvas.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
@@ -822,8 +822,8 @@ function startReactorGame() {
   let dragging = false;
   let active = true;
 
-  wheel.onmousedown = () => { if(active) dragging = true; };
-  window.onmousemove = e => {
+  const t7Down = () => { if(active) dragging = true; };
+  const t7Move = e => {
     if (!dragging || !active) return;
     const r = wheel.getBoundingClientRect();
     const cx = r.left + r.width/2;
