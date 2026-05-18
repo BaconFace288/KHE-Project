@@ -1160,7 +1160,11 @@ html, body {
     gap: 4px;
   }
 
+  /* Reposition minimap to top-right below the Music button, 
+     away from the action buttons at bottom-right */
   #minimap-container {
+    top: 65px !important;
+    right: 8px !important;
     width: 110px;
     height: 110px;
   }
@@ -1194,10 +1198,12 @@ html, body {
     font-size: 13px;
   }
 
-  /* Action/radar/ability buttons in game-ui */
-  #action-btn, #radar-btn, #ability-btn {
-    font-size: 13px;
-    padding: 8px 12px;
+  /* Hide redundant desktop HUD buttons — now handled by #mobile-actions */
+  #ability-btn,
+  #action-btn,
+  #radar-btn,
+  #passive-badge {
+    display: none !important;
   }
 
   /* Move role/class display on mobile to avoid task list overlap */
