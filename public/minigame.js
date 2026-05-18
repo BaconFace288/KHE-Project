@@ -380,11 +380,15 @@ function closeModal() {
     currentTask = null;
     currentQuestion = null;
     codingAttempts = 0;
+    // Signal all rAF game loops to stop
+    window._mgActive = false;
     // Clean up any minigame timers
     if (simonTimeout) { clearTimeout(simonTimeout); simonTimeout = null; }
     // clear any global listeners from valve/dish/etc
     window.onmousemove = null;
     window.onmouseup = null;
+    // Remove any lingering window listeners registered by t7_reactor
+    if (window._t7CleanUp) { try { window._t7CleanUp(); } catch(e){} window._t7CleanUp = null; }
 
     // keyboard state purge: ensure no keys are "stuck" down in game.js
     if (window.keys) {
@@ -393,6 +397,8 @@ function closeModal() {
   } finally {
     // re-enable game keys
     window.taskModalActive = false;
+    // Safety net: force-clear again after 300ms in case a rAF callback set it back
+    setTimeout(() => { window.taskModalActive = false; }, 300);
     // Restore focus to game canvas for immediate keyboard response
     const gc = document.getElementById('gameCanvas');
     if (gc) gc.focus();
@@ -645,9 +651,10 @@ function startDishGame() {
   });
   mgWrap.appendChild(controls);
 
+  window._mgActive = true;
   let active = true;
   function draw() {
-    if (mgWrap.innerHTML === '' || !active) return;
+    if (!active || !window._mgActive || mgWrap.innerHTML === '') return;
     ctx.clearRect(0,0,canvas.width,canvas.height);
     // Draw Target
     ctx.beginPath(); ctx.strokeStyle = 'rgba(243, 156, 18, 0.3)'; ctx.lineWidth = 3;
@@ -847,6 +854,11 @@ function startReactorGame() {
     }
   };
   window.onmouseup = () => { dragging = false; lastAngle = null; };
+  // Register cleanup so closeModal can remove these listeners
+  window._t7CleanUp = () => {
+    window.onmousemove = null;
+    window.onmouseup = null;
+  };
 }
 
 // -------- t8: CRACK WELD minigame --------

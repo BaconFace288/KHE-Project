@@ -2422,6 +2422,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileActions = document.getElementById('mobile-actions');
     const mobileMeetingBtn = document.getElementById('mobile-meeting-btn');
     const mobileReportBtn = document.getElementById('mobile-report-btn');
+    const mobileAbilityBtn = document.getElementById('mobile-ability-btn');
+    const mobileRadarBtn   = document.getElementById('mobile-radar-btn');
     
     // Auto-detect touchscreen
     if (navigator.maxTouchPoints > 0) {
@@ -2511,6 +2513,44 @@ document.addEventListener('DOMContentLoaded', () => {
                     mobileReportBtn.style.pointerEvents = canReport ? 'auto' : 'none';
                 }
             }
+
+            // ── Mobile Ability button ──
+            if (mobileAbilityBtn) {
+                const hasAbility = (myRole === 'impostor' && myClass === 'agile') ||
+                                   (myRole === 'crewmate' && (myClass === 'stealthcloak' || myClass === 'engineer'));
+                if (hasAbility && !me.isDead && !window.meetingActive) {
+                    mobileAbilityBtn.classList.remove('hidden');
+                    const abilBtn = document.getElementById('ability-btn');
+                    if (abilBtn) {
+                        mobileAbilityBtn.textContent = '⚡ ' + abilBtn.innerText.replace('[R]','').trim();
+                        mobileAbilityBtn.style.opacity  = abilBtn.disabled ? '0.5' : '1';
+                        mobileAbilityBtn.style.pointerEvents = abilBtn.disabled ? 'none' : 'auto';
+                    }
+                } else {
+                    mobileAbilityBtn.classList.add('hidden');
+                }
+            }
+
+            // ── Mobile Radar button (Tech Savvy) ──
+            if (mobileRadarBtn) {
+                const hasRadar = myRole === 'impostor' && myClass === 'techsavvy';
+                if (hasRadar && !me.isDead && !window.meetingActive) {
+                    mobileRadarBtn.classList.remove('hidden');
+                    const now = Date.now();
+                    const cdLeft = Math.max(0, (window.radarCooldownUntil || 0) - now);
+                    if (cdLeft > 0) {
+                        mobileRadarBtn.textContent = '📡 Radar: ' + Math.ceil(cdLeft / 1000) + 's';
+                        mobileRadarBtn.style.opacity = '0.5';
+                        mobileRadarBtn.style.pointerEvents = 'none';
+                    } else {
+                        mobileRadarBtn.textContent = '📡 Radar Ping';
+                        mobileRadarBtn.style.opacity = '1';
+                        mobileRadarBtn.style.pointerEvents = 'auto';
+                    }
+                } else {
+                    mobileRadarBtn.classList.add('hidden');
+                }
+            }
         }
         requestAnimationFrame(updateMobileButtons);
     }
@@ -2558,6 +2598,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         mobileReportBtn.addEventListener('touchstart', callReport, {passive: false});
         mobileReportBtn.addEventListener('mousedown', callReport);
+    }
+
+    if (mobileAbilityBtn) {
+        const onAbility = (e) => { e.preventDefault(); if (typeof triggerAbility === 'function') triggerAbility(); };
+        mobileAbilityBtn.addEventListener('touchstart', onAbility, {passive: false});
+        mobileAbilityBtn.addEventListener('mousedown', onAbility);
+    }
+
+    if (mobileRadarBtn) {
+        const onRadar = (e) => { e.preventDefault(); if (typeof triggerRadarPing === 'function') triggerRadarPing(); };
+        mobileRadarBtn.addEventListener('touchstart', onRadar, {passive: false});
+        mobileRadarBtn.addEventListener('mousedown', onRadar);
     }
 });
 
