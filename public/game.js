@@ -2551,6 +2551,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     mobileRadarBtn.classList.add('hidden');
                 }
             }
+
+            // ── Mobile Club button (Impostor only) ──
+            if (mobileClubBtn) {
+                if (myRole === 'impostor' && !me.isDead && !window.meetingActive) {
+                    mobileClubBtn.classList.remove('hidden');
+                    const now = Date.now();
+                    const effectiveCooldown = myClass === 'berserker' ? 8000 : SWING_COOLDOWN;
+                    const cdLeft = Math.max(0, effectiveCooldown - (now - lastSwingTime));
+                    if (cdLeft > 0) {
+                        mobileClubBtn.textContent = '⏳ Club: ' + Math.ceil(cdLeft / 1000) + 's';
+                        mobileClubBtn.style.opacity = '0.5';
+                        mobileClubBtn.style.pointerEvents = 'none';
+                    } else {
+                        mobileClubBtn.textContent = '🐾 Club';
+                        mobileClubBtn.style.opacity = '1';
+                        mobileClubBtn.style.pointerEvents = 'auto';
+                    }
+                } else {
+                    mobileClubBtn.classList.add('hidden');
+                }
+            }
         }
         requestAnimationFrame(updateMobileButtons);
     }
@@ -2610,6 +2631,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const onRadar = (e) => { e.preventDefault(); if (typeof triggerRadarPing === 'function') triggerRadarPing(); };
         mobileRadarBtn.addEventListener('touchstart', onRadar, {passive: false});
         mobileRadarBtn.addEventListener('mousedown', onRadar);
+    }
+
+    if (mobileClubBtn) {
+        const onClub = (e) => { e.preventDefault(); if (typeof triggerClub === 'function') triggerClub(); };
+        mobileClubBtn.addEventListener('touchstart', onClub, {passive: false});
+        mobileClubBtn.addEventListener('mousedown', onClub);
     }
 });
 
